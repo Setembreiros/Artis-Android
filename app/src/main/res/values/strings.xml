@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Artis</string>
+    <string name="user">User</string>
+    <string name="user_artist">User Artist</string>
+    <string name="register">Register</string>
+    <string name="pass">Password</string>
+    <string name="last_name">Last name</string>
+    <string name="name">Name</string>
+    <string name="region">Region</string>
+    <string name="invalid_email">Invalid email</string>
+    <string name="invalid_pass_text">The password must have more than 8 characters and at least one symbol, a number and a capital letter</string>
+    <string name="error_unknown">Error unknown</string>
+    <string name="username_already_exists">Username already exists</string>
+    <string name="email_already_exists"> Email already exists</string>
+    <string name="successfully_created_account">Successfully created account</string>
 </resources>

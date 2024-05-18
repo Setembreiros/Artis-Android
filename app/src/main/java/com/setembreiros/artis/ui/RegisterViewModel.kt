@@ -18,12 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileInputStream
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
 import java.util.Base64
-import java.util.Properties
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
@@ -52,10 +49,6 @@ class RegisterViewModel @Inject constructor(
     val region = _region
 
     private val _userType = MutableStateFlow(UserType.UE)
-    val userType = _userType
-
-
-
 
     fun setUserName(value: String){
         this._userName.update { value }
@@ -92,28 +85,25 @@ class RegisterViewModel @Inject constructor(
                     signUp(BuildConfig.CLIENT_ID_UA,BuildConfig.SECRET_KEY_UA)
                 else signUp(BuildConfig.CLIENT_ID_UE,BuildConfig.SECRET_KEY_UE)
             }
-
-
         }
     }
 
     private fun validateData(): Boolean{
         val pattern = Regex("^(?=.*[A-Z])(?=.*[\\W_])(?=.*[0-9]).{8,}$")
-        _responseManager.update { it.copy(show = false) }
+        responseManager.update { it.copy(show = false) }
         if(!_email.value.isValidEmail()){
-            _responseManager.value = ResponseManager(show = true, false, message = "invalid_email")
+            responseManager.value = ResponseManager(show = true, false, message = "invalid_email")
             return false
         }
         if(!pattern.matches(_password.value)){
-            _responseManager.value = ResponseManager(show = true, false, message = "invalid_pass")
+            responseManager.value = ResponseManager(show = true, false, message = "invalid_pass")
             return false
         }
         return true
     }
 
-
     private suspend fun signUp(clientIdVal: String, secretKey: String) {
-        _loading.update { true }
+        loading.update { true }
         val attrs = mutableListOf<AttributeType>()
 
         val attributeTypeEmail = AttributeType {
@@ -150,33 +140,28 @@ class RegisterViewModel @Inject constructor(
         CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
 
             try {
-                val response = identityProviderClient.signUp(request)
-                _responseManager.value = ResponseManager(show = true, false, message = "account_created")
-                _loading.update { false }
+                identityProviderClient.signUp(request)
+                responseManager.value = ResponseManager(show = true, false, message = "account_created")
+                loading.update { false }
             } catch (e: Exception) {
-                _loading.update { false }
+                loading.update { false }
                 println("Error occurred: $e")
                 e.message?.let {
                     getErrorMessage(it)
                 }
-
             }
         }
     }
 
-
     private fun getErrorMessage(message: String){
         if(message.contains("EXISTING_USERNAME")){
-            _responseManager.value = ResponseManager(show = true, false, message = "EXISTING_USERNAME")
+            responseManager.value = ResponseManager(show = true, false, message = "EXISTING_USERNAME")
             return
         }
         if(message.contains("EXISTING_EMAIL")){
-            _responseManager.value = ResponseManager(show = true, false, message = "EXISTING_EMAIL")
+            responseManager.value = ResponseManager(show = true, false, message = "EXISTING_EMAIL")
             return
         }
-
-
-
     }
 
     private fun calculateSecretHash(userPoolClientId: String, userPoolClientSecret: String, userName: String): String {
@@ -196,6 +181,4 @@ class RegisterViewModel @Inject constructor(
         }
         return ""
     }
-
-
 }

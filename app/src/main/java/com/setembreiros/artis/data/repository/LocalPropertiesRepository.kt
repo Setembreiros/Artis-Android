@@ -14,7 +14,6 @@ class LocalPropertiesRepository @Inject constructor() {
         try {
                 properties.load(FileInputStream("java/com/setembreiros/artis/data.properties"))
 
-            // Obtiene el valor de la variable "mi_variable"
             return properties
 
         } catch (e: IOException) {

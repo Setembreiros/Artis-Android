@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -55,14 +54,13 @@ import com.setembreiros.artis.ui.theme.ArtisTheme
 @Composable
 fun RegisterScreen() {
     val viewModel: RegisterViewModel = hiltViewModel()
-    val context = LocalContext.current
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     val email by viewModel.email.collectAsStateWithLifecycle()
     val password by viewModel.password.collectAsStateWithLifecycle()
     val name by viewModel.name.collectAsStateWithLifecycle()
     val lastName by viewModel.lastName.collectAsStateWithLifecycle()
     val region by viewModel.region.collectAsStateWithLifecycle()
-    val responseManager by viewModel._responseManager.collectAsStateWithLifecycle()
+    val responseManager by viewModel.responseManager.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
 
 
@@ -81,10 +79,6 @@ fun RegisterScreen() {
     )
 
 }
-
-
-
-
 
 @Composable
 fun ContentScreen(nick: String, email: String, password: String, name: String, lastName: String, region: String, responseManager: ResponseManager, loading: Boolean,
@@ -145,10 +139,8 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
         StandardButton(stringResource(id = R.string.register), enabled = isEnable(nick,email,password,name,lastName,region,selectedOption), loading = loading, onclick = {onRegister()} )
     }
 }
+
 @Composable
-
-
-
 fun getIndirectMessage(it: ResponseManager): String {
     return when(it.message){
         "account_created" -> stringResource(id = R.string.successfully_created_account)
@@ -230,6 +222,7 @@ fun RegionSpinner(regionSelected: (String) -> Unit) {
         }
     }
 }
+
 @Composable
 fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
     val (selectedOption, setSelectedOption) = remember { mutableStateOf(UserType.UE) }
@@ -258,7 +251,7 @@ fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
                     setSelectedOption(UserType.UA)
                     userTypeSelected(UserType.UA)
                 }) {
-            Text(text = stringResource(id = R.string.user_artist), color = MaterialTheme.colorScheme.onBackground)
+            Text(text = stringResource(id = R.string.artist_user), color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.size(4.dp))
             if(selectedOption == UserType.UA) Box(modifier = Modifier
                 .width(145.dp)
@@ -267,9 +260,6 @@ fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
         }
     }
 }
-
-
-
 
 @Preview
 @Composable

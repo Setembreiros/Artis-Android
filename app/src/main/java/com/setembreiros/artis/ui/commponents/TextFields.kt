@@ -29,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.unit.sp
 
 
 @Composable
@@ -59,7 +59,7 @@ fun StandardTextField(
             disabledIndicatorColor = Color.Transparent,
             cursorColor = MaterialTheme.colorScheme.primary),
         keyboardOptions = keyboardOptions,
-        textStyle = LocalTextStyle.current.copy(color = Color.Black),
+        textStyle = LocalTextStyle.current.copy(color = Color.Black, fontSize = 12.sp),
             modifier = modifier
                 .fillMaxWidth()
                 .height(50.dp)

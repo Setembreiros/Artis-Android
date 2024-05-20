@@ -1,6 +1,7 @@
 package com.setembreiros.artis.ui
 
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.AttributeType
@@ -10,7 +11,6 @@ import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.UserType
 import com.setembreiros.artis.common.isValidEmail
 import com.setembreiros.artis.common.regionList
-import com.setembreiros.artis.domain.usecase.GetPropertiesUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import com.setembreiros.artis.ui.base.ResponseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,19 +18,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileInputStream
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
 import java.util.Base64
-import java.util.Properties
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val getPropertiesUseCase: GetPropertiesUseCase
 ): BaseViewModel() {
 
     private val _userName = MutableStateFlow("")
@@ -151,6 +147,7 @@ class RegisterViewModel @Inject constructor(
 
             try {
                 val response = identityProviderClient.signUp(request)
+                Log.d("DOG",response.toString())
                 _responseManager.value = ResponseManager(show = true, false, message = "account_created")
                 _loading.update { false }
             } catch (e: Exception) {

@@ -1,5 +1,8 @@
 package com.setembreiros.artis.ui.account
 
+import android.content.Context
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -23,4 +26,20 @@ fun calculateSecretHash(userPoolClientId: String, userPoolClientSecret: String, 
         println(e.message)
     }
     return ""
+}
+
+fun getSessionToken(context: Context): String? {
+    val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    val sharedPreferences = EncryptedSharedPreferences.create(
+        context,
+        "secret_shared_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+    return sharedPreferences.getString("session_token", null)
 }

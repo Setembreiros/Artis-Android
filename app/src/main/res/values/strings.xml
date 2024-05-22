@@ -16,4 +16,8 @@
     <string name="email_already_exists">Email already exists</string>
     <string name="successfully_created_account">Account created successfully</string>
     <string name="user_logged">User logged into the application</string>
+    <string name="register_title">Sign up for Artis</string>
+    <string name="login_title">Log in to Artis</string>
+    <string name="register_question">Do not have an account? Sign up</string>
+    <string name="login_question">Already have an account? Log in</string>
 </resources>

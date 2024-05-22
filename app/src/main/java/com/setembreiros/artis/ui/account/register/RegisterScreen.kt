@@ -42,17 +42,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.UserType
 import com.setembreiros.artis.common.regionList
 import com.setembreiros.artis.ui.base.ResponseManager
+import com.setembreiros.artis.ui.commponents.Link
 import com.setembreiros.artis.ui.commponents.StandardButton
 import com.setembreiros.artis.ui.commponents.StandardPassTextField
 import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(navController: NavController) {
     val viewModel: RegisterViewModel = hiltViewModel()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     val email by viewModel.email.collectAsStateWithLifecycle()
@@ -75,7 +77,8 @@ fun RegisterScreen() {
         onChangeRegion = {viewModel.setRegin(it)},
         onRegister = {
            viewModel.register()
-        }
+        },
+        onNavigateToLogin = { navController.navigate("login") }
     )
 
 }
@@ -89,7 +92,8 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
                   onChangeName: (String) -> Unit,
                   onChangeLastName: (String) -> Unit,
                   onChangeRegion: (String) -> Unit,
-                  onRegister: () -> Unit
+                  onRegister: () -> Unit,
+                  onNavigateToLogin: () -> Unit
 ){
     val (selectedOption, setSelectedOption) = remember { mutableStateOf(UserType.UE) }
 
@@ -101,7 +105,7 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
             .padding(horizontal = 16.dp, vertical = 32.dp)
 
     ) {
-        Text(text = "Crea unha conta en Artis", fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)
+        Text(text = stringResource(id = R.string.register_title), fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)
         Spacer(modifier = Modifier.size(32.dp))
 
         UserTypeSelection {
@@ -137,6 +141,8 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
 
         Spacer(modifier = Modifier.weight(1f))
         StandardButton(stringResource(id = R.string.register), enabled = isEnable(nick,email,password,name,lastName,region,selectedOption), loading = loading, onclick = {onRegister()} )
+        Spacer(modifier = Modifier.size(16.dp))
+        Link(stringResource(id = R.string.login_question), func = { onNavigateToLogin() })
     }
 }
 
@@ -265,6 +271,6 @@ fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
 @Composable
 fun RegisterPreview(){
     ArtisTheme {
-        ContentScreen("","","","","","", ResponseManager(),false, onChangeUserType = {},onChangeNick = {}, onChangeEmail = {}, onChangePass = {}, onChangeName = {}, onChangeLastName = {}, onChangeRegion = {}, onRegister = {})
+        ContentScreen("","","","","","", ResponseManager(),false, onChangeUserType = {},onChangeNick = {}, onChangeEmail = {}, onChangePass = {}, onChangeName = {}, onChangeLastName = {}, onChangeRegion = {}, onRegister = {}, onNavigateToLogin = {})
     }
 }

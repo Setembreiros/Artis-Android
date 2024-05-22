@@ -21,15 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.setembreiros.artis.R
 import com.setembreiros.artis.ui.base.ResponseManager
+import com.setembreiros.artis.ui.commponents.Link
 import com.setembreiros.artis.ui.commponents.StandardButton
 import com.setembreiros.artis.ui.commponents.StandardPassTextField
 import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavController) {
     val viewModel: LoginViewModel = hiltViewModel()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     val password by viewModel.password.collectAsStateWithLifecycle()
@@ -42,7 +44,8 @@ fun LoginScreen() {
         onChangePass = { viewModel.setPassword(it) },
         onLogin = {
             viewModel.login()
-        }
+        },
+        onNavigateToRegister = { navController.navigate("register") }
     )
 
 }
@@ -51,7 +54,8 @@ fun LoginScreen() {
 fun ContentScreen(username: String, password: String, responseManager: ResponseManager, loading: Boolean,
                   onChangeUsername: (String) -> Unit,
                   onChangePass: (String) -> Unit,
-                  onLogin: () -> Unit
+                  onLogin: () -> Unit,
+                  onNavigateToRegister: () -> Unit
 ){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -60,7 +64,7 @@ fun ContentScreen(username: String, password: String, responseManager: ResponseM
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 32.dp)
     ) {
-        Text(text = "Logearse en Artis", fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)
+        Text(text = stringResource(id = R.string.login_title), fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)
         Spacer(modifier = Modifier.size(32.dp))
 
         Spacer(modifier = Modifier.size(16.dp))
@@ -76,6 +80,8 @@ fun ContentScreen(username: String, password: String, responseManager: ResponseM
 
         Spacer(modifier = Modifier.weight(1f))
         StandardButton(stringResource(id = R.string.login), enabled = isEnable(username,password), loading = loading, onclick = {onLogin()} )
+        Spacer(modifier = Modifier.size(16.dp))
+        Link(stringResource(id = R.string.register_question), func = { onNavigateToRegister() })
     }
 }
 
@@ -97,6 +103,6 @@ fun isEnable(username: String, password: String): Boolean{
 @Composable
 fun LoginPreview(){
     ArtisTheme {
-        ContentScreen("","", ResponseManager(),false, onChangeUsername = {}, onChangePass = {}, onLogin = {})
+        ContentScreen("","", ResponseManager(),false, onChangeUsername = {}, onChangePass = {}, onLogin = {}, onNavigateToRegister = {})
     }
 }

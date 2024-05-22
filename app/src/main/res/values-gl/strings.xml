@@ -4,14 +4,17 @@
     <string name="user">Usuario</string>
     <string name="artist_user">Usuario Artista</string>
     <string name="register">Crear conta</string>
+    <string name="login">Login</string>
     <string name="pass">Contrasinal</string>
     <string name="last_name">Apelidos</string>
     <string name="name">Nome</string>
     <string name="region">Rexión</string>
+    <string name="invalid_credentials">Nomew de usuario ou contrasinal incorrectos</string>
     <string name="invalid_email">Email inválido</string>
     <string name="invalid_pass_text">O contrasinal debe de ter máis de 8 caracteres e polo menos un símbolo, un numero e unha maiúscula  </string>
     <string name="error_unknown">Erro descoñecido</string>
     <string name="username_already_exists">O nome de usuario xa existe</string>
     <string name="email_already_exists"> O email xa existe</string>
     <string name="successfully_created_account">Conta creada correctamente</string>
+    <string name="user_logged">Usuario logeado na application</string>
 </resources>

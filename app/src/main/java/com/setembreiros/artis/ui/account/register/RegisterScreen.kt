@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui
+package com.setembreiros.artis.ui.account.register
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background

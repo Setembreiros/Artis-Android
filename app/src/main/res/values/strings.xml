@@ -3,14 +3,17 @@
     <string name="user">User</string>
     <string name="artist_user">Artist User</string>
     <string name="register">Register</string>
+    <string name="login">Login</string>
     <string name="pass">Password</string>
     <string name="last_name">Last name</string>
     <string name="name">Name</string>
     <string name="region">Region</string>
+    <string name="invalid_credentials">Invalid username or password</string>
     <string name="invalid_email">Invalid email</string>
     <string name="invalid_pass_text">The password must contain more than 8 characters and at least one symbol, a number and a capital letter</string>
     <string name="error_unknown">Unknown error</string>
     <string name="username_already_exists">Username already exists</string>
     <string name="email_already_exists">Email already exists</string>
     <string name="successfully_created_account">Account created successfully</string>
+    <string name="user_logged">User logged into the application</string>
 </resources>

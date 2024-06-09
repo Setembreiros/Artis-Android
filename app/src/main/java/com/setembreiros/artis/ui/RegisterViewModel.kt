@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.AttributeType
+import aws.sdk.kotlin.services.cognitoidentityprovider.model.ConfirmSignUpRequest
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.SignUpRequest
 import com.setembreiros.artis.BuildConfig
 
@@ -47,6 +48,9 @@ class RegisterViewModel @Inject constructor(
     private val _region = MutableStateFlow(regionList[0])
     val region = _region
 
+    private val _registerView = MutableStateFlow(true)
+    val registerView = _registerView
+
     private val _userType = MutableStateFlow(UserType.UE)
 
     fun setUserName(value: String){
@@ -84,6 +88,14 @@ class RegisterViewModel @Inject constructor(
                     signUp(BuildConfig.CLIENT_ID_UA,BuildConfig.SECRET_KEY_UA)
                 else signUp(BuildConfig.CLIENT_ID_UE,BuildConfig.SECRET_KEY_UE)
             }
+        }
+    }
+
+    fun confirmSignUp(code: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            if(_userType.value == UserType.UA)
+                confirmSignUp(BuildConfig.CLIENT_ID_UA, code)
+            else confirmSignUp(BuildConfig.CLIENT_ID_UE,code)
         }
     }
 
@@ -126,7 +138,6 @@ class RegisterViewModel @Inject constructor(
             attrs.add(attributeTypeName)
         }
 
-
         val secretVal = calculateSecretHash(clientIdVal, secretKey, _userName.value)
 
         val request = SignUpRequest {
@@ -139,11 +150,11 @@ class RegisterViewModel @Inject constructor(
         CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
 
             try {
-
                 val response = identityProviderClient.signUp(request)
                 Log.d("DOG",response.toString())
 
                 identityProviderClient.signUp(request)
+                _registerView.update { false }
                 responseManager.value = ResponseManager(show = true, false, message = "account_created")
                 loading.update { false }
 
@@ -157,6 +168,19 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
+    private suspend fun confirmSignUp(clientIdVal: String?, codeVal: String?) {
+        val signUpRequest = ConfirmSignUpRequest {
+            clientId = clientIdVal
+            confirmationCode = codeVal
+            username = _userName.value
+        }
+
+        CognitoIdentityProviderClient { region = "us-east-1" }.use { identityProviderClient ->
+            identityProviderClient.confirmSignUp(signUpRequest)
+            println("${_userName.value}  was confirmed")
+        }
+    }
+
     private fun getErrorMessage(message: String){
         if(message.contains("EXISTING_USERNAME")){
             responseManager.value = ResponseManager(show = true, false, message = "EXISTING_USERNAME")
@@ -166,6 +190,8 @@ class RegisterViewModel @Inject constructor(
             responseManager.value = ResponseManager(show = true, false, message = "EXISTING_EMAIL")
             return
         }
+
+        responseManager.value = ResponseManager(show = true, true, message = message)
     }
 
     private fun calculateSecretHash(userPoolClientId: String, userPoolClientSecret: String, userName: String): String {

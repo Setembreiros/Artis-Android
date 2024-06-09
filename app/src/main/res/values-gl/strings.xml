@@ -14,4 +14,8 @@
     <string name="username_already_exists">O nome de usuario xa existe</string>
     <string name="email_already_exists"> O email xa existe</string>
     <string name="successfully_created_account">Conta creada correctamente</string>
+    <string name="enter_confirm_code">Inserte o código de confirmación</string>
+    <string name="enter_confirm_code_text">O código de confirmación foi enviado %1$s</string>
+    <string name="code">Código</string>
+    <string name="send">Enviar</string>
 </resources>

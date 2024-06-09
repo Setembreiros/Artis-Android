@@ -36,7 +36,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,21 +64,24 @@ fun RegisterScreen() {
     val region by viewModel.region.collectAsStateWithLifecycle()
     val responseManager by viewModel.responseManager.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
+    val registerView by viewModel.registerView.collectAsStateWithLifecycle()
 
 
+    if(registerView)
+        ContentScreen(userName, email, password, name, lastName, region, responseManager, loading,
+            onChangeUserType = {viewModel.setUserType(it)},
+            onChangeNick = {viewModel.setUserName(it)},
+            onChangeEmail = {viewModel.setEmail(it)},
+            onChangePass = {viewModel.setPassword(it)},
+            onChangeName = {viewModel.setName(it)},
+            onChangeLastName = {viewModel.setLastName(it)},
+            onChangeRegion = {viewModel.setRegin(it)},
+            onRegister = {
+               viewModel.register()
+            }
+        )
+    else ConfirmCodeScreen(email, onSend = {viewModel.confirmSignUp(it)})
 
-    ContentScreen(userName, email, password, name, lastName, region, responseManager, loading,
-        onChangeUserType = {viewModel.setUserType(it)},
-        onChangeNick = {viewModel.setUserName(it)},
-        onChangeEmail = {viewModel.setEmail(it)},
-        onChangePass = {viewModel.setPassword(it)},
-        onChangeName = {viewModel.setName(it)},
-        onChangeLastName = {viewModel.setLastName(it)},
-        onChangeRegion = {viewModel.setRegin(it)},
-        onRegister = {
-           viewModel.register()
-        }
-    )
 
 }
 
@@ -137,6 +142,30 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
 
         Spacer(modifier = Modifier.weight(1f))
         StandardButton(stringResource(id = R.string.register), enabled = isEnable(nick,email,password,name,lastName,region,selectedOption), loading = loading, onclick = {onRegister()} )
+    }
+}
+
+@Composable
+fun ConfirmCodeScreen(email: String, onSend: (String) -> Unit){
+    Column {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 16.dp, vertical = 32.dp)
+        ){
+            Text(text = stringResource(id = R.string.enter_confirm_code), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(text = stringResource(id = R.string.enter_confirm_code_text, email), color = MaterialTheme.colorScheme.onBackground, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.size(16.dp))
+            StandardTextField(hint = stringResource(id = R.string.code), onChangeValue = {onSend(it)},keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send), modifier = Modifier)
+            Spacer(modifier = Modifier.size(8.dp))
+            StandardButton(title = stringResource(id = R.string.send), enabled = true) {
+                
+            }
+            
+        }
     }
 }
 
@@ -266,5 +295,13 @@ fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
 fun RegisterPreview(){
     ArtisTheme {
         ContentScreen("","","","","","", ResponseManager(),false, onChangeUserType = {},onChangeNick = {}, onChangeEmail = {}, onChangePass = {}, onChangeName = {}, onChangeLastName = {}, onChangeRegion = {}, onRegister = {})
+    }
+}
+
+@Preview
+@Composable
+fun ConfirmCodePreview(){
+    ArtisTheme {
+        ConfirmCodeScreen("samue@gmail.com", onSend = {})
     }
 }

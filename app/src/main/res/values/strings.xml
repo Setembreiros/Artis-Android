@@ -13,4 +13,8 @@
     <string name="username_already_exists">Username already exists</string>
     <string name="email_already_exists">Email already exists</string>
     <string name="successfully_created_account">Account created successfully</string>
+    <string name="enter_confirm_code">Entre confirm code</string>
+    <string name="enter_confirm_code_text">Enter the confirm code was send to %1$s</string>
+    <string name="code">Code</string>
+    <string name="send">Send</string>
 </resources>

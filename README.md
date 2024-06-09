@@ -2,7 +2,7 @@
 
 Para que o login en a creación de conta poida funcionar é preciso en gadir 4 variables no ficheiro  
 secret.properties. Estas claves saen de AWS.  
-O fichero secret.properties está no .gitignore. Este ficheiro baixo ningún concepto pódese subir a  
+O fichero local.properties está no .gitignore. Este ficheiro baixo ningún concepto pódese subir a  
 github.
 
 O ficheiro quedaria asi

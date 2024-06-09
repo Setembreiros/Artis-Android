@@ -4,10 +4,12 @@
     <string name="user">Usuario</string>
     <string name="artist_user">Usuario Artista</string>
     <string name="register">Crear conta</string>
+    <string name="login">Login</string>
     <string name="pass">Contrasinal</string>
     <string name="last_name">Apelidos</string>
     <string name="name">Nome</string>
     <string name="region">Rexión</string>
+    <string name="invalid_credentials">Nomew de usuario ou contrasinal incorrectos</string>
     <string name="invalid_email">Email inválido</string>
     <string name="invalid_pass_text">O contrasinal debe de ter máis de 8 caracteres e polo menos un símbolo, un numero e unha maiúscula  </string>
     <string name="error_unknown">Erro descoñecido</string>
@@ -18,4 +20,9 @@
     <string name="enter_confirm_code_text">O código de confirmación foi enviado %1$s</string>
     <string name="code">Código</string>
     <string name="send">Enviar</string>
+    <string name="user_logged">Usuario logeado na application</string>
+    <string name="register_title">Rexistrate en Artis</string>
+    <string name="login_title">Accede a Artis</string>
+    <string name="register_question">Non tes unha conta? Rexístrate</string>
+    <string name="login_question">Xa tes unha conta? Accede</string>
 </resources>

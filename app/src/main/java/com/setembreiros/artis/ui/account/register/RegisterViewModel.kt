@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui
+package com.setembreiros.artis.ui.account.register
 
 
 import android.util.Log
@@ -12,6 +12,7 @@ import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.UserType
 import com.setembreiros.artis.common.isValidEmail
 import com.setembreiros.artis.common.regionList
+import com.setembreiros.artis.ui.account.calculateSecretHash
 import com.setembreiros.artis.ui.base.BaseViewModel
 import com.setembreiros.artis.ui.base.ResponseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,11 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.UnsupportedEncodingException
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 
 @HiltViewModel
@@ -192,23 +188,5 @@ class RegisterViewModel @Inject constructor(
         }
 
         responseManager.value = ResponseManager(show = true, true, message = message)
-    }
-
-    private fun calculateSecretHash(userPoolClientId: String, userPoolClientSecret: String, userName: String): String {
-        val macSha256Algorithm = "HmacSHA256"
-        val signingKey = SecretKeySpec(
-            userPoolClientSecret.toByteArray(StandardCharsets.UTF_8),
-            macSha256Algorithm
-        )
-        try {
-            val mac = Mac.getInstance(macSha256Algorithm)
-            mac.init(signingKey)
-            mac.update(userName.toByteArray(StandardCharsets.UTF_8))
-            val rawHmac = mac.doFinal(userPoolClientId.toByteArray(StandardCharsets.UTF_8))
-            return Base64.getEncoder().encodeToString(rawHmac)
-        } catch (e: UnsupportedEncodingException) {
-            println(e.message)
-        }
-        return ""
     }
 }

@@ -84,7 +84,7 @@ fun RegisterScreen(navController: NavController) {
             onNavigateToLogin = { navController.navigate("login") }
 
         )
-    else ConfirmCodeScreen(email, onSend = {viewModel.confirmSignUp(it)})
+    else ConfirmCodeScreen(email, onSend = {viewModel.setCode(it)}, onClick = {viewModel.confirmSignUp()})
 }
 
 @Composable
@@ -151,7 +151,7 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
 }
 
 @Composable
-fun ConfirmCodeScreen(email: String, onSend: (String) -> Unit){
+fun ConfirmCodeScreen(email: String, onSend: (String) -> Unit, onClick: () -> Unit){
     Column {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -167,7 +167,7 @@ fun ConfirmCodeScreen(email: String, onSend: (String) -> Unit){
             StandardTextField(hint = stringResource(id = R.string.code), onChangeValue = {onSend(it)},keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send), modifier = Modifier)
             Spacer(modifier = Modifier.size(8.dp))
             StandardButton(title = stringResource(id = R.string.send), enabled = true) {
-                
+                onClick()
             }
             
         }
@@ -307,6 +307,6 @@ fun RegisterPreview(){
 @Composable
 fun ConfirmCodePreview(){
     ArtisTheme {
-        ConfirmCodeScreen("samue@gmail.com", onSend = {})
+        ConfirmCodeScreen("samue@gmail.com", onSend = {}, onClick = {})
     }
 }

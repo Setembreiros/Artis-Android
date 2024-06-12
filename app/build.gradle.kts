@@ -85,7 +85,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.security:security-crypto:1.1.0-alpha03")
+    implementation(libs.androidx.security.crypto)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -107,9 +107,11 @@ dependencies {
     implementation (libs.androidx.lifecycle.runtime.compose)
 
     //Cognito
+    implementation(libs.cognitoidentityprovider)
+    implementation(libs.cognitoidentity)
+    implementation(libs.secretsmanager)
 
-    implementation("aws.sdk.kotlin:cognitoidentityprovider:1.0.30")
-    implementation("aws.sdk.kotlin:cognitoidentity:1.0.30")
-    implementation("aws.sdk.kotlin:secretsmanager:1.0.30")
+    //Retrofit
+    implementation (libs.converter.gson)
 
 }

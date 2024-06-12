@@ -47,6 +47,9 @@ class RegisterViewModel @Inject constructor(
     private val _registerView = MutableStateFlow(true)
     val registerView = _registerView
 
+    private val _code = MutableStateFlow("")
+    val code = _code
+
     private val _userType = MutableStateFlow(UserType.UE)
 
     fun setUserName(value: String){
@@ -77,21 +80,25 @@ class RegisterViewModel @Inject constructor(
         _userType.update { value }
     }
 
+    fun setCode(value: String) {
+        _code.update { value }
+    }
+
     fun register(){
         if(validateData()){
             viewModelScope.launch(Dispatchers.IO) {
                 if(_userType.value == UserType.UA)
-                    signUp(BuildConfig.CLIENT_ID_UA,BuildConfig.SECRET_KEY_UA)
-                else signUp(BuildConfig.CLIENT_ID_UE,BuildConfig.SECRET_KEY_UE)
+                    signUp(BuildConfig.CLIENT_ID_UA, BuildConfig.SECRET_KEY_UA)
+                else signUp(BuildConfig.CLIENT_ID_UE, BuildConfig.SECRET_KEY_UE)
             }
         }
     }
 
-    fun confirmSignUp(code: String){
+    fun confirmSignUp(){
         viewModelScope.launch(Dispatchers.IO) {
             if(_userType.value == UserType.UA)
-                confirmSignUp(BuildConfig.CLIENT_ID_UA, code)
-            else confirmSignUp(BuildConfig.CLIENT_ID_UE,code)
+                confirmSignUp(BuildConfig.CLIENT_ID_UA, _code.value, BuildConfig.SECRET_KEY_UA)
+            else confirmSignUp(BuildConfig.CLIENT_ID_UE, _code.value, BuildConfig.SECRET_KEY_UE)
         }
     }
 
@@ -149,8 +156,7 @@ class RegisterViewModel @Inject constructor(
                 val response = identityProviderClient.signUp(request)
                 Log.d("DOG",response.toString())
 
-                identityProviderClient.signUp(request)
-                _registerView.update { false }
+               _registerView.update { false }
                 responseManager.value = ResponseManager(show = true, false, message = "account_created")
                 loading.update { false }
 
@@ -164,14 +170,18 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    private suspend fun confirmSignUp(clientIdVal: String?, codeVal: String?) {
+    private suspend fun confirmSignUp(clientIdVal: String, codeVal: String, secretKey: String) {
+
+        val secretVal = calculateSecretHash(clientIdVal, secretKey, _userName.value)
+
         val signUpRequest = ConfirmSignUpRequest {
             clientId = clientIdVal
             confirmationCode = codeVal
             username = _userName.value
+            secretHash = secretVal
         }
 
-        CognitoIdentityProviderClient { region = "us-east-1" }.use { identityProviderClient ->
+        CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
             identityProviderClient.confirmSignUp(signUpRequest)
             println("${_userName.value}  was confirmed")
         }

@@ -1,20 +1,19 @@
 package com.setembreiros.artis.ui.account.login
 
-import android.content.Context
 import androidx.lifecycle.viewModelScope
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+
 import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthFlowType
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.InitiateAuthRequest
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedException
 import com.setembreiros.artis.BuildConfig
+import com.setembreiros.artis.domain.model.Session
+import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
+import com.setembreiros.artis.domain.usecase.session.SaveSessionUseCase
 import com.setembreiros.artis.ui.account.calculateSecretHash
-import com.setembreiros.artis.ui.account.getSessionToken
 import com.setembreiros.artis.ui.base.BaseViewModel
 import com.setembreiros.artis.ui.base.ResponseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val  saveSessionUseCase: SaveSessionUseCase,
+    private val getSessionUseCase: GetSessionUseCase
 ): BaseViewModel() {
 
     private val _userName = MutableStateFlow("")
@@ -31,6 +31,10 @@ class LoginViewModel @Inject constructor(
 
     private val _password = MutableStateFlow("")
     val password = _password
+
+    init {
+        println(getSessionUseCase.invoke())
+    }
 
     fun setUserName(value: String){
         this._userName.update { value }
@@ -70,9 +74,13 @@ class LoginViewModel @Inject constructor(
                 val result = identityProviderClient.initiateAuth(request)
                 result.authenticationResult?.let {
                     val sessionToken = it.idToken
-                    storeSessionToken(sessionToken)
-                    responseManager.value = ResponseManager(show = true, false, message = "user_logged")
-                    println(getSessionToken(context))
+                    sessionToken?.let {
+                        storeSessionToken(sessionToken)
+                        responseManager.value = ResponseManager(show = true, false, message = "user_logged")
+                    }?: return false
+
+
+
                 }
                 loading.update { false }
             } catch (e: NotAuthorizedException) {
@@ -85,22 +93,9 @@ class LoginViewModel @Inject constructor(
         return true
     }
 
-    private fun storeSessionToken(token: String?) {
-        val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
+    private fun storeSessionToken(token: String) {
+            val session = Session(token = token)
+            saveSessionUseCase.invoke(session)
 
-        val sharedPreferences = EncryptedSharedPreferences.create(
-            context,
-            "secret_shared_prefs",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-
-        with(sharedPreferences.edit()) {
-            putString("session_token", token)
-            apply()
-        }
     }
 }

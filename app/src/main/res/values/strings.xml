@@ -24,5 +24,7 @@
     <string name="login_title">Log in to Artis</string>
     <string name="register_question">Do not have an account? Sign up</string>
     <string name="login_question">Already have an account? Log in</string>
+    <string name="profile">Profile</string>
+    <string name="close_session">Close session</string>
 
 </resources>

@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,13 +32,20 @@ import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(onNavigateToRegister: () -> Unit, onNavigateToHome: () -> Unit) {
     val viewModel: LoginViewModel = hiltViewModel()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     val password by viewModel.password.collectAsStateWithLifecycle()
     val responseManager by viewModel.responseManager.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
+    val loginSuccess by viewModel.loginSuccess.collectAsStateWithLifecycle()
 
+
+    LaunchedEffect(key1 = loginSuccess) {
+        if(loginSuccess)
+            onNavigateToHome()
+
+    }
 
     ContentScreen(userName, password, responseManager, loading,
         onChangeUsername = { viewModel.setUserName(it) },
@@ -45,7 +53,7 @@ fun LoginScreen(navController: NavController) {
         onLogin = {
             viewModel.login()
         },
-        onNavigateToRegister = { navController.navigate("register") }
+        onNavigateToRegister = { onNavigateToRegister() }
     )
 
 }

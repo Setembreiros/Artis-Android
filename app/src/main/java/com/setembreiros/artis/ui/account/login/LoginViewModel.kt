@@ -32,6 +32,9 @@ class LoginViewModel @Inject constructor(
     private val _password = MutableStateFlow("")
     val password = _password
 
+    private val _loginSuccess = MutableStateFlow(false)
+    val loginSuccess = _loginSuccess
+
     init {
         println(getSessionUseCase.invoke())
     }
@@ -76,7 +79,7 @@ class LoginViewModel @Inject constructor(
                     val sessionToken = it.idToken
                     sessionToken?.let {
                         storeSessionToken(sessionToken)
-                        responseManager.value = ResponseManager(show = true, false, message = "user_logged")
+                        _loginSuccess.update { true }
                     }?: return false
 
 

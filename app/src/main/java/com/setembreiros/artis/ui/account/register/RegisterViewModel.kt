@@ -5,13 +5,18 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.AttributeType
+import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthFlowType
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.ConfirmSignUpRequest
+import aws.sdk.kotlin.services.cognitoidentityprovider.model.InitiateAuthRequest
+import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedException
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.SignUpRequest
 import com.setembreiros.artis.BuildConfig
 
 import com.setembreiros.artis.common.UserType
 import com.setembreiros.artis.common.isValidEmail
 import com.setembreiros.artis.common.regionList
+import com.setembreiros.artis.domain.model.Session
+import com.setembreiros.artis.domain.usecase.session.SaveSessionUseCase
 import com.setembreiros.artis.ui.account.calculateSecretHash
 import com.setembreiros.artis.ui.base.BaseViewModel
 import com.setembreiros.artis.ui.base.ResponseManager
@@ -24,6 +29,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
+    private val saveSessionUseCase: SaveSessionUseCase
 ): BaseViewModel() {
 
     private val _userName = MutableStateFlow("")
@@ -49,6 +55,9 @@ class RegisterViewModel @Inject constructor(
 
     private val _code = MutableStateFlow("")
     val code = _code
+
+    private val _registerSuccess = MutableStateFlow(false)
+    val registerSuccess = _registerSuccess
 
     private val _userType = MutableStateFlow(UserType.UE)
 
@@ -171,7 +180,7 @@ class RegisterViewModel @Inject constructor(
     }
 
     private suspend fun confirmSignUp(clientIdVal: String, codeVal: String, secretKey: String) {
-
+        loading.update { true }
         val secretVal = calculateSecretHash(clientIdVal, secretKey, _userName.value)
 
         val signUpRequest = ConfirmSignUpRequest {
@@ -182,9 +191,60 @@ class RegisterViewModel @Inject constructor(
         }
 
         CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
-            identityProviderClient.confirmSignUp(signUpRequest)
-            println("${_userName.value}  was confirmed")
+                    try {
+                        identityProviderClient.confirmSignUp(signUpRequest)
+                        loading.update { false }
+                        signIn(clientIdVal, secretKey)
+                        println("${_userName.value}  was confirmed")
+                    }catch (e : Exception){
+                        loading.update { false }
+                        println(e.toString())
+                    }
+
+                }
+    }
+
+    private suspend fun signIn(clientIdVal: String, secretKey: String): Boolean {
+        loading.update { true }
+        val authParas = mutableMapOf<String, String>()
+        authParas["USERNAME"] = _userName.value
+        authParas["PASSWORD"] = _password.value
+        authParas["SECRET_HASH"] = calculateSecretHash(clientIdVal, secretKey, _userName.value)
+
+        val request = InitiateAuthRequest {
+            clientId = clientIdVal
+            authFlow = AuthFlowType.UserPasswordAuth
+            authParameters  = authParas
         }
+        CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
+            try {
+                val result = identityProviderClient.initiateAuth(request)
+                result.authenticationResult?.let {
+                    val sessionToken = it.idToken
+                    sessionToken?.let {
+                        _registerSuccess.update { true }
+                        storeSessionToken(sessionToken)
+                        _registerSuccess.update { true }
+                    }?: return false
+
+
+
+                }
+                loading.update { false }
+            } catch (e: NotAuthorizedException) {
+                return false
+            }catch (e: Exception) {
+                println("Error occurred: $e")
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun storeSessionToken(token: String) {
+        val session = Session(token = token)
+        saveSessionUseCase.invoke(session)
+
     }
 
     private fun getErrorMessage(message: String){

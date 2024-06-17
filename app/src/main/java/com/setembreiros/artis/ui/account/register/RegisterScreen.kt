@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,7 +57,7 @@ import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(onNavigateToLogin: () -> Unit, onNavigateToHome: () -> Unit) {
     val viewModel: RegisterViewModel = hiltViewModel()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     val email by viewModel.email.collectAsStateWithLifecycle()
@@ -67,6 +68,11 @@ fun RegisterScreen(navController: NavController) {
     val responseManager by viewModel.responseManager.collectAsStateWithLifecycle()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     val registerView by viewModel.registerView.collectAsStateWithLifecycle()
+    val registerSuccess by viewModel.registerSuccess.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = registerSuccess) {
+        if(registerSuccess) onNavigateToHome()
+    }
 
 
     if(registerView)
@@ -81,10 +87,10 @@ fun RegisterScreen(navController: NavController) {
             onRegister = {
                viewModel.register()
             },
-            onNavigateToLogin = { navController.navigate("login") }
+            onNavigateToLogin = { onNavigateToLogin() }
 
         )
-    else ConfirmCodeScreen(email, onSend = {viewModel.setCode(it)}, onClick = {viewModel.confirmSignUp()})
+    else ConfirmCodeScreen(email, onSend = {viewModel.setCode(it)}, loading = loading, onClick = {viewModel.confirmSignUp()})
 }
 
 @Composable
@@ -151,7 +157,7 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
 }
 
 @Composable
-fun ConfirmCodeScreen(email: String, onSend: (String) -> Unit, onClick: () -> Unit){
+fun ConfirmCodeScreen(email: String, loading: Boolean, onSend: (String) -> Unit, onClick: () -> Unit){
     Column {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -166,7 +172,7 @@ fun ConfirmCodeScreen(email: String, onSend: (String) -> Unit, onClick: () -> Un
             Spacer(modifier = Modifier.size(16.dp))
             StandardTextField(hint = stringResource(id = R.string.code), onChangeValue = {onSend(it)},keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send), modifier = Modifier)
             Spacer(modifier = Modifier.size(8.dp))
-            StandardButton(title = stringResource(id = R.string.send), enabled = true) {
+            StandardButton(title = stringResource(id = R.string.send), enabled = true, loading = loading) {
                 onClick()
             }
             
@@ -307,6 +313,6 @@ fun RegisterPreview(){
 @Composable
 fun ConfirmCodePreview(){
     ArtisTheme {
-        ConfirmCodeScreen("samue@gmail.com", onSend = {}, onClick = {})
+        ConfirmCodeScreen("samue@gmail.com", onSend = {}, loading = false, onClick = {})
     }
 }

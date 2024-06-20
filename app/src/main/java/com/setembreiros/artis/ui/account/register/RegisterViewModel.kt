@@ -105,9 +105,7 @@ class RegisterViewModel @Inject constructor(
 
     fun confirmSignUp(){
         viewModelScope.launch(Dispatchers.IO) {
-            if(_userType.value == UserType.UA)
-                confirmSignUp(BuildConfig.CLIENT_ID_UA, _code.value, BuildConfig.SECRET_KEY_UA)
-            else confirmSignUp(BuildConfig.CLIENT_ID_UE, _code.value, BuildConfig.SECRET_KEY_UE)
+            confirmSignUp(_userType.value, _code.value)
         }
     }
 
@@ -179,8 +177,20 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    private suspend fun confirmSignUp(clientIdVal: String, codeVal: String, secretKey: String) {
+    private suspend fun confirmSignUp(userType: UserType, codeVal: String) {
         loading.update { true }
+
+        val clientIdVal: String
+        val secretKey: String
+
+        if(userType == UserType.UA) {
+            clientIdVal = BuildConfig.CLIENT_ID_UA
+            secretKey = BuildConfig.SECRET_KEY_UA
+        } else {
+            clientIdVal = BuildConfig.CLIENT_ID_UE
+            secretKey = BuildConfig.SECRET_KEY_UE
+        }
+
         val secretVal = calculateSecretHash(clientIdVal, secretKey, _userName.value)
 
         val signUpRequest = ConfirmSignUpRequest {
@@ -194,7 +204,7 @@ class RegisterViewModel @Inject constructor(
                     try {
                         identityProviderClient.confirmSignUp(signUpRequest)
                         loading.update { false }
-                        signIn(clientIdVal, secretKey)
+                        signIn(userType)
                         println("${_userName.value}  was confirmed")
                     }catch (e : Exception){
                         loading.update { false }
@@ -204,8 +214,20 @@ class RegisterViewModel @Inject constructor(
                 }
     }
 
-    private suspend fun signIn(clientIdVal: String, secretKey: String): Boolean {
+    private suspend fun signIn(userType: UserType): Boolean {
         loading.update { true }
+
+        val clientIdVal: String
+        val secretKey: String
+
+        if(userType == UserType.UA) {
+            clientIdVal = BuildConfig.CLIENT_ID_UA
+            secretKey = BuildConfig.SECRET_KEY_UA
+        } else {
+            clientIdVal = BuildConfig.CLIENT_ID_UE
+            secretKey = BuildConfig.SECRET_KEY_UE
+        }
+
         val authParas = mutableMapOf<String, String>()
         authParas["USERNAME"] = _userName.value
         authParas["PASSWORD"] = _password.value
@@ -220,11 +242,14 @@ class RegisterViewModel @Inject constructor(
             try {
                 val result = identityProviderClient.initiateAuth(request)
                 result.authenticationResult?.let {
-                    val sessionToken = it.idToken
-                    sessionToken?.let {
-                        _registerSuccess.update { true }
-                        storeSessionToken(sessionToken)
-                        _registerSuccess.update { true }
+                    val idToken = it.idToken
+                    val refreshToken = it.refreshToken
+                    idToken?.let {
+                        refreshToken?.let {
+                            _registerSuccess.update { true }
+                            storeSessionToken(refreshToken, idToken, userType)
+                            _registerSuccess.update { true }
+                        }
                     }?: return false
 
 
@@ -241,8 +266,8 @@ class RegisterViewModel @Inject constructor(
         return true
     }
 
-    private fun storeSessionToken(token: String) {
-        val session = Session(token = token)
+    private fun storeSessionToken(refreshToken: String, idToken: String, userType: UserType) {
+        val session = Session(refreshToken = refreshToken, idToken = idToken, userType = userType)
         saveSessionUseCase.invoke(session)
 
     }

@@ -12,6 +12,11 @@ android {
     namespace = "com.setembreiros.artis"
     compileSdk = 34
 
+    //load the values from .properties file
+    val keystoreFile = project.rootProject.file("local.properties")
+    val properties = Properties()
+    properties.load(keystoreFile.inputStream())
+
     defaultConfig {
         applicationId = "com.setembreiros.artis"
         minSdk = 26
@@ -19,20 +24,10 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        //load the values from .properties file
-        val keystoreFile = project.rootProject.file("local.properties")
-        val properties = Properties()
-        properties.load(keystoreFile.inputStream())
-
         buildConfigField(type = "String",name = "CLIENT_ID_UA", value = properties.getProperty("CLIENT_ID_UA") ?: "" )
         buildConfigField(type = "String",name = "CLIENT_ID_UE", value = properties.getProperty("CLIENT_ID_UE") ?: "" )
         buildConfigField(type = "String",name = "SECRET_KEY_UA", value = properties.getProperty("SECRET_KEY_UA") ?: "" )
         buildConfigField(type = "String",name = "SECRET_KEY_UE", value = properties.getProperty("SECRET_KEY_UE") ?: "" )
-
-
-
-
-
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -41,7 +36,13 @@ android {
     }
 
     buildTypes {
+
+        debug {
+            buildConfigField(type = "String",name = "API_URL", value = properties.getProperty("API_URL_DEBUG") ?: "")
+
+        }
         release {
+            buildConfigField(type = "String",name = "API_URL", value = properties.getProperty("API_URL_RELEASE") ?: "")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -113,5 +114,12 @@ dependencies {
 
     //Retrofit
     implementation (libs.converter.gson)
+    //retrofit
+    implementation (libs.retrofit)
+    implementation(libs.logging.interceptor)
+    implementation (libs.converter.moshi)
+    implementation (libs.converter.gson)
+    implementation (libs.converter.scalars)
+
 
 }

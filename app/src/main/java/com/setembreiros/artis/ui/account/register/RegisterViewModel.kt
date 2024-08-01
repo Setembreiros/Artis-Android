@@ -12,9 +12,9 @@ import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedExcept
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.SignUpRequest
 import com.setembreiros.artis.BuildConfig
 
-import com.setembreiros.artis.common.UserType
+import com.setembreiros.artis.common.Constants.UserType
 import com.setembreiros.artis.common.isValidEmail
-import com.setembreiros.artis.common.regionList
+import com.setembreiros.artis.common.Constants.regionList
 import com.setembreiros.artis.domain.model.Session
 import com.setembreiros.artis.domain.usecase.session.SaveSessionUseCase
 import com.setembreiros.artis.ui.account.calculateSecretHash

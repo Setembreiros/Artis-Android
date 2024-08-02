@@ -12,6 +12,9 @@ class HomeViewModel @Inject constructor(
 ): BaseViewModel() {
 
    fun getSession(){
-       getSessionUseCase.invoke()?.let { Log.d("DOG", it.token) }
+       getSessionUseCase.invoke()?.let {
+           Log.d("DOG", it.idToken)
+           Log.d("DOG", it.refreshToken)
+       }
    }
 }

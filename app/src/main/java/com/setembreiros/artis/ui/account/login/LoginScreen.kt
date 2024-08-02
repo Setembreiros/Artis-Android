@@ -44,7 +44,6 @@ fun LoginScreen(onNavigateToRegister: () -> Unit, onNavigateToHome: () -> Unit) 
     LaunchedEffect(key1 = loginSuccess) {
         if(loginSuccess)
             onNavigateToHome()
-
     }
 
     ContentScreen(userName, password, responseManager, loading,

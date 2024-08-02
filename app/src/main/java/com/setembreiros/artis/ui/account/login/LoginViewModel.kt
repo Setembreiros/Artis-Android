@@ -7,7 +7,7 @@ import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthFlowType
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.InitiateAuthRequest
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedException
 import com.setembreiros.artis.BuildConfig
-import com.setembreiros.artis.common.UserType
+import com.setembreiros.artis.common.Constants.UserType
 import com.setembreiros.artis.domain.model.Session
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.domain.usecase.session.SaveSessionUseCase
@@ -110,7 +110,7 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun storeSessionToken(refreshToken: String, idToken: String, userType: UserType) {
-            val session = Session(refreshToken, idToken = idToken, userType = userType)
+            val session = Session(refreshToken, idToken = idToken, userType = userType, username = _userName.value)
             saveSessionUseCase.invoke(session)
 
     }

@@ -267,7 +267,7 @@ class RegisterViewModel @Inject constructor(
     }
 
     private fun storeSessionToken(refreshToken: String, idToken: String, userType: UserType) {
-        val session = Session(refreshToken = refreshToken, idToken = idToken, userType = userType)
+        val session = Session(refreshToken = refreshToken, idToken = idToken, userType = userType, username = _userName.value)
         saveSessionUseCase.invoke(session)
 
     }

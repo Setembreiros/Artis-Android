@@ -3,7 +3,7 @@ package com.setembreiros.artis.domain.usecase.session
 import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import aws.sdk.kotlin.services.cognitoidentityprovider.revokeToken
 import com.setembreiros.artis.BuildConfig
-import com.setembreiros.artis.common.UserType
+import com.setembreiros.artis.common.Constants.UserType
 import com.setembreiros.artis.data.repository.SessionRepository
 import javax.inject.Inject
 

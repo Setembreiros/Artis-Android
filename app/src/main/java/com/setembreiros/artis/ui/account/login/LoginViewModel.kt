@@ -7,6 +7,7 @@ import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthFlowType
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.InitiateAuthRequest
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedException
 import com.setembreiros.artis.BuildConfig
+import com.setembreiros.artis.common.UserType
 import com.setembreiros.artis.domain.model.Session
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.domain.usecase.session.SaveSessionUseCase
@@ -49,9 +50,9 @@ class LoginViewModel @Inject constructor(
 
     fun login(){
         viewModelScope.launch(Dispatchers.IO) {
-            var authorized = signIn(BuildConfig.CLIENT_ID_UA, BuildConfig.SECRET_KEY_UA)
+            var authorized = signIn(UserType.UA)
             if(!authorized)
-                authorized = signIn(BuildConfig.CLIENT_ID_UE, BuildConfig.SECRET_KEY_UE)
+                authorized = signIn(UserType.UE)
 
             if(!authorized)
                 responseManager.value = ResponseManager(show = true, false, message = "invalid_credentials")
@@ -60,7 +61,18 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private suspend fun signIn(clientIdVal: String, secretKey: String): Boolean {
+    private suspend fun signIn(userType: UserType): Boolean {
+        val clientIdVal: String
+        val secretKey: String
+
+        if(userType == UserType.UA) {
+            clientIdVal = BuildConfig.CLIENT_ID_UA
+            secretKey = BuildConfig.SECRET_KEY_UA
+        } else {
+            clientIdVal = BuildConfig.CLIENT_ID_UE
+            secretKey = BuildConfig.SECRET_KEY_UE
+        }
+
         loading.update { true }
         val authParas = mutableMapOf<String, String>()
         authParas["USERNAME"] = _userName.value
@@ -72,18 +84,19 @@ class LoginViewModel @Inject constructor(
             authFlow = AuthFlowType.UserPasswordAuth
             authParameters  = authParas
         }
+
         CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
             try {
                 val result = identityProviderClient.initiateAuth(request)
                 result.authenticationResult?.let {
-                    val sessionToken = it.idToken
-                    sessionToken?.let {
-                        storeSessionToken(sessionToken)
+                    val idToken = it.idToken
+                    val refreshToken = it.refreshToken
+                    idToken?.let {
+                        refreshToken?.let {
+                            storeSessionToken(refreshToken, idToken, userType)
                         _loginSuccess.update { true }
+                        }
                     }?: return false
-
-
-
                 }
                 loading.update { false }
             } catch (e: NotAuthorizedException) {
@@ -96,8 +109,8 @@ class LoginViewModel @Inject constructor(
         return true
     }
 
-    private fun storeSessionToken(token: String) {
-            val session = Session(token = token)
+    private fun storeSessionToken(refreshToken: String, idToken: String, userType: UserType) {
+            val session = Session(refreshToken, idToken = idToken, userType = userType)
             saveSessionUseCase.invoke(session)
 
     }

@@ -47,8 +47,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.setembreiros.artis.R
-import com.setembreiros.artis.common.UserType
-import com.setembreiros.artis.common.regionList
+import com.setembreiros.artis.common.Constants
+import com.setembreiros.artis.common.Constants.regionList
 import com.setembreiros.artis.ui.base.ResponseManager
 import com.setembreiros.artis.ui.commponents.Link
 import com.setembreiros.artis.ui.commponents.StandardButton
@@ -95,7 +95,7 @@ fun RegisterScreen(onNavigateToLogin: () -> Unit, onNavigateToHome: () -> Unit) 
 
 @Composable
 fun ContentScreen(nick: String, email: String, password: String, name: String, lastName: String, region: String, responseManager: ResponseManager, loading: Boolean,
-                  onChangeUserType: (UserType) -> Unit,
+                  onChangeUserType: (Constants.UserType) -> Unit,
                   onChangeNick: (String) -> Unit,
                   onChangeEmail: (String) -> Unit,
                   onChangePass: (String) -> Unit,
@@ -105,7 +105,7 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
                   onRegister: () -> Unit,
                   onNavigateToLogin: () -> Unit
 ){
-    val (selectedOption, setSelectedOption) = remember { mutableStateOf(UserType.UE) }
+    val (selectedOption, setSelectedOption) = remember { mutableStateOf(Constants.UserType.UE) }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -129,7 +129,7 @@ fun ContentScreen(nick: String, email: String, password: String, name: String, l
         Spacer(modifier = Modifier.size(8.dp))
         StandardPassTextField(hint = stringResource(id = R.string.pass), onChangeValue = {onChangePass(it)}, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), modifier = Modifier)
 
-        AnimatedVisibility(visible = selectedOption == UserType.UA) {
+        AnimatedVisibility(visible = selectedOption == Constants.UserType.UA) {
             Column {
                 Spacer(modifier = Modifier.size(8.dp))
                 StandardTextField(hint = stringResource(id = R.string.name), onChangeValue = {onChangeName(it)}, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), modifier = Modifier)
@@ -193,8 +193,8 @@ fun getIndirectMessage(it: ResponseManager): String {
 }
 
 @Composable
-fun isEnable(nick: String, email: String, password: String, name: String, lastName: String, region: String, userType: UserType): Boolean{
-    return if(userType == UserType.UA){
+fun isEnable(nick: String, email: String, password: String, name: String, lastName: String, region: String, userType: Constants.UserType): Boolean{
+    return if(userType == Constants.UserType.UA){
         nick.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty() && lastName.isNotEmpty() && region.isNotEmpty()
     }else nick.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&  region.isNotEmpty()
 }
@@ -264,8 +264,8 @@ fun RegionSpinner(regionSelected: (String) -> Unit) {
 }
 
 @Composable
-fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
-    val (selectedOption, setSelectedOption) = remember { mutableStateOf(UserType.UE) }
+fun UserTypeSelection(userTypeSelected: (Constants.UserType) -> Unit) {
+    val (selectedOption, setSelectedOption) = remember { mutableStateOf(Constants.UserType.UE) }
 
     Row(Modifier.fillMaxWidth()) {
         Column(
@@ -273,12 +273,12 @@ fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
             modifier = Modifier
                 .weight(1f)
                 .clickable {
-                    setSelectedOption(UserType.UE)
-                    userTypeSelected(UserType.UE)
+                    setSelectedOption(Constants.UserType.UE)
+                    userTypeSelected(Constants.UserType.UE)
                 }) {
             Text(text = stringResource(id = R.string.user), color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.size(4.dp))
-            if(selectedOption == UserType.UE) Box(modifier = Modifier
+            if(selectedOption == Constants.UserType.UE) Box(modifier = Modifier
                 .width(145.dp)
                 .height(2.dp)
                 .background(MaterialTheme.colorScheme.primary))
@@ -288,12 +288,12 @@ fun UserTypeSelection(userTypeSelected: (UserType) -> Unit) {
             modifier = Modifier
                 .weight(1f)
                 .clickable {
-                    setSelectedOption(UserType.UA)
-                    userTypeSelected(UserType.UA)
+                    setSelectedOption(Constants.UserType.UA)
+                    userTypeSelected(Constants.UserType.UA)
                 }) {
             Text(text = stringResource(id = R.string.artist_user), color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.size(4.dp))
-            if(selectedOption == UserType.UA) Box(modifier = Modifier
+            if(selectedOption == Constants.UserType.UA) Box(modifier = Modifier
                 .width(145.dp)
                 .height(2.dp)
                 .background(MaterialTheme.colorScheme.primary))

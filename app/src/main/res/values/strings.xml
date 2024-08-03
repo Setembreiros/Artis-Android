@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">Artis</string>
+    <string name="user">User</string>
+    <string name="artist_user">Artist User</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="pass">Password</string>
+    <string name="last_name">Last name</string>
+    <string name="name">Name</string>
+    <string name="region">Region</string>
+    <string name="invalid_credentials">Invalid username or password</string>
+    <string name="invalid_email">Invalid email</string>
+    <string name="invalid_pass_text">The password must contain more than 8 characters and at least one symbol, a number and a capital letter</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="username_already_exists">Username already exists</string>
+    <string name="email_already_exists">Email already exists</string>
+    <string name="successfully_created_account">Account created successfully</string>
+    <string name="enter_confirm_code">Entre confirm code</string>
+    <string name="enter_confirm_code_text">Enter the confirm code was send to %1$s</string>
+    <string name="code">Code</string>
+    <string name="send">Send</string>
+    <string name="user_logged">User logged into the application</string>
+    <string name="register_title">Sign up for Artis</string>
+    <string name="login_title">Log in to Artis</string>
+    <string name="register_question">Do not have an account? Sign up</string>
+    <string name="login_question">Already have an account? Log in</string>
+    <string name="profile">Profile</string>
+    <string name="close_session">Close session</string>
+
 </resources>

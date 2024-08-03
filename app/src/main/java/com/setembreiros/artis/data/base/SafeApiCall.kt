@@ -2,11 +2,8 @@ package com.setembreiros.artis.data.base
 
 import com.setembreiros.artis.data.model.WrapperApi
 import com.squareup.moshi.JsonEncodingException
-import com.xeria.gigbro.data.base.ErrorResponseMapper
-import com.xeria.gigbro.data.base.HttpCode
-import com.xeria.gigbro.data.base.Mapper
+import com.setembreiros.artis.domain.base.Resource
 import es.xeria.iventxff.domain.base.FailureError
-import com.xeria.gigbro.domain.base.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException

@@ -1,4 +1,4 @@
-package com.xeria.gigbro.data.base
+package com.setembreiros.artis.data.base
 
 import androidx.annotation.NonNull
 

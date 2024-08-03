@@ -1,4 +1,4 @@
-package com.xeria.gigbro.data.base
+package com.setembreiros.artis.data.base
 
 data class ErrorResponse (val StatusCode: Int?,
                           val ErrorMessage: String,

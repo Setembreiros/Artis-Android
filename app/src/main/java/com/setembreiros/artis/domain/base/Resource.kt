@@ -1,4 +1,4 @@
-package com.xeria.gigbro.domain.base
+package com.setembreiros.artis.domain.base
 
 import es.xeria.iventxff.domain.base.FailureError
 

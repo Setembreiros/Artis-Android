@@ -1,8 +1,6 @@
-package com.xeria.gigbro.data.base
+package com.setembreiros.artis.data.base
 
 import com.google.gson.Gson
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 
 class ErrorResponseMapper {

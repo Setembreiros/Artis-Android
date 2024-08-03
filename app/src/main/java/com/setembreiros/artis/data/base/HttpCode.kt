@@ -1,4 +1,4 @@
-package com.xeria.gigbro.data.base
+package com.setembreiros.artis.data.base
 
 class HttpCode {
 
@@ -7,7 +7,7 @@ class HttpCode {
         const val UNAUTHORIZED = 401
         const val NOT_FOUND = 404
         const val INTERNAL_ERROR = 500
-        const val BAD_REQUEST = 404
+        const val BAD_REQUEST = 400
 
     }
 }

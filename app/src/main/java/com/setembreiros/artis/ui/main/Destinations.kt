@@ -22,6 +22,15 @@ object Profile : Destinations{
         get() = "profile"
 }
 
+object NewPost : Destinations{
+    override val icon: Int
+        get() = R.drawable.ic_add_box
+    override val route: String
+        get() = "new_post"
+    override val base: String
+        get() = "new_post"
+}
+
 object Register : Destinations{
     override val icon: Int
         get() = 0
@@ -41,5 +50,6 @@ object Login : Destinations{
 }
 
 
-val tabScreen = listOf(Home, Profile)
-val allScreen = listOf(Register, Login, Home, Profile)
+val tabScreenUA = listOf(Home, NewPost, Profile)
+val tabScreenUE = listOf(Home, Profile)
+val allScreen = listOf(Register, Login, Home, Profile, NewPost)

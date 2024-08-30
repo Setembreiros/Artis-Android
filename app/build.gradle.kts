@@ -39,6 +39,7 @@ android {
 
         debug {
             buildConfigField(type = "String",name = "API_URL", value = properties.getProperty("API_URL_DEBUG") ?: "")
+            buildConfigField(type = "String",name = "S3_URL", value = properties.getProperty("S3_URL_DEBUG") ?: "")
 
         }
         release {
@@ -120,6 +121,9 @@ dependencies {
     implementation (libs.converter.moshi)
     implementation (libs.converter.gson)
     implementation (libs.converter.scalars)
+
+
+    implementation(libs.coil.compose)
 
 
 }

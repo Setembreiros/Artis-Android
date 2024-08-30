@@ -2,6 +2,7 @@
 agp = "8.3.2"
 awsAndroidSdkCognitoidentityprovider = "2.26.0"
 cognitoidentityprovider = "1.0.30"
+coilCompose = "2.4.0"
 converterGson = "2.9.0"
 hiltAndroid = "2.50"
 hiltNavigationFragment = "1.2.0"
@@ -32,6 +33,7 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 aws-android-sdk-cognitoidentityprovider = { module = "com.amazonaws:aws-android-sdk-cognitoidentityprovider", version.ref = "awsAndroidSdkCognitoidentityprovider" }
 cognitoidentity = { module = "aws.sdk.kotlin:cognitoidentity", version.ref = "cognitoidentityprovider" }
 cognitoidentityprovider = { module = "aws.sdk.kotlin:cognitoidentityprovider", version.ref = "cognitoidentityprovider" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterGson" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converterGson" }

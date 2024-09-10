@@ -38,7 +38,7 @@ android {
     buildTypes {
 
         debug {
-            buildConfigField(type = "String",name = "API_URL", value = properties.getProperty("API_URL_DEBUG") ?: "")
+            buildConfigField(type = "String",name = "API_URL", value = properties.getProperty("API_URL_RELEASE") ?: "")
 
         }
         release {
@@ -48,6 +48,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -120,6 +121,7 @@ dependencies {
     implementation (libs.converter.moshi)
     implementation (libs.converter.gson)
     implementation (libs.converter.scalars)
-
+    //coil
+    implementation(libs.coil.compose)
 
 }

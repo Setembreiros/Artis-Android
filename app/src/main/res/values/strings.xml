@@ -26,5 +26,10 @@
     <string name="login_question">Already have an account? Log in</string>
     <string name="profile">Profile</string>
     <string name="close_session">Close session</string>
-
+    <string name="avatar_description">Avatar image</string>
+    <string name="hello">Hello %1$s</string>
+    <string name="edit_biography">Edit biography</string>
+    <string name="view_events">View events</string>
+    <string name="edit_event">Add event</string>
+    <string name="photographies">Photographies</string>
 </resources>

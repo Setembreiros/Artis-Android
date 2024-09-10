@@ -27,4 +27,10 @@
     <string name="login_question">Xa tes unha conta? Accede</string>
     <string name="profile">Perfil</string>
     <string name="close_session">Pechar sessión</string>
+    <string name="avatar_description">Imaxe de perfil</string>
+    <string name="hello">Ola %1$s</string>
+    <string name="edit_biography">Editar biografía</string>
+    <string name="view_events">Ver eventos</string>
+    <string name="edit_event">Engadir evento</string>
+    <string name="photographies">Fotografías</string>
 </resources>

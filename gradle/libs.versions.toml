@@ -19,6 +19,7 @@ materialIconsCore = "1.6.7"
 runtime = "<version>"
 securityCrypto = "1.1.0-alpha06"
 securityCryptoKtx = "1.0.0"
+coil = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ androidx-security-crypto-ktx = { group = "androidx.security", name = "security-c
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
 secretsmanager = { module = "aws.sdk.kotlin:secretsmanager", version.ref = "cognitoidentityprovider" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil"}
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

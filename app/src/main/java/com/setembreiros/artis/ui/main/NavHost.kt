@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.setembreiros.artis.ui.account.login.LoginScreen
 import com.setembreiros.artis.ui.account.register.RegisterScreen
 import com.setembreiros.artis.ui.home.HomeScreen
+import com.setembreiros.artis.ui.post.NewPostScreen
 import com.setembreiros.artis.ui.profile.ProfileScreen
 
 @Composable
@@ -19,6 +20,7 @@ fun NavHostApp(
     viewModel: AppViewModel,
     stateTopBar: (Boolean) -> Unit,
     stateButtonMenu: (Boolean) -> Unit,
+    updateSession: () -> Unit,
     stateBackButtonChanged: (Boolean) -> Unit,
     modifier: Modifier
 ) {
@@ -30,8 +32,14 @@ fun NavHostApp(
         composable(Login.route) {
             stateButtonMenu(false)
             LoginScreen(
-                onNavigateToRegister = {navController.navigationToRegister()},
-                onNavigateToHome = {navController.navigationToHome()}
+                onNavigateToRegister = {
+                    navController.navigationToRegister()
+                    updateSession()
+                                       },
+                onNavigateToHome = {
+                    navController.navigationToHome()
+                    updateSession()
+                }
             )
         }
         composable(Register.route) {
@@ -45,6 +53,12 @@ fun NavHostApp(
         composable(Home.route) {
             stateButtonMenu(true)
             HomeScreen()
+        }
+
+        composable(NewPost.route){
+            stateTopBar(false)
+            stateButtonMenu(true)
+            NewPostScreen()
         }
         composable(Profile.route){
             stateButtonMenu(true)

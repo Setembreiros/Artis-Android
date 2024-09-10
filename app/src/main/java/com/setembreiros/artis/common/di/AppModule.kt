@@ -3,6 +3,7 @@ package com.setembreiros.artis.common.di
 import android.app.Application
 import android.content.Context
 import com.setembreiros.artis.data.preferences.SessionPrefs
+import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.interfaces.IPreferences
 import com.setembreiros.artis.domain.model.Session
 import dagger.Module
@@ -26,6 +27,12 @@ object AppModule {
     @Singleton
     fun provideSettingsPreferences(@ApplicationContext context: Context): IPreferences<Session> {
         return SessionPrefs(context)
+    }
+
+    @Provides
+    @Singleton
+    fun providerE3Service(): S3Service{
+        return S3Service()
     }
 
 

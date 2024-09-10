@@ -26,5 +26,10 @@
     <string name="login_question">Already have an account? Log in</string>
     <string name="profile">Profile</string>
     <string name="close_session">Close session</string>
+    <string name="title">Title</string>
+    <string name="caption">Caption</string>
+    <string name="publish">Publish</string>
+    <string name="add_post">Add post</string>
+    <string name="new_post">New post</string>
 
 </resources>

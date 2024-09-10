@@ -6,6 +6,11 @@ val blue = Color(0xff6aade4)
 val pink = Color(0xffca005d)
 val blueDisabled = Color(0x736AADE4)
 
-val gray = Color(0xff868e96)
+val blueBackground = Color(0xFFA5D8FF)
+val pinkBackground = Color(0xFFFCC2D7)
+val yellowBackground = Color(0xFFFFEC99)
+val greenBackground = Color(0xFFB2F2BB)
+
+val gray = Color(0xffe9ecef)
 
 val primaryLight = Color(0xffe7f5ff)

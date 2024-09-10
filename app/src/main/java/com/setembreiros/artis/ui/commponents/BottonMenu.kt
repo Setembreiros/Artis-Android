@@ -90,8 +90,8 @@ fun Tab(
     onSelected: () -> Unit,
     selected: Boolean
 ){
-    val colorSelected = MaterialTheme.colorScheme.primary
-    val colorNotSelected = MaterialTheme.colorScheme.secondary
+    val colorSelected = MaterialTheme.colorScheme.onPrimary
+    val colorNotSelected = MaterialTheme.colorScheme.primary
     val durationMillis = if (selected) TabFadeInAnimationDuration else TabFadeOutAnimationDuration
     val animSpec = remember {
         tween<Color>(
@@ -123,8 +123,6 @@ fun Tab(
             .clearAndSetSemantics { contentDescription = text }
     ) {
         Icon(painter = icon, contentDescription = text, tint = tabTintColor, modifier = Modifier.size(30.dp))
-        //Text(getTitle(route = text), color = tabTintColor)
-
     }
 }
 

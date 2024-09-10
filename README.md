@@ -21,6 +21,7 @@ Engadir no ficheiro local.properties as seguintes lineas
 ```kotlin
 API_URL_DEBUG= "http://192.168.1.39:5555/development/" -> Cambiar 192.168.1.39 por IP local, no serve local host nin 127.0.0.1
 API_URL_RELEASE= "http://localhost:5555/production/" -> Cando teñamos api en producción modificar!
+S3_URL_DEBUG= "http://192.168.1.44:4566/"
 ```
 
 No directorio res->xml modificar o ficheiro network_security_config.xml cambiando api local pola do teu ordenador.

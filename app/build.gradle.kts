@@ -70,7 +70,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
         resources {
@@ -123,9 +123,7 @@ dependencies {
     implementation (libs.converter.moshi)
     implementation (libs.converter.gson)
     implementation (libs.converter.scalars)
-
-
+    //coil
     implementation(libs.coil.compose)
-
 
 }

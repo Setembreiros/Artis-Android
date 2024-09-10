@@ -154,7 +154,7 @@ fun TextFieldPost(hint: String,
         .padding(horizontal = 8.dp),
 
         ) {
-        Text(text = hint, color = gray, fontSize = 11.sp)
+        Text(text = hint, color = MaterialTheme.colorScheme.onSurface, fontSize = 11.sp)
         Spacer(modifier = Modifier.size(1.dp))
         BasicTextField(
             value = value,
@@ -162,11 +162,11 @@ fun TextFieldPost(hint: String,
                 onChangeValue(it)
                 value = it },
             modifier = modifier
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 4.dp),
-            textStyle = LocalTextStyle.current.copy(color = Color.Black) // Color del texto
+            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface) // Color del texto
         ) { innerTextField ->
             innerTextField()
         }

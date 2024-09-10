@@ -1,4 +1,4 @@
-package com.setembreiros.artis.data.mapper
+package com.setembreiros.artis.data.mapper.todomain
 
 import com.setembreiros.artis.data.model.UserProfileApi
 import com.setembreiros.artis.domain.model.UserProfile

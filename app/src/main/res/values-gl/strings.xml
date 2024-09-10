@@ -33,4 +33,9 @@
     <string name="view_events">Ver eventos</string>
     <string name="edit_event">Engadir evento</string>
     <string name="photographies">Fotografías</string>
+    <string name="title">Título</string>
+    <string name="caption">Pé de foto</string>
+    <string name="publish">Publicar</string>
+    <string name="add_post">Engadir publicación</string>
+    <string name="new_post">Nova publicación</string>
 </resources>

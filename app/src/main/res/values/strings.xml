@@ -32,4 +32,10 @@
     <string name="view_events">View events</string>
     <string name="edit_event">Add event</string>
     <string name="photographies">Photographies</string>
+    <string name="title">Title</string>
+    <string name="caption">Caption</string>
+    <string name="publish">Publish</string>
+    <string name="add_post">Add post</string>
+    <string name="new_post">New post</string>
+
 </resources>

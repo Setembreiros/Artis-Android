@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.ripple.rememberRipple
@@ -38,8 +40,9 @@ import androidx.compose.ui.unit.dp
 import com.setembreiros.artis.R
 import com.setembreiros.artis.ui.base.Destinations
 import com.setembreiros.artis.ui.main.Home
-import com.setembreiros.artis.ui.main.tabScreen
+import com.setembreiros.artis.ui.main.tabScreenUA
 import com.setembreiros.artis.ui.theme.ArtisTheme
+import com.setembreiros.artis.ui.theme.primaryLight
 
 
 private val TabHeight = 56.dp
@@ -59,13 +62,14 @@ fun BottomMenu(
         Modifier
             .fillMaxWidth()
             .height(TabHeight)
-            .background(color = MaterialTheme.colorScheme.surface)
+            .background(color = primaryLight)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .selectableGroup()
-                .fillMaxWidth()
+                .fillMaxSize()
                 ) {
             allScreens.forEach { screen ->
                 Tab(
@@ -86,8 +90,8 @@ fun Tab(
     onSelected: () -> Unit,
     selected: Boolean
 ){
-    val colorSelected = MaterialTheme.colorScheme.primary
-    val colorNotSelected = MaterialTheme.colorScheme.secondary
+    val colorSelected = MaterialTheme.colorScheme.onPrimary
+    val colorNotSelected = MaterialTheme.colorScheme.primary
     val durationMillis = if (selected) TabFadeInAnimationDuration else TabFadeOutAnimationDuration
     val animSpec = remember {
         tween<Color>(
@@ -118,9 +122,7 @@ fun Tab(
             )
             .clearAndSetSemantics { contentDescription = text }
     ) {
-        Icon(painter = icon, contentDescription = text, tint = tabTintColor)
-        Text(getTitle(route = text), color = tabTintColor)
-
+        Icon(painter = icon, contentDescription = text, tint = tabTintColor, modifier = Modifier.size(30.dp))
     }
 }
 
@@ -129,6 +131,7 @@ fun getTitle(route: String): String{
     return when(route){
         "home" -> "Home"
         "profile" -> stringResource(id = R.string.profile)
+        "new_post" -> stringResource(id = R.string.new_post)
         else -> "Artis"
     }
 }
@@ -137,6 +140,6 @@ fun getTitle(route: String): String{
 @Composable
 fun BottomMenuPreview() {
     ArtisTheme {
-        BottomMenu(tabScreen, {}, Home)
+        BottomMenu(tabScreenUA, {}, Home)
     }
 }

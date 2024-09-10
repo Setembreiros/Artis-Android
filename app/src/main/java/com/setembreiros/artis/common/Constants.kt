@@ -7,6 +7,9 @@ object Constants {
     enum class UserType{
         UA,UE
     }
+    enum class ContentType {
+        TEXT, IMAGE, AUDIO, VIDEO
+    }
 
     val regionList = arrayOf("Arbo", "A Coruña", "Girona", "Goián", "Ourense", "Pontevedra", "Vigo")
 }

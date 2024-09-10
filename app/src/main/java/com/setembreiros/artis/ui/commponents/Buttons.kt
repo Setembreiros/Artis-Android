@@ -1,5 +1,9 @@
 package com.setembreiros.artis.ui.commponents
 
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -13,23 +17,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.setembreiros.artis.ui.theme.blueDisabled
 
 
 @Composable
-fun StandardButton(title: String, enabled: Boolean, loading: Boolean = false,onclick: () -> Unit){
+fun StandardButton(title: String, enabled: Boolean, loading: Boolean = false, backgroundColor: Color = MaterialTheme.colorScheme.primary, onclick: () -> Unit){
     Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = backgroundColor, shape = RoundedCornerShape(8.dp))
+            .border(
+                border = BorderStroke(2.dp, Color.Black),
+                shape = RoundedCornerShape(8.dp)
+            ),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
+            contentColor = backgroundColor,
             disabledContentColor = blueDisabled,
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = backgroundColor
         ),
         shape = RoundedCornerShape(4.dp),
-        modifier = Modifier
-            .fillMaxWidth(),
+
         onClick = {
             onclick()
         }) {
@@ -48,7 +59,7 @@ fun Loading(){
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(modifier = Modifier.size(28.dp), color = MaterialTheme.colorScheme.secondary)
+        CircularProgressIndicator(modifier = Modifier.size(28.dp), color = MaterialTheme.colorScheme.onPrimary)
     }
 }
 

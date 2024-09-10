@@ -5,9 +5,11 @@ import com.setembreiros.artis.data.base.BaseApiClient
 import com.setembreiros.artis.data.mapper.todomain.UserProfileMapperApi
 import javax.inject.Inject
 
-class UserRepository @Inject constructor(private val apiClient: ApiClient): BaseApiClient() {
+class UserRepository @Inject constructor(private val apiClient: ApiClient, private val sessionRepository: SessionRepository): BaseApiClient() {
+
+    private fun getToken() = "Bearer " +sessionRepository.getSession()!!.idToken
 
     suspend fun getUserProfile(username: String) = safeApiCall(UserProfileMapperApi()){
-        apiClient.getProfile(username)
+        apiClient.getProfile(getToken(), username)
     }
 }

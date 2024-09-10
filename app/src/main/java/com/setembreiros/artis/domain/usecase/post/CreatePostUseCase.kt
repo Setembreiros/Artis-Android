@@ -1,10 +1,10 @@
 package com.setembreiros.artis.domain.usecase.post
 
-import android.util.Log
 import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.data.repository.PostRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
+import com.setembreiros.artis.domain.model.post.ConfirmPostRequest
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.model.post.PostResponse
 import javax.inject.Inject
@@ -18,7 +18,10 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
     private suspend fun createMetaData(post: Post, content: ByteArray) : Boolean{
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
-                sendContentS3(content, response.value)
+                val responseS3 = sendContentS3(content, response.value)
+                if(responseS3)
+                    confirmPost(true, response.value.postId)
+                else false
             }
             is Resource.Failure -> return false
         }
@@ -29,6 +32,15 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
         if(BuildConfig.DEBUG)
             url = getUrlDebug(metadata.presignedUrl)
         return s3Service.putContent(url, content, "PUT")
+    }
+
+    private suspend fun confirmPost(isConfirmed: Boolean, posId: String): Boolean{
+        val confirmPostRequest = ConfirmPostRequest(isConfirmed, posId)
+        return when(val response = postRepository.confirmPost(confirmPostRequest)){
+            is Resource.Success -> true
+            is Resource.Failure -> false
+        }
+
     }
 
     private fun getUrlDebug(url: String) : String{

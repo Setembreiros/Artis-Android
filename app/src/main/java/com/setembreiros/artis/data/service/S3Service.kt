@@ -19,6 +19,7 @@ class S3Service {
                 connection.readTimeout = 5000
 
                 connection.setRequestProperty("Content-Type", "application/octet-stream")
+
                 connection.doOutput = true
 
                 connection.outputStream.use { outputStream ->

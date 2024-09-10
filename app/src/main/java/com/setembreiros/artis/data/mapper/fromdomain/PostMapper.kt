@@ -6,6 +6,6 @@ import com.setembreiros.artis.domain.model.post.Post
 
 class PostMapper: Mapper<Post, PostApi> {
     override fun map(model: Post): PostApi {
-        return PostApi(username = model.username, title = model.title, description = model.description, fileType = model.fileType, type = model.type)
+        return PostApi(username = model.username, title = model.title, description = model.description, file_Type = model.fileType, type = model.type)
     }
 }

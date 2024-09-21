@@ -13,10 +13,10 @@ import javax.inject.Inject
 
 class PostRepository @Inject constructor(private val apiClient: ApiClient, private val getSessionUseCase: GetSessionUseCase): BaseApiClient() {
 
-    private fun getToken() = "Bearer " +getSessionUseCase.invoke()!!.idToken
+    private fun getToken() = "Bearer " + getSessionUseCase.invoke()!!.idToken
 
     suspend fun createPost(post: Post) = safeApiCall(PostResponseMapperApi()){
-        apiClient.createPost( getToken() ,PostMapper().map(post))
+        apiClient.createPost(getToken() ,PostMapper().map(post))
     }
 
     suspend fun confirmPost(confirmPostRequest: ConfirmPostRequest) = safeApiCall(GenericBoolMapperApi()){

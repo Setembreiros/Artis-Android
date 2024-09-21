@@ -31,12 +31,12 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
         var url = metadata.presignedUrl
         if(BuildConfig.DEBUG)
             url = getUrlDebug(metadata.presignedUrl)
-        return s3Service.putContent(url, content, "PUT")
+        return s3Service.putContent(url, content)
     }
 
     private suspend fun confirmPost(isConfirmed: Boolean, posId: String): Boolean{
         val confirmPostRequest = ConfirmPostRequest(isConfirmed, posId)
-        return when(val response = postRepository.confirmPost(confirmPostRequest)){
+        return when(postRepository.confirmPost(confirmPostRequest)){
             is Resource.Success -> true
             is Resource.Failure -> false
         }

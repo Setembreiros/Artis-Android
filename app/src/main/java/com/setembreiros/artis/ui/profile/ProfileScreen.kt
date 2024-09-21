@@ -59,7 +59,6 @@ fun ProfileScreen(onCloseSession: () -> Unit) {
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
 
-
     DisposableEffect(context) {
         onDispose {
 
@@ -71,7 +70,6 @@ fun ProfileScreen(onCloseSession: () -> Unit) {
         onCloseSession()
     }
 }
-
 
 @Composable
 fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {

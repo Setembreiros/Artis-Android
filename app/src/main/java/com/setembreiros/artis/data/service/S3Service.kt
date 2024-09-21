@@ -6,20 +6,17 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class S3Service {
-
-    suspend fun putContent(url: String, content: ByteArray, type: String): Boolean {
+   suspend fun putContent(s3Url: String, content: ByteArray,): Boolean {
         return withContext(Dispatchers.IO) {
-            var result = false
+            var result: Boolean
             try {
-                val url = URL(url)
+                val url = URL(s3Url)
                 val connection = url.openConnection() as HttpURLConnection
 
-                connection.requestMethod = type
+                connection.requestMethod = "PUT"
                 connection.connectTimeout = 5000
                 connection.readTimeout = 5000
-
                 connection.setRequestProperty("Content-Type", "application/octet-stream")
-
                 connection.doOutput = true
 
                 connection.outputStream.use { outputStream ->

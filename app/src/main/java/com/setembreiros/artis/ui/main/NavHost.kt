@@ -27,7 +27,7 @@ fun NavHostApp(
 ) {
     NavHost(
         navController = navController,
-        startDestination = if (viewModel.session.value!!.idToken != null) Home.route else Login.route,
+        startDestination = if (viewModel.session.value != null && viewModel.session.value!!.idToken != null) Home.route else Login.route,
         modifier = modifier
     ) {
         composable(Login.route) {

@@ -20,7 +20,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         val postMetadatas = postMetadatasDeferred.await()
         val contents = contentsDeferred.await()
 
-        var posts = ArrayList<Post>()
+        val posts = ArrayList<Post>()
         for (postMetadata in postMetadatas) {
             val matchingContent = contents.find { it.first == postMetadata.postId }?.second
             val post = Post(postMetadata, matchingContent)
@@ -34,9 +34,9 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
     private suspend fun getMetaData(username: String) : Array<PostMetadata> {
         return when(val response = postRepository.getPostMetadatas(username)){
             is Resource.Success -> {
-                return response.value
+                response.value
             }
-            is Resource.Failure -> return arrayOf()
+            is Resource.Failure -> arrayOf()
         }
     }
 
@@ -51,7 +51,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
     private suspend fun getUrls(username: String) : Array<PostUrl>{
         return when(val response = postRepository.getUrlPosts(username)){
             is Resource.Success -> {
-                return response.value
+                response.value
             }
             is Resource.Failure -> return arrayOf()
         }

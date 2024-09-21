@@ -1,9 +1,9 @@
 package com.setembreiros.artis.ui.main
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,6 +13,7 @@ import com.setembreiros.artis.ui.home.HomeScreen
 import com.setembreiros.artis.ui.post.NewPostScreen
 import com.setembreiros.artis.ui.profile.ProfileScreen
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NavHostApp(
     navController: NavHostController,
@@ -26,7 +27,7 @@ fun NavHostApp(
 ) {
     NavHost(
         navController = navController,
-        startDestination = if (viewModel.session.value != null) Home.route else Login.route,
+        startDestination = if (viewModel.session.value!!.idToken != null) Home.route else Login.route,
         modifier = modifier
     ) {
         composable(Login.route) {

@@ -5,6 +5,8 @@ import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
+import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
+import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -22,4 +24,10 @@ interface ApiClient {
 
     @PUT("postservice/confirm-created-post")
     suspend fun confirmPost(@Header("Authorization") token: String, @Body confirmPostRequestApi: ConfirmPostRequestApi) : WrapperApi<Boolean>
+
+    @GET("postservice/user-posts/{username}")
+    suspend fun getUrlPosts(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<GetUrlPostsResponseApi>
+
+    @GET("readmodels/user-posts/{username}")
+    suspend fun getPostMetadatas(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<GetPostMetadatasResponseApi>
 }

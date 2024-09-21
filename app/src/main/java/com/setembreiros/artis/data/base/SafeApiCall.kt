@@ -11,10 +11,7 @@ import java.io.IOException
 import java.net.UnknownHostException
 
 interface SafeApiCall {
-
-
-
-    suspend fun <A, D> safeApiCall(mapper: Mapper<A, D>, apiCall: suspend () -> WrapperApi<A>): Resource<D> {
+        suspend fun <A, D> safeApiCall(mapper: Mapper<A, D>, apiCall: suspend () -> WrapperApi<A>): Resource<D> {
         return withContext(Dispatchers.IO) {
             try {
                 val result = apiCall.invoke()
@@ -31,7 +28,6 @@ interface SafeApiCall {
             }
         }
     }
-
 
     private fun handle(throwable: Throwable): Resource.Failure {
         return when (throwable) {
@@ -58,5 +54,4 @@ interface SafeApiCall {
     private fun <A>getWrapper(wrapper: WrapperApi<A>): A{
         return wrapper.content as A
     }
-
 }

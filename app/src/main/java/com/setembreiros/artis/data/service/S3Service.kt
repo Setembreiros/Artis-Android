@@ -34,4 +34,32 @@ class S3Service {
             result
         }
     }
+
+    suspend fun getContent(s3Url: String): ByteArray {
+        return withContext(Dispatchers.IO) {
+            var result = ByteArray(0)
+            var connection: HttpURLConnection? = null
+
+            try {
+                val url = URL(s3Url)
+                connection = url.openConnection() as HttpURLConnection
+
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                connection.doInput = true
+
+                connection.inputStream.use { inputStream ->
+                    result = inputStream.readBytes()
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }finally {
+                connection?.disconnect()  // Ensure the connection is disconnected in all cases
+            }
+
+            result
+        }
+    }
 }

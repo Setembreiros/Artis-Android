@@ -26,6 +26,7 @@ class ProfileViewModel @Inject constructor(
     private val _profile = MutableStateFlow<UserProfile?>(null)
     private val _posts = MutableStateFlow<Array<Post>?>(null)
     val profile = _profile
+    val posts = _posts
 
     init {
         getProfile()

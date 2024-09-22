@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,18 +49,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.setembreiros.artis.R
 import com.setembreiros.artis.domain.model.UserProfile
+import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.ui.commponents.StandardButton
 import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
+import androidx.compose.foundation.lazy.grid.items
+import com.setembreiros.artis.common.Constants
 
 @Composable
 fun ProfileScreen(onCloseSession: () -> Unit) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
+    val posts by viewModel.posts.collectAsStateWithLifecycle()
 
     DisposableEffect(context) {
         onDispose {
@@ -65,14 +72,14 @@ fun ProfileScreen(onCloseSession: () -> Unit) {
         }
     }
 
-    ContentScreen(userProfile) {
+    ContentScreen(userProfile, posts) {
         viewModel.closeSession()
         onCloseSession()
     }
 }
 
 @Composable
-fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
+fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -196,7 +203,6 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                     )
                 }
             }
-
         }
 
         Box(
@@ -246,6 +252,38 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                         )
                     }
                     HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                    if (posts != null) {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            contentPadding = PaddingValues(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(posts) { post ->
+                                when (post.metadata.type) {
+                                    Constants.ContentType.IMAGE -> {
+                                        AsyncImage(
+                                            model = post.content,
+                                            modifier = Modifier
+                                                .size(150.dp)
+                                                .border(
+                                                    2.dp,
+                                                    Color.Black,
+                                                    RoundedCornerShape(16.dp)
+                                                )
+                                                .clip(RoundedCornerShape(16.dp)),
+                                            contentScale = ContentScale.Crop,
+                                            contentDescription = null,
+                                        )
+                                    }
+
+                                    Constants.ContentType.TEXT -> TODO()
+                                    Constants.ContentType.AUDIO -> TODO()
+                                    Constants.ContentType.VIDEO -> TODO()
+                                }
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.weight(1f))
                     StandardButton(
                         title = stringResource(id = R.string.close_session),
@@ -253,15 +291,6 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                     ) {
                         onCloseSession()
                     }
-                    /*
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 128.dp)
-                    ) {
-                        items(photos) { photo ->
-                            AsyncImage(photo)
-                        }
-                    }
-                    */
                 }
             }
             Row(
@@ -273,7 +302,7 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "45 Post",
+                    text = "${posts?.size ?: 0}\n Posts",
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
@@ -313,8 +342,6 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
             }
 
         }
-
-
     }
 }
 
@@ -329,6 +356,7 @@ fun ProfilePreview() {
                 "Guille",
                 "https://fuckyou.com"
             ),
+            arrayOf(),
             onCloseSession = {})
     }
 }

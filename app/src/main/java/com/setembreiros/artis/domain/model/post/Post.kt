@@ -1,9 +1,8 @@
 package com.setembreiros.artis.domain.model.post
 
-import android.graphics.Bitmap
 import com.setembreiros.artis.common.Constants.ContentType
 
-data class Post(val metadata : PostMetadata, var content: ByteArray?, var thumbnail:  Bitmap?)
+data class Post(val metadata : PostMetadata, var content: ByteArray?, var thumbnail:  ByteArray?)
 
 data class PostMetadata(
     val postId : String,

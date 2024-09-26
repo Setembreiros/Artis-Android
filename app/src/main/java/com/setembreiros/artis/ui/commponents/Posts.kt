@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.commponents
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -23,15 +22,13 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
 
 @Composable
-fun PostThumbnail(thumbnail: Bitmap?, contentType: Constants.ContentType){
+fun PostThumbnail(thumbnail: ByteArray?, contentType: Constants.ContentType){
     Box(
         modifier = Modifier.fillMaxSize(),  // Ensures the box takes up full available space
         contentAlignment = Alignment.Center // Aligns the play button in the center of the Box
     ) {
         when (contentType) {
-            Constants.ContentType.IMAGE -> {
-                BasePostThumbnail(thumbnail)
-            }
+            Constants.ContentType.IMAGE -> BasePostThumbnail(thumbnail)
             Constants.ContentType.VIDEO -> {
                 BasePostThumbnail(thumbnail)
                 Image(
@@ -42,7 +39,7 @@ fun PostThumbnail(thumbnail: Bitmap?, contentType: Constants.ContentType){
                 )
             }
             Constants.ContentType.AUDIO -> {
-                if(thumbnail != null)
+                if(thumbnail!!.isNotEmpty())
                     BasePostThumbnail(thumbnail)
                 else {
                     Image(
@@ -60,13 +57,13 @@ fun PostThumbnail(thumbnail: Bitmap?, contentType: Constants.ContentType){
                     )
                 }
             }
-            Constants.ContentType.TEXT -> return //TODO()
+            Constants.ContentType.TEXT -> BasePostThumbnail(thumbnail)
         }
     }
 }
 
 @Composable
-fun BasePostThumbnail(thumbnail: Bitmap?){
+fun BasePostThumbnail(thumbnail: ByteArray?){
     AsyncImage(
         model = thumbnail,
         modifier = Modifier

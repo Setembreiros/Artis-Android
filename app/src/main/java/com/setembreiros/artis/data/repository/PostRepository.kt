@@ -26,7 +26,7 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
     }
 
     suspend fun getUrlPosts(username: String) = safeApiCall(GetUrlPostsResponseMapperApi()){
-        apiClient.getUrlPosts(getToken() ,username)
+        apiClient.getUrlPosts(getToken(), username)
     }
 
     suspend fun getPostMetadatas(username: String) = safeApiCall(GetPostMetadatasResponseMapperApi()){

@@ -1,6 +1,7 @@
 package com.setembreiros.artis.domain.usecase.post
 
 import com.setembreiros.artis.BuildConfig
+import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.data.repository.PostRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
@@ -23,7 +24,9 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         val posts = ArrayList<Post>()
         for (postMetadata in postMetadatas) {
             val matchingContent = contents.find { it.first == postMetadata.postId }?.second
-            val post = Post(postMetadata, matchingContent)
+            val thumbnailContent = ensureThumbnailContent(postMetadata.type, matchingContent)
+
+            val post = Post(postMetadata, matchingContent!![0], thumbnailContent)
             println("Post: ${post.metadata.postId}, Content: ${post.content}")
             posts.add(post)
         }
@@ -40,7 +43,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-    private suspend fun getContent(username: String) : List<Pair<String,ByteArray?>> {
+    private suspend fun getContent(username: String) : List<Pair<String,Array<ByteArray>>> {
         val postUrls = getUrls(username)
         if (postUrls.isNotEmpty())
             return getMultimediaContent(postUrls)
@@ -57,19 +60,44 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-    private suspend fun getMultimediaContent(postUrls: Array<PostUrl>): List<Pair<String,ByteArray?>> = coroutineScope {
+    private suspend fun getMultimediaContent(postUrls: Array<PostUrl>): List<Pair<String,Array<ByteArray>>> = coroutineScope {
         val deferredResponses = postUrls.map { postUrl ->
             async {
                 var url = postUrl.url
-                if(BuildConfig.DEBUG)
+                var thumbnailUrl = postUrl.thumbnailUrl
+                var thumbnailContent = ByteArray(0)
+              if(BuildConfig.DEBUG) {
                     url = getUrlDebug(postUrl.url)
+                    if(thumbnailUrl != "") {
+                        thumbnailUrl = getUrlDebug(postUrl.thumbnailUrl)
+                    }
+                }
 
                 val multimediaContent = s3Service.getContent(url)
-                Pair(postUrl.postId, multimediaContent)
+                if(thumbnailUrl != "") {
+                    thumbnailContent = s3Service.getContent(thumbnailUrl)
+                }
+                Pair(postUrl.postId, arrayOf(multimediaContent, thumbnailContent))
             }
         }
 
         deferredResponses.awaitAll()
+    }
+
+    private fun ensureThumbnailContent(contentType: Constants.ContentType, content:  Array<ByteArray>?) : ByteArray {
+        return if(content!![1].isEmpty()) {
+            when (contentType) {
+                Constants.ContentType.IMAGE -> {
+                    content[0]
+                }
+
+                Constants.ContentType.TEXT -> content[1]//TODO()
+                Constants.ContentType.AUDIO -> content[1]//TODO()
+                Constants.ContentType.VIDEO -> content[1]//TODO()
+            }
+        } else {
+            content[1]
+        }
     }
 
     private fun getUrlDebug(url: String) : String{

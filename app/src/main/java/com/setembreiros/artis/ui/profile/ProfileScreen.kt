@@ -263,9 +263,10 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession
                                 when (post.metadata.type) {
                                     Constants.ContentType.IMAGE -> {
                                         AsyncImage(
-                                            model = post.content,
+                                            model = post.thumbnail,
                                             modifier = Modifier
-                                                .size(150.dp)
+                                                .height(150.dp)
+                                                .width(100.dp)
                                                 .border(
                                                     2.dp,
                                                     Color.Black,
@@ -276,10 +277,9 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession
                                             contentDescription = null,
                                         )
                                     }
-
-                                    Constants.ContentType.TEXT -> TODO()
-                                    Constants.ContentType.AUDIO -> TODO()
-                                    Constants.ContentType.VIDEO -> TODO()
+                                    Constants.ContentType.TEXT -> true//TODO()
+                                    Constants.ContentType.AUDIO -> true//TODO()
+                                    Constants.ContentType.VIDEO -> true //TODO()
                                 }
                             }
                         }

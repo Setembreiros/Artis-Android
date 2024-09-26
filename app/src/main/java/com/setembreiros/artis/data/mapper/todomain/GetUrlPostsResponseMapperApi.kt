@@ -10,6 +10,7 @@ class GetUrlPostsResponseMapperApi: Mapper<GetUrlPostsResponseApi, Array<PostUrl
             PostUrl(
                 postId = dto.postId,
                 url = dto.url,
+                thumbnailUrl = dto.thumbnailUrl
             )
         }.toTypedArray()
     }

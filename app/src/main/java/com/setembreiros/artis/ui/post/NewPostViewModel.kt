@@ -50,7 +50,8 @@ class NewPostViewModel @Inject constructor(
                     type = _type.value,
                     fileType = _fileType.value
                 ),
-                content = ByteArray(0)
+                content = ByteArray(0),
+                thumbnail = ByteArray(0)
             )
             viewModelScope.launch(Dispatchers.IO) {
                 createPostUseCase.invoke(post, it)

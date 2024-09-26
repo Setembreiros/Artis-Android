@@ -1,5 +1,6 @@
 package com.setembreiros.artis.ui.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +58,9 @@ import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.graphics.ColorFilter
 import com.setembreiros.artis.common.Constants
+import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable
 fun ProfileScreen(onCloseSession: () -> Unit) {
@@ -260,27 +263,7 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(posts) { post ->
-                                when (post.metadata.type) {
-                                    Constants.ContentType.IMAGE -> {
-                                        AsyncImage(
-                                            model = post.thumbnail,
-                                            modifier = Modifier
-                                                .height(150.dp)
-                                                .width(100.dp)
-                                                .border(
-                                                    2.dp,
-                                                    Color.Black,
-                                                    RoundedCornerShape(16.dp)
-                                                )
-                                                .clip(RoundedCornerShape(16.dp)),
-                                            contentScale = ContentScale.Crop,
-                                            contentDescription = null,
-                                        )
-                                    }
-                                    Constants.ContentType.TEXT -> true//TODO()
-                                    Constants.ContentType.AUDIO -> true//TODO()
-                                    Constants.ContentType.VIDEO -> true //TODO()
-                                }
+                                PostThumbnail(post.thumbnail, post.metadata.type)
                             }
                         }
                     }

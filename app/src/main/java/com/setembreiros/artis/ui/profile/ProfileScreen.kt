@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -58,8 +57,6 @@ import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.ui.graphics.ColorFilter
-import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable

@@ -1,5 +1,8 @@
 package com.setembreiros.artis.domain.usecase.post
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.data.repository.PostRepository
@@ -11,6 +14,8 @@ import com.setembreiros.artis.domain.model.post.PostUrl
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 class GetPostsUseCase @Inject constructor(private val postRepository: PostRepository, private val s3Service: S3Service)  {
@@ -23,10 +28,11 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
 
         val posts = ArrayList<Post>()
         for (postMetadata in postMetadatas) {
-            val matchingContent = contents.find { it.first == postMetadata.postId }?.second
-            val thumbnailContent = ensureThumbnailContent(postMetadata.type, matchingContent)
-
-            val post = Post(postMetadata, matchingContent!![0], thumbnailContent)
+            val matchingContent = contents.find { it.first == postMetadata.postId }?.let {
+                Pair(it.second, it.third)
+            }
+            val post = Post(postMetadata, matchingContent!!.first, matchingContent.second)
+            ensureThumbnailContent(post)
             println("Post: ${post.metadata.postId}, Content: ${post.content}")
             posts.add(post)
         }
@@ -43,7 +49,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-    private suspend fun getContent(username: String) : List<Pair<String,Array<ByteArray>>> {
+    private suspend fun getContent(username: String) : List<Triple<String,ByteArray, Bitmap?>> {
         val postUrls = getUrls(username)
         if (postUrls.isNotEmpty())
             return getMultimediaContent(postUrls)
@@ -60,13 +66,13 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-    private suspend fun getMultimediaContent(postUrls: Array<PostUrl>): List<Pair<String,Array<ByteArray>>> = coroutineScope {
+    private suspend fun getMultimediaContent(postUrls: Array<PostUrl>): List<Triple<String,ByteArray,Bitmap?>> = coroutineScope {
         val deferredResponses = postUrls.map { postUrl ->
             async {
                 var url = postUrl.url
                 var thumbnailUrl = postUrl.thumbnailUrl
-                var thumbnailContent = ByteArray(0)
-              if(BuildConfig.DEBUG) {
+                var thumbnailContent: Bitmap? = null
+                if(BuildConfig.DEBUG) {
                     url = getUrlDebug(postUrl.url)
                     if(thumbnailUrl != "") {
                         thumbnailUrl = getUrlDebug(postUrl.thumbnailUrl)
@@ -75,28 +81,46 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
 
                 val multimediaContent = s3Service.getContent(url)
                 if(thumbnailUrl != "") {
-                    thumbnailContent = s3Service.getContent(thumbnailUrl)
+                    val response = s3Service.getContent(thumbnailUrl)
+                    thumbnailContent = BitmapFactory.decodeByteArray(response, 0, response.size)
                 }
-                Pair(postUrl.postId, arrayOf(multimediaContent, thumbnailContent))
+                Triple(postUrl.postId, multimediaContent, thumbnailContent)
             }
         }
 
         deferredResponses.awaitAll()
     }
 
-    private fun ensureThumbnailContent(contentType: Constants.ContentType, content:  Array<ByteArray>?) : ByteArray {
-        return if(content!![1].isEmpty()) {
-            when (contentType) {
+    private fun ensureThumbnailContent(post: Post) {
+        if(post.thumbnail == null) {
+            when (post.metadata.type) {
                 Constants.ContentType.IMAGE -> {
-                    content[0]
+                    post.thumbnail = BitmapFactory.decodeByteArray(post.content, 0, post.content!!.size)
                 }
+                Constants.ContentType.TEXT -> return // TODO()
+                Constants.ContentType.AUDIO -> return // TODO()
+                Constants.ContentType.VIDEO -> {
+                    val retriever = MediaMetadataRetriever()
+                    var tempFile: File? = null
+                    try {
+                        tempFile = File.createTempFile("temp_video", post.metadata.fileType)
+                        val fos = FileOutputStream(tempFile)
+                        fos.write(post.content)
+                        fos.close()
 
-                Constants.ContentType.TEXT -> content[1]//TODO()
-                Constants.ContentType.AUDIO -> content[1]//TODO()
-                Constants.ContentType.VIDEO -> content[1]//TODO()
+                        retriever.setDataSource(tempFile!!.absolutePath)
+
+                        post.thumbnail = retriever.getFrameAtTime(1 * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    finally {
+                        // Release the retriever and delete the temp file
+                        retriever.release()
+                        tempFile?.delete()
+                    }
+                }
             }
-        } else {
-            content[1]
         }
     }
 

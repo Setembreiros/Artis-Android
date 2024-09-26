@@ -15,13 +15,16 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
        return createMetaData(post, content)
     }
 
-    private suspend fun createMetaData(post: Post, content: ByteArray) : Boolean{
+    private suspend fun createMetaData(post: Post, content: ByteArray) : Boolean {
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
                 val responseS3 = sendContentS3(content, response.value)
                 if(responseS3)
                     confirmPost(true, response.value.postId)
-                else false
+                else {
+                    confirmPost(false, response.value.postId)
+                    false
+                }
             }
             is Resource.Failure -> return false
         }

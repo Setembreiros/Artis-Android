@@ -1,3 +1,3 @@
 package com.setembreiros.artis.data.model.post
 
-data class CreatePostResponseApi(val post_id: String, val presigned_url: String)
+data class CreatePostResponseApi(val postId: String, val presignedUrl: String)

@@ -6,6 +6,6 @@ import com.setembreiros.artis.domain.model.post.PostResponse
 
 class PostResponseMapperApi: Mapper<CreatePostResponseApi, PostResponse> {
     override fun map(model: CreatePostResponseApi): PostResponse {
-        return PostResponse(postId = model.post_id, presignedUrl = model.presigned_url)
+        return PostResponse(postId = model.postId, presignedUrl = model.presignedUrl)
     }
 }

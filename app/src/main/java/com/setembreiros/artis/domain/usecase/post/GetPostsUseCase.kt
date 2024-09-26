@@ -98,7 +98,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
                     post.thumbnail = BitmapFactory.decodeByteArray(post.content, 0, post.content!!.size)
                 }
                 Constants.ContentType.TEXT -> return // TODO()
-                Constants.ContentType.AUDIO -> return // TODO()
+                Constants.ContentType.AUDIO -> return
                 Constants.ContentType.VIDEO -> {
                     val retriever = MediaMetadataRetriever()
                     var tempFile: File? = null

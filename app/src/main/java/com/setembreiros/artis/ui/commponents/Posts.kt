@@ -28,29 +28,57 @@ fun PostThumbnail(thumbnail: Bitmap?, contentType: Constants.ContentType){
         modifier = Modifier.fillMaxSize(),  // Ensures the box takes up full available space
         contentAlignment = Alignment.Center // Aligns the play button in the center of the Box
     ) {
-        AsyncImage(
-            model = thumbnail,
-            modifier = Modifier
-                .height(150.dp)
-                .width(100.dp)
-                .border(
-                    2.dp,
-                    Color.Black,
-                    RoundedCornerShape(16.dp)
+        when (contentType) {
+            Constants.ContentType.IMAGE -> {
+                BasePostThumbnail(thumbnail)
+            }
+            Constants.ContentType.VIDEO -> {
+                BasePostThumbnail(thumbnail)
+                Image(
+                    painter = painterResource(id = R.drawable.play_button),  // Play button icon
+                    contentDescription = "Play Button",
+                    modifier = Modifier.size(50.dp),  // Set the size of the play button
+                    colorFilter = ColorFilter.tint(Color.White) // Optional: tint the play button if needed
                 )
-                .clip(RoundedCornerShape(16.dp)),
-            contentScale = ContentScale.Crop,
-            contentDescription = null,
-        )
-
-        if(contentType == Constants.ContentType.VIDEO) {
-            // Overlay the play button image at the center of the Box
-            Image(
-                painter = painterResource(id = R.drawable.play_button),  // Play button icon
-                contentDescription = "Play Button",
-                modifier = Modifier.size(50.dp),  // Set the size of the play button
-                colorFilter = ColorFilter.tint(Color.White) // Optional: tint the play button if needed
-            )
+            }
+            Constants.ContentType.AUDIO -> {
+                if(thumbnail != null)
+                    BasePostThumbnail(thumbnail)
+                else {
+                    Image(
+                        painter = painterResource(id = R.drawable.audio_default_thumbnail),  // Play button icon
+                        contentDescription = "Audio default thumbnail",
+                        modifier = Modifier
+                            .height(150.dp)
+                            .width(100.dp)
+                            .border(
+                                2.dp,
+                                Color.Black,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .clip(RoundedCornerShape(16.dp)),
+                    )
+                }
+            }
+            Constants.ContentType.TEXT -> return //TODO()
         }
     }
+}
+
+@Composable
+fun BasePostThumbnail(thumbnail: Bitmap?){
+    AsyncImage(
+        model = thumbnail,
+        modifier = Modifier
+            .height(150.dp)
+            .width(100.dp)
+            .border(
+                2.dp,
+                Color.Black,
+                RoundedCornerShape(16.dp)
+            )
+            .clip(RoundedCornerShape(16.dp)),
+        contentScale = ContentScale.Crop,
+        contentDescription = null,
+        )
 }

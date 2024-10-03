@@ -57,10 +57,12 @@ import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
 import androidx.compose.foundation.lazy.grid.items
+import com.setembreiros.artis.common.Constants
+import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable
-fun ProfileScreen(onCloseSession: () -> Unit) {
+fun ProfileScreen(onImageClick: (postId: String) -> Unit, onCloseSession: () -> Unit) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
@@ -72,14 +74,14 @@ fun ProfileScreen(onCloseSession: () -> Unit) {
         }
     }
 
-    ContentScreen(userProfile, posts) {
+    ContentScreen(userProfile, posts, onImageClick) {
         viewModel.closeSession()
         onCloseSession()
     }
 }
 
 @Composable
-fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession: () -> Unit) {
+fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onImageClick: (postId: String) -> Unit, onCloseSession: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -135,7 +137,6 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 Box{
-
                     Text(
                         text = "31 Sep, A Coruña",
                         textAlign = TextAlign.Center,
@@ -260,7 +261,9 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(posts) { post ->
-                                PostThumbnail(post.thumbnail, post.metadata.type)
+                                PostThumbnail(post, onNavigateToImageDetails = {
+                                   onImageClick(post.metadata.postId)
+                                })
                             }
                         }
                     }
@@ -328,6 +331,8 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onCloseSession
 @Preview
 @Composable
 fun ProfilePreview() {
+    val imageResource = LocalContext.current.resources.openRawResource(R.raw.imaxe_de_proba)
+    val content = imageResource.readBytes()
     ArtisTheme {
         ContentScreen(
             UserProfile(
@@ -336,7 +341,56 @@ fun ProfilePreview() {
                 "Guille",
                 "https://fuckyou.com"
             ),
-            arrayOf(),
+            arrayOf(Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "", ""
+                ),
+                content = content,
+                thumbnail = content
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "", ""
+                ),
+                content = content,
+                thumbnail = content
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "", ""
+                ),
+                content = content,
+                thumbnail = content
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "", ""
+                ),
+                content = content,
+                thumbnail = content
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "", ""
+                ),
+                content = content,
+                thumbnail = content
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "", ""
+                ),
+                content = content,
+                thumbnail = content
+            )),
+            onImageClick = {},
             onCloseSession = {})
     }
 }

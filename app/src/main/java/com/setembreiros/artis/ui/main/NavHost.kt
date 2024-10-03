@@ -11,6 +11,7 @@ import com.setembreiros.artis.ui.account.login.LoginScreen
 import com.setembreiros.artis.ui.account.register.RegisterScreen
 import com.setembreiros.artis.ui.home.HomeScreen
 import com.setembreiros.artis.ui.post.NewPostScreen
+import com.setembreiros.artis.ui.post.PostDetailsScreen
 import com.setembreiros.artis.ui.profile.ProfileScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -50,12 +51,10 @@ fun NavHostApp(
                 onNavigateToHome = {navController.navigationToHome()}
             )
         }
-
         composable(Home.route) {
             stateButtonMenu(true)
             HomeScreen()
         }
-
         composable(NewPost.route){
             stateTopBar(false)
             stateButtonMenu(true)
@@ -64,11 +63,16 @@ fun NavHostApp(
         composable(Profile.route){
             stateButtonMenu(true)
             ProfileScreen(
+                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId) },
                 onCloseSession = {navController.navigationToLogin()}
             )
         }
+        composable(PostDetailsProfile.route){ backStackEntry ->
+            stateButtonMenu(true)
+            val postId = backStackEntry.arguments?.getString("postId") ?: ""
+            PostDetailsScreen(postId)
+        }
     }
-
 }
 
 fun NavHostController.navigationToLogin(){
@@ -80,4 +84,8 @@ fun NavHostController.navigationToRegister(){
 
 fun NavHostController.navigationToHome(){
     this.navigate(Home.route)
+}
+
+fun NavHostController.navigationToPostDetailsProfile(postId: String){
+    this.navigate("post_details_profile/$postId")
 }

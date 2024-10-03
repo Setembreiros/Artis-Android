@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor
 import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.data.repository.PostRepository
+import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
 import com.setembreiros.artis.domain.model.post.Post
@@ -20,7 +21,9 @@ import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
-class GetPostsUseCase @Inject constructor(private val postRepository: PostRepository, private val s3Service: S3Service)  {
+class GetPostsUseCase @Inject constructor(private val postRepository: PostRepository,
+                                          private val profileRepository: ProfileRepository,
+                                          private val s3Service: S3Service)  {
     suspend fun invoke(username: String) : Array<Post> = coroutineScope {
         val postMetadatasDeferred = async { getMetaData(username) }
         val contentsDeferred = async { getContent(username) }
@@ -37,6 +40,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
             ensureThumbnailContent(post)
             println("Post: ${post.metadata.postId}, Content: ${post.content}")
             posts.add(post)
+            profileRepository.savePost(post)
         }
 
         posts.toTypedArray()

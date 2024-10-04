@@ -105,6 +105,7 @@ fun PostThumbnail(post: Post, onNavigateToImageDetails: () -> Unit,){
                             )
                             .clip(RoundedCornerShape(16.dp))
                             .clickable { onNavigateToImageDetails() },
+                        contentScale = ContentScale.Crop,
                     )
                 }
             }

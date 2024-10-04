@@ -15,4 +15,8 @@ class ProfileRepository @Inject constructor() {
     fun getPost(postId: String): Post {
         return posts[postId]!!
     }
+
+    fun getPosts(): List<Post> {
+        return posts.values.sortedBy { it.metadata.createdAt }
+    }
 }

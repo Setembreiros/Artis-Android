@@ -150,6 +150,7 @@ fun MediaPlayer(post: Post) {
             setMediaItem(mediaItem)
             prepare()
             playWhenReady = true
+            volume = 0f
         }
     }
 

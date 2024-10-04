@@ -260,7 +260,8 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onImageClick: 
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(posts) { post ->
+                            val sortedPosts = posts.sortedBy { it.metadata.createdAt }
+                            items(sortedPosts) { post ->
                                 PostThumbnail(post, onNavigateToImageDetails = {
                                    onImageClick(post.metadata.postId)
                                 })
@@ -332,7 +333,13 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onImageClick: 
 @Composable
 fun ProfilePreview() {
     val imageResource = LocalContext.current.resources.openRawResource(R.raw.imaxe_de_proba)
-    val content = imageResource.readBytes()
+    val imageContent = imageResource.readBytes()
+    val imageResource2 = LocalContext.current.resources.openRawResource(R.raw.image_test_2)
+    val imageContent2 = imageResource2.readBytes()
+    val videoResource = LocalContext.current.resources.openRawResource(R.raw.video_test_1)
+    val videoContent = videoResource.readBytes()
+    val videoResource2 = LocalContext.current.resources.openRawResource(R.raw.video_test_2)
+    val videoContent2 = videoResource2.readBytes()
     ArtisTheme {
         ContentScreen(
             UserProfile(
@@ -345,50 +352,50 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE, "",
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "", ""
+                    description = "This is a sample description for the post.", "2024/01/03", ""
                 ),
-                content = content,
-                thumbnail = content
+                content = imageContent2,
+                thumbnail = imageContent2
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.VIDEO, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/04", "",
+                ),
+                content = videoContent,
+                thumbnail = null
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.VIDEO, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/06", ""
+                ),
+                content = videoContent2,
+                thumbnail = null
             ), Post(
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE, "",
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "", ""
+                    description = "This is a sample description for the post.", "2024/01/01", ""
                 ),
-                content = content,
-                thumbnail = content
+                content = imageContent,
+                thumbnail = imageContent
             ), Post(
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE, "",
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "", ""
+                    description = "This is a sample description for the post.", "2024/01/02", ""
                 ),
-                content = content,
-                thumbnail = content
+                content = imageContent2,
+                thumbnail = imageContent2
             ), Post(
                 metadata = PostMetadata(
-                    "","", Constants.ContentType.IMAGE, "",
+                    "","", Constants.ContentType.VIDEO, "",
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "", ""
+                    description = "This is a sample description for the post.", "2024/01/05", ""
                 ),
-                content = content,
-                thumbnail = content
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.IMAGE, "",
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "", ""
-                ),
-                content = content,
-                thumbnail = content
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.IMAGE, "",
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "", ""
-                ),
-                content = content,
-                thumbnail = content
+                content = videoContent,
+                thumbnail = null
             )),
             onImageClick = {},
             onCloseSession = {})

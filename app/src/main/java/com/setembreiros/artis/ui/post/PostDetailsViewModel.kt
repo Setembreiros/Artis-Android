@@ -17,4 +17,8 @@ class PostDetailsViewModel @Inject constructor(
     fun getPost(postId: String): Post{
         return profileRepository.getPost(postId)
     }
+
+    fun getPosts(): List<Post>{
+        return profileRepository.getPosts()
+    }
 }

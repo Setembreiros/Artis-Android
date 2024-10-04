@@ -2,18 +2,22 @@ package com.setembreiros.artis.ui.post
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,41 +36,53 @@ import java.io.InputStream
 @Composable
 fun PostDetailsScreen(postId: String) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
-    val post = viewModel.getPost(postId)
-    PostDetailsView(post)
-}
+    val posts = viewModel.getPosts()
+    val listState = rememberLazyListState()
 
-@Composable
-fun PostDetailsView(post: Post) {
-    Column(
+    val postIndex = posts.indexOfFirst { it.metadata.postId == postId }
+
+    LaunchedEffect(postIndex) {
+        if (postIndex >= 0) {
+            listState.scrollToItem(postIndex)
+        }
+    }
+
+    LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = post.metadata.title,
-            fontSize = 42.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        when (post.metadata.type) {
-            Constants.ContentType.IMAGE -> BaseImagePost(post)
-            Constants.ContentType.TEXT -> PdfReader(post)
-            Constants.ContentType.AUDIO -> MediaPlayer(post)
-            Constants.ContentType.VIDEO -> MediaPlayer(post)
+        items(posts) { post ->
+            PostDetailsView(post)
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = post.metadata.description,
-            fontSize = 18.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(16.dp)
-        )
     }
+}
+
+@Composable
+fun PostDetailsView(post: Post) {
+    Text(
+        text = post.metadata.title,
+        fontSize = 42.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top =16.dp),
+        textAlign = TextAlign.Center
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    when (post.metadata.type) {
+        Constants.ContentType.IMAGE -> BaseImagePost(post)
+        Constants.ContentType.TEXT -> PdfReader(post)
+        Constants.ContentType.AUDIO -> MediaPlayer(post)
+        Constants.ContentType.VIDEO -> MediaPlayer(post)
+    }
+    Spacer(modifier = Modifier.height(10.dp))
+    Text(
+        text = post.metadata.description,
+        fontSize = 18.sp,
+        color = Color.Gray,
+        textAlign = TextAlign.Center
+    )
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)

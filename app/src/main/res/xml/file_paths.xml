@@ -1,0 +1,6 @@
+<paths>
+    <!-- Permite compartir ficheiros do directorio de cache -->
+    <cache-path name="cache" path="." />
+    <!-- Permite compartir ficheiros do directorio de ficheiros internos, se for necesario -->
+    <files-path name="files" path="." />
+</paths>

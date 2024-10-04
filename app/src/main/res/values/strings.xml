@@ -37,5 +37,6 @@
     <string name="publish">Publish</string>
     <string name="add_post">Add post</string>
     <string name="new_post">New post</string>
+    <string name="open_pdf">Open PDF</string>
 
 </resources>

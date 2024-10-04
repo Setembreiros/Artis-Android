@@ -30,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +49,6 @@ import coil.compose.AsyncImage
 import com.setembreiros.artis.R
 import com.setembreiros.artis.domain.model.UserProfile
 import com.setembreiros.artis.domain.model.post.Post
-import com.setembreiros.artis.ui.commponents.StandardButton
 import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 import com.setembreiros.artis.ui.theme.greenBackground
@@ -74,14 +72,11 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit, onCloseSession: () -> 
         }
     }
 
-    ContentScreen(userProfile, posts, onImageClick) {
-        viewModel.closeSession()
-        onCloseSession()
-    }
+    ContentScreen(userProfile = userProfile, posts = posts, onImageClick = onImageClick)
 }
 
 @Composable
-fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onImageClick: (postId: String) -> Unit, onCloseSession: () -> Unit) {
+fun ContentScreen(userProfile: UserProfile?, posts: List<Post>, onImageClick: (postId: String) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -269,12 +264,6 @@ fun ContentScreen(userProfile: UserProfile?, posts: Array<Post>?, onImageClick: 
                         }
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    StandardButton(
-                        title = stringResource(id = R.string.close_session),
-                        enabled = true
-                    ) {
-                        onCloseSession()
-                    }
                 }
             }
             Row(
@@ -397,7 +386,6 @@ fun ProfilePreview() {
                 content = videoContent,
                 thumbnail = null
             )),
-            onImageClick = {},
-            onCloseSession = {})
+            onImageClick = {})
     }
 }

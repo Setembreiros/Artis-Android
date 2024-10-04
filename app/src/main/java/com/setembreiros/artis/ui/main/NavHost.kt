@@ -53,7 +53,7 @@ fun NavHostApp(
         }
         composable(Home.route) {
             stateButtonMenu(true)
-            HomeScreen()
+            HomeScreen(onCloseSession = {navController.navigationToLogin()})
         }
         composable(NewPost.route){
             stateTopBar(false)
@@ -63,8 +63,7 @@ fun NavHostApp(
         composable(Profile.route){
             stateButtonMenu(true)
             ProfileScreen(
-                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId) },
-                onCloseSession = {navController.navigationToLogin()}
+                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId) }
             )
         }
         composable(PostDetailsProfile.route){ backStackEntry ->

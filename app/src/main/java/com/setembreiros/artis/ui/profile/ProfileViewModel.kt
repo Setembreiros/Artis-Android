@@ -7,7 +7,6 @@ import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.usecase.post.GetPostsUseCase
 import com.setembreiros.artis.domain.usecase.GetUserProfileUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
-import com.setembreiros.artis.domain.usecase.session.RemoveSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +16,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val removeSessionUseCase: RemoveSessionUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getPostsUseCase: GetPostsUseCase,
     private val getSessionUseCase: GetSessionUseCase
@@ -31,12 +29,6 @@ class ProfileViewModel @Inject constructor(
     init {
         getProfile()
         getPosts()
-    }
-
-    fun closeSession(){
-        viewModelScope.launch(Dispatchers.IO) {
-            removeSessionUseCase.invoke()
-        }
     }
 
     private fun getProfile(){
@@ -61,5 +53,4 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
-
 }

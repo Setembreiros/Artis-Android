@@ -269,6 +269,7 @@ fun MediaPlayer(post: Post) {
         )
     }
 }
+
 @Composable
 fun PdfReader(post: Post) {
     val context = LocalContext.current
@@ -342,9 +343,6 @@ fun PdfReader(post: Post) {
         }
     }
 }
-
-
-
 
 fun writeByteArrayToFile(context: Context, byteArray: ByteArray, fileName: String): File {
     val file = File(context.cacheDir, fileName)

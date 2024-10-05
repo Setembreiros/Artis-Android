@@ -55,28 +55,33 @@ import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CircularProgressIndicator
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable
-fun ProfileScreen(onImageClick: (postId: String) -> Unit, onCloseSession: () -> Unit) {
-    val context = LocalContext.current
+fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-    DisposableEffect(context) {
-        onDispose {
-
-        }
-    }
-
-    ContentScreen(userProfile = userProfile, posts = posts, onImageClick = onImageClick)
+    ContentScreen(
+        userProfile = userProfile,
+        posts = posts,
+        onImageClick = onImageClick,
+        isLoading = isLoading,
+    )
 }
 
 @Composable
-fun ContentScreen(userProfile: UserProfile?, posts: List<Post>, onImageClick: (postId: String) -> Unit) {
+fun ContentScreen(
+    userProfile: UserProfile?,
+    posts: List<Post>,
+    onImageClick: (postId: String) -> Unit,
+    isLoading: Boolean
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -248,19 +253,27 @@ fun ContentScreen(userProfile: UserProfile?, posts: List<Post>, onImageClick: (p
                         )
                     }
                     HorizontalDivider(color = Color.Black, thickness = 2.dp)
-                    if (posts != null) {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(3),
-                            contentPadding = PaddingValues(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val sortedPosts = posts.sortedBy { it.metadata.createdAt }
+                        items(sortedPosts) { post ->
+                            PostThumbnail(post, onNavigateToImageDetails = {
+                                onImageClick(post.metadata.postId)
+                            })
+                        }
+                    }
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            val sortedPosts = posts.sortedBy { it.metadata.createdAt }
-                            items(sortedPosts) { post ->
-                                PostThumbnail(post, onNavigateToImageDetails = {
-                                   onImageClick(post.metadata.postId)
-                                })
-                            }
+                            CircularProgressIndicator()
                         }
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -275,7 +288,7 @@ fun ContentScreen(userProfile: UserProfile?, posts: List<Post>, onImageClick: (p
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "${posts?.size ?: 0}\n Posts",
+                    text = "${posts.size}\n Posts",
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
@@ -337,7 +350,7 @@ fun ProfilePreview() {
                 "Guille",
                 "https://fuckyou.com"
             ),
-            arrayOf(Post(
+            listOf(Post(
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE, "",
                     title = "Sample Title",
@@ -386,6 +399,7 @@ fun ProfilePreview() {
                 content = videoContent,
                 thumbnail = null
             )),
-            onImageClick = {})
+            onImageClick = {},
+            false)
     }
 }

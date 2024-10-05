@@ -12,8 +12,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getSessionUseCase: GetSessionUseCase
-): BaseViewModel() {
+    private val getSessionUseCase: GetSessionUseCase,
+    private val removeSessionUseCase: RemoveSessionUseCase,
+    ): BaseViewModel() {
 
    fun getSession(){
        getSessionUseCase.invoke()?.let {

@@ -85,7 +85,7 @@ fun PostThumbnail(post: Post, onNavigateToImageDetails: () -> Unit,){
                 )
             }
             Constants.ContentType.AUDIO -> {
-                if(post.thumbnail!!.isNotEmpty())
+                if(post.thumbnail != null)
                     BasePostThumbnail(
                         post,
                         onImageClick = { onNavigateToImageDetails() }

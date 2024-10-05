@@ -186,6 +186,7 @@ fun MediaPlayer(post: Post) {
     }
 
     var isFullScreen by remember { mutableStateOf(false) }
+    var isMuted by remember { mutableStateOf(true) } // Track if the player is muted
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
@@ -195,8 +196,14 @@ fun MediaPlayer(post: Post) {
             setMediaItem(mediaItem)
             prepare()
             playWhenReady = true
-            volume = 0f
+            volume = if (isMuted) 0f else 1f // Apply initial volume
         }
+    }
+
+    // Function to toggle the volume
+    fun toggleVolume() {
+        isMuted = !isMuted
+        exoPlayer.volume = if (isMuted) 0f else 1f // Update player volume accordingly
     }
 
     if (isFullScreen) {
@@ -215,13 +222,13 @@ fun MediaPlayer(post: Post) {
                             useController = true
                             resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
 
+                            // Fullscreen exit button
                             val fullscreenButton = ImageButton(context).apply {
                                 setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
                                 setOnClickListener {
                                     isFullScreen = false
                                 }
                             }
-
                             this.addView(fullscreenButton)
                             val params = FrameLayout.LayoutParams(
                                 FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -230,6 +237,29 @@ fun MediaPlayer(post: Post) {
                                 gravity = Gravity.END or Gravity.TOP
                             }
                             fullscreenButton.layoutParams = params
+
+                            // Volume toggle button
+                            val volumeButton = ImageButton(context).apply {
+                                setImageResource(
+                                    if (isMuted) android.R.drawable.ic_lock_silent_mode
+                                    else android.R.drawable.ic_lock_silent_mode_off
+                                )
+                                setOnClickListener {
+                                    toggleVolume()
+                                    this.setImageResource(
+                                        if (isMuted) android.R.drawable.ic_lock_silent_mode
+                                        else android.R.drawable.ic_lock_silent_mode_off
+                                    )
+                                }
+                            }
+                            this.addView(volumeButton)
+                            val volumeParams = FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.WRAP_CONTENT,
+                                FrameLayout.LayoutParams.WRAP_CONTENT
+                            ).apply {
+                                gravity = Gravity.END or Gravity.BOTTOM
+                            }
+                            volumeButton.layoutParams = volumeParams
                         }
                     }
                 )
@@ -249,13 +279,13 @@ fun MediaPlayer(post: Post) {
                     useController = true
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
 
+                    // Fullscreen enter button
                     val fullscreenButton = ImageButton(context).apply {
                         setImageResource(android.R.drawable.ic_menu_view)
                         setOnClickListener {
                             isFullScreen = true
                         }
                     }
-
                     this.addView(fullscreenButton)
                     val params = FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -264,11 +294,35 @@ fun MediaPlayer(post: Post) {
                         gravity = Gravity.END or Gravity.TOP
                     }
                     fullscreenButton.layoutParams = params
+
+                    // Volume toggle button
+                    val volumeButton = ImageButton(context).apply {
+                        setImageResource(
+                            if (isMuted) android.R.drawable.ic_lock_silent_mode
+                            else android.R.drawable.ic_lock_silent_mode_off
+                        )
+                        setOnClickListener {
+                            toggleVolume()
+                            this.setImageResource(
+                                if (isMuted) android.R.drawable.ic_lock_silent_mode
+                                else android.R.drawable.ic_lock_silent_mode_off
+                            )
+                        }
+                    }
+                    this.addView(volumeButton)
+                    val volumeParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        gravity = Gravity.END or Gravity.BOTTOM
+                    }
+                    volumeButton.layoutParams = volumeParams
                 }
             }
         )
     }
 }
+
 
 @Composable
 fun PdfReader(post: Post) {

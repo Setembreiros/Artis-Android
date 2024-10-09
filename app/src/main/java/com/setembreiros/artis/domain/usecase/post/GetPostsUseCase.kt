@@ -97,7 +97,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
     }
 
     private fun ensureThumbnailContent(post: Post) {
-        if(post.thumbnail!!.isEmpty()) {
+        if(post.thumbnail == null) {
             when (post.metadata.type) {
                 Constants.ContentType.IMAGE -> {
                     post.thumbnail = post.content

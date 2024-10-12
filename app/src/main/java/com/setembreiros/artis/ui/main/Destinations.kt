@@ -49,7 +49,15 @@ object Login : Destinations{
         get() = ""
 }
 
+object PostDetailsProfile : Destinations{
+    override val icon: Int
+        get() = 0
+    override val route: String
+        get() = "post_details_profile/{postId}"
+    override val base: String
+        get() = "profile"
+}
 
 val tabScreenUA = listOf(Home, NewPost, Profile)
 val tabScreenUE = listOf(Home, Profile)
-val allScreen = listOf(Register, Login, Home, Profile, NewPost)
+val allScreen = listOf(Register, Login, Home, Profile, NewPost, PostDetailsProfile)

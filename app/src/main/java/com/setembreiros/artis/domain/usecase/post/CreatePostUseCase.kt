@@ -11,32 +11,44 @@ import javax.inject.Inject
 
 class CreatePostUseCase @Inject constructor(private val postRepository: PostRepository, private val s3Service: S3Service) {
 
-    suspend fun invoke(post: Post, content: ByteArray) : Boolean{
-       return createMetaData(post, content)
+    suspend fun invoke(post: Post, content: ByteArray, thumbnailContent: ByteArray?) : Boolean{
+       return createMetaData(post, content, thumbnailContent)
     }
 
-    private suspend fun createMetaData(post: Post, content: ByteArray) : Boolean{
+    private suspend fun createMetaData(post: Post, content: ByteArray, thumbnailContent: ByteArray?) : Boolean {
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
-                val responseS3 = sendContentS3(content, response.value)
+                val responseS3 = sendContentS3(content, thumbnailContent, response.value)
                 if(responseS3)
                     confirmPost(true, response.value.postId)
-                else false
+                else {
+                    confirmPost(false, response.value.postId)
+                    false
+                }
             }
             is Resource.Failure -> return false
         }
     }
 
-    private suspend fun sendContentS3(content: ByteArray, metadata: PostResponse) : Boolean{
+    private suspend fun sendContentS3(content: ByteArray, thumbnailContent: ByteArray?, metadata: PostResponse) : Boolean{
         var url = metadata.presignedUrl
-        if(BuildConfig.DEBUG)
-            url = getUrlDebug(metadata.presignedUrl)
-        return s3Service.putContent(url, content, "PUT")
+        var thumbnailUrl = metadata.presignedThumbnailUrl
+         if(BuildConfig.DEBUG) {
+             url = getUrlDebug(metadata.presignedUrl)
+             if(thumbnailUrl != "") {
+                 thumbnailUrl = getUrlDebug(metadata.presignedThumbnailUrl)
+             }
+         }
+
+        if(thumbnailUrl != "" && thumbnailContent != null) {
+           s3Service.putContent(thumbnailUrl, thumbnailContent)
+        }
+        return s3Service.putContent(url, content)
     }
 
     private suspend fun confirmPost(isConfirmed: Boolean, posId: String): Boolean{
         val confirmPostRequest = ConfirmPostRequest(isConfirmed, posId)
-        return when(val response = postRepository.confirmPost(confirmPostRequest)){
+        return when(postRepository.confirmPost(confirmPostRequest)){
             is Resource.Success -> true
             is Resource.Failure -> false
         }

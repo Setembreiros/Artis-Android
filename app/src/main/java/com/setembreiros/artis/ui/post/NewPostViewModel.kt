@@ -38,9 +38,6 @@ class NewPostViewModel @Inject constructor(
     private val _type = MutableStateFlow(Constants.ContentType.IMAGE)
     val type = _type
 
-    private val _fileType = MutableStateFlow("")
-    val fileType = _fileType
-
     fun publish(){
         _resource.value?.let {
             loading.update { true }
@@ -50,8 +47,7 @@ class NewPostViewModel @Inject constructor(
                     username = session.value!!.username,
                     title = _title.value,
                     description = _description.value,
-                    type = _type.value,
-                    fileType = _fileType.value
+                    type = _type.value
                 ),
                 content = ByteArray(0),
                 thumbnail = _thumbnailResource.value

@@ -93,7 +93,7 @@ fun ImagePostDetailsPreview() {
 
     val samplePost = Post(
         metadata = PostMetadata(
-            "","",Constants.ContentType.IMAGE, "",
+            "","",Constants.ContentType.IMAGE,
             title = "Sample Title",
             description = "This is a sample description for the post.", "", ""
         ),
@@ -114,7 +114,7 @@ fun Image2PostDetailsPreview() {
 
     val samplePost = Post(
         metadata = PostMetadata(
-            "","",Constants.ContentType.IMAGE, "",
+            "","",Constants.ContentType.IMAGE,
             title = "Sample Title",
             description = "This is a sample description for the post.", "", ""
         ),
@@ -135,7 +135,7 @@ fun Video1PostDetailsPreview() {
 
     val samplePost = Post(
         metadata = PostMetadata(
-            "","",Constants.ContentType.VIDEO, "",
+            "","",Constants.ContentType.VIDEO,
             title = "Sample Title",
             description = "This is a sample description for the post.", "", ""
         ),
@@ -156,7 +156,7 @@ fun Video2PostDetailsPreview() {
 
     val samplePost = Post(
         metadata = PostMetadata(
-            "","",Constants.ContentType.VIDEO, "",
+            "","",Constants.ContentType.VIDEO,
             title = "Sample Title",
             description = "This is a sample description for the post.", "", ""
         ),
@@ -188,7 +188,7 @@ fun PdfPostDetailsPreview() {
 
     val samplePost = Post(
         metadata = PostMetadata(
-            "","",Constants.ContentType.TEXT, "pdf",
+            "","",Constants.ContentType.TEXT,
             title = "Sample Title",
             description = "This is a sample description for the post.", "", ""
         ),

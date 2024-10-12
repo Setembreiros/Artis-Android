@@ -183,7 +183,7 @@ fun BaseImagePost(post: Post){
 fun MediaPlayer(post: Post) {
     val context = LocalContext.current
     val videoFile = remember {
-        writeByteArrayToFile(context, post.content!!, "temp_media." + post.metadata.fileType)
+        writeByteArrayToFile(context, post.content!!, "temp_media")
     }
 
     var isFullScreen by remember { mutableStateOf(false) }

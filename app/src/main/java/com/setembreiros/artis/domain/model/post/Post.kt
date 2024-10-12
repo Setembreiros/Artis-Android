@@ -8,7 +8,6 @@ data class PostMetadata(
     val postId : String,
     val username: String,
     val type: ContentType,
-    val fileType: String,
     val title: String,
     val description: String,
     val createdAt: String? = null,

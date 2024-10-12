@@ -3,6 +3,7 @@ package com.setembreiros.artis.ui.post
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.usecase.post.CreatePostUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NewPostViewModel @Inject constructor(
     private val createPostUseCase: CreatePostUseCase,
-    private val getSessionUseCase: GetSessionUseCase
+    getSessionUseCase: GetSessionUseCase
 ): BaseViewModel() {
 
     private val _session = MutableStateFlow(getSessionUseCase.invoke())
@@ -37,20 +38,27 @@ class NewPostViewModel @Inject constructor(
     private val _fileType = MutableStateFlow("png")
     val fileType = _fileType
 
-
-
-
     fun publish(){
         _resource.value?.let {
             loading.update { true }
-            val post = Post(username = session.value!!.username, title = _title.value, description = _description.value, type = _type.value, fileType = _fileType.value)
+            val post = Post(
+                metadata = PostMetadata(
+                    postId = "",
+                    username = session.value!!.username,
+                    title = _title.value,
+                    description = _description.value,
+                    type = _type.value,
+                    fileType = _fileType.value
+                ),
+                content = ByteArray(0),
+                thumbnail = null
+            )
             viewModelScope.launch(Dispatchers.IO) {
                 createPostUseCase.invoke(post, it)
                 loading.update { false }
             }
         }
     }
-
 
     fun setTitle(value: String){
         _title.value = value

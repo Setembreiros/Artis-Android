@@ -15,13 +15,16 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
        return createMetaData(post, content)
     }
 
-    private suspend fun createMetaData(post: Post, content: ByteArray) : Boolean{
+    private suspend fun createMetaData(post: Post, content: ByteArray) : Boolean {
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
                 val responseS3 = sendContentS3(content, response.value)
                 if(responseS3)
                     confirmPost(true, response.value.postId)
-                else false
+                else {
+                    confirmPost(false, response.value.postId)
+                    false
+                }
             }
             is Resource.Failure -> return false
         }
@@ -31,12 +34,12 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
         var url = metadata.presignedUrl
         if(BuildConfig.DEBUG)
             url = getUrlDebug(metadata.presignedUrl)
-        return s3Service.putContent(url, content, "PUT")
+        return s3Service.putContent(url, content)
     }
 
     private suspend fun confirmPost(isConfirmed: Boolean, posId: String): Boolean{
         val confirmPostRequest = ConfirmPostRequest(isConfirmed, posId)
-        return when(val response = postRepository.confirmPost(confirmPostRequest)){
+        return when(postRepository.confirmPost(confirmPostRequest)){
             is Resource.Success -> true
             is Resource.Failure -> false
         }

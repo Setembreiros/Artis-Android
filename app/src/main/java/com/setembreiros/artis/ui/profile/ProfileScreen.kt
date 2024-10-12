@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,35 +48,40 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.setembreiros.artis.R
 import com.setembreiros.artis.domain.model.UserProfile
-import com.setembreiros.artis.ui.commponents.StandardButton
+import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
 import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CircularProgressIndicator
+import com.setembreiros.artis.common.Constants
+import com.setembreiros.artis.domain.model.post.PostMetadata
+import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable
-fun ProfileScreen(onCloseSession: () -> Unit) {
-    val context = LocalContext.current
+fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
+    val posts by viewModel.posts.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-
-    DisposableEffect(context) {
-        onDispose {
-
-        }
-    }
-
-    ContentScreen(userProfile) {
-        viewModel.closeSession()
-        onCloseSession()
-    }
+    ContentScreen(
+        userProfile = userProfile,
+        posts = posts,
+        onImageClick = onImageClick,
+        isLoading = isLoading,
+    )
 }
 
-
 @Composable
-fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
+fun ContentScreen(
+    userProfile: UserProfile?,
+    posts: List<Post>,
+    onImageClick: (postId: String) -> Unit,
+    isLoading: Boolean
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -130,7 +137,6 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 Box{
-
                     Text(
                         text = "31 Sep, A Coruña",
                         textAlign = TextAlign.Center,
@@ -198,7 +204,6 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                     )
                 }
             }
-
         }
 
         Box(
@@ -248,22 +253,30 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                         )
                     }
                     HorizontalDivider(color = Color.Black, thickness = 2.dp)
-                    Spacer(modifier = Modifier.weight(1f))
-                    StandardButton(
-                        title = stringResource(id = R.string.close_session),
-                        enabled = true
-                    ) {
-                        onCloseSession()
-                    }
-                    /*
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 128.dp)
+                        columns = GridCells.Fixed(3),
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(photos) { photo ->
-                            AsyncImage(photo)
+                        val sortedPosts = posts.sortedBy { it.metadata.createdAt }
+                        items(sortedPosts) { post ->
+                            PostThumbnail(post, onNavigateToImageDetails = {
+                                onImageClick(post.metadata.postId)
+                            })
                         }
                     }
-                    */
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
             Row(
@@ -275,7 +288,7 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "45 Post",
+                    text = "${posts.size}\n Posts",
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
@@ -315,14 +328,20 @@ fun ContentScreen(userProfile: UserProfile?, onCloseSession: () -> Unit) {
             }
 
         }
-
-
     }
 }
 
 @Preview
 @Composable
 fun ProfilePreview() {
+    val imageResource = LocalContext.current.resources.openRawResource(R.raw.imaxe_de_proba)
+    val imageContent = imageResource.readBytes()
+    val imageResource2 = LocalContext.current.resources.openRawResource(R.raw.image_test_2)
+    val imageContent2 = imageResource2.readBytes()
+    val videoResource = LocalContext.current.resources.openRawResource(R.raw.video_test_1)
+    val videoContent = videoResource.readBytes()
+    val videoResource2 = LocalContext.current.resources.openRawResource(R.raw.video_test_2)
+    val videoContent2 = videoResource2.readBytes()
     ArtisTheme {
         ContentScreen(
             UserProfile(
@@ -331,6 +350,56 @@ fun ProfilePreview() {
                 "Guille",
                 "https://fuckyou.com"
             ),
-            onCloseSession = {})
+            listOf(Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/03", ""
+                ),
+                content = imageContent2,
+                thumbnail = imageContent2
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.VIDEO, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/04", "",
+                ),
+                content = videoContent,
+                thumbnail = null
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.VIDEO, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/06", ""
+                ),
+                content = videoContent2,
+                thumbnail = null
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/01", ""
+                ),
+                content = imageContent,
+                thumbnail = imageContent
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.IMAGE, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/02", ""
+                ),
+                content = imageContent2,
+                thumbnail = imageContent2
+            ), Post(
+                metadata = PostMetadata(
+                    "","", Constants.ContentType.VIDEO, "",
+                    title = "Sample Title",
+                    description = "This is a sample description for the post.", "2024/01/05", ""
+                ),
+                content = videoContent,
+                thumbnail = null
+            )),
+            onImageClick = {},
+            false)
     }
 }

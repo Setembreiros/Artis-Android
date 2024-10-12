@@ -85,7 +85,7 @@ fun PostThumbnail(post: Post, onNavigateToImageDetails: () -> Unit,){
                 )
             }
             Constants.ContentType.AUDIO -> {
-                if(post.thumbnail != null)
+                if(post.thumbnail != null && post.thumbnail!!.isNotEmpty())
                     BasePostThumbnail(
                         post,
                         onImageClick = { onNavigateToImageDetails() }
@@ -131,7 +131,8 @@ fun BasePostThumbnail(post: Post, onImageClick: () -> Unit){
                 RoundedCornerShape(16.dp)
             )
             .clip(RoundedCornerShape(16.dp))
-            .clickable { onImageClick() },
+            .clickable { onImageClick() }
+            .background(Color.White),
         contentScale = ContentScale.Crop,
         contentDescription = null,
         )
@@ -332,7 +333,7 @@ fun PdfReader(post: Post) {
     val pdfRenderer: PdfRenderer?
 
     val tempFile = remember {
-        val file = File.createTempFile("temp_pdf", post.metadata.fileType, context.cacheDir)
+        val file = File.createTempFile("temp_pdf", "pdf", context.cacheDir)
         val fos = FileOutputStream(file)
         fos.write(post.content)
         fos.close()
@@ -383,6 +384,7 @@ fun PdfReader(post: Post) {
                         .padding(start = 10.dp)
                         .shadow(10.dp, RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
                 )
 
                 page.close()

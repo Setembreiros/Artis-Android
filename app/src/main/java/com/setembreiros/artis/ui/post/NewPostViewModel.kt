@@ -32,10 +32,13 @@ class NewPostViewModel @Inject constructor(
     private val _resource = MutableStateFlow<ByteArray?>(null)
     val resource = _resource
 
+    private val _thumbnailResource = MutableStateFlow<ByteArray?>(null)
+    val thumbnailResource = _thumbnailResource
+
     private val _type = MutableStateFlow(Constants.ContentType.IMAGE)
     val type = _type
 
-    private val _fileType = MutableStateFlow("png")
+    private val _fileType = MutableStateFlow("")
     val fileType = _fileType
 
     fun publish(){
@@ -51,10 +54,10 @@ class NewPostViewModel @Inject constructor(
                     fileType = _fileType.value
                 ),
                 content = ByteArray(0),
-                thumbnail = null
+                thumbnail = _thumbnailResource.value
             )
             viewModelScope.launch(Dispatchers.IO) {
-                createPostUseCase.invoke(post, it)
+                createPostUseCase.invoke(post, it, _thumbnailResource.value)
                 loading.update { false }
             }
         }
@@ -70,6 +73,14 @@ class NewPostViewModel @Inject constructor(
 
     fun setResource(value: ByteArray){
         _resource.value = value
+    }
+
+    fun setThumbnailResource(value: ByteArray){
+        _thumbnailResource.value = value
+    }
+
+    fun setType(value: Constants.ContentType){
+        _type.value = value
     }
 }
 

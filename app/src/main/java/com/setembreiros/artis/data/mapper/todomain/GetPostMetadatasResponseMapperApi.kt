@@ -11,7 +11,6 @@ class GetPostMetadatasResponseMapperApi: Mapper<GetPostMetadatasResponseApi, Arr
                 postId = dto.post_id,
                 username = dto.username,
                 type = dto.type,
-                fileType = dto.file_type,
                 title = dto.title,
                 description = dto.description,
                 createdAt = dto.created_at,

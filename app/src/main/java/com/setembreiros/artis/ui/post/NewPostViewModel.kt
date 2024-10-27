@@ -1,7 +1,10 @@
 package com.setembreiros.artis.ui.post
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.common.Constants
+import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.usecase.post.CreatePostUseCase
@@ -12,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,16 +34,13 @@ class NewPostViewModel @Inject constructor(
     private val _description = MutableStateFlow("")
     val description = _description
 
-    private val _resource = MutableStateFlow<ByteArray?>(null)
+    private val _resource = MutableStateFlow<Uri?>(null)
     val resource = _resource
-
-    private val _thumbnailResource = MutableStateFlow<ByteArray?>(null)
-    val thumbnailResource = _thumbnailResource
 
     private val _type = MutableStateFlow(Constants.ContentType.IMAGE)
     val type = _type
 
-    fun publish(){
+    fun publish(context: Context){
         _resource.value?.let {
             loading.update { true }
             val post = Post(
@@ -49,11 +51,11 @@ class NewPostViewModel @Inject constructor(
                     description = _description.value,
                     type = _type.value
                 ),
-                content = ByteArray(0),
-                thumbnail = _thumbnailResource.value
+                content = getBytesFromUri(context, it),
+                thumbnail = ThumbnailBuilder.createThumbnail(context, it, _type.value)
             )
             viewModelScope.launch(Dispatchers.IO) {
-                createPostUseCase.invoke(post, it, _thumbnailResource.value)
+                createPostUseCase.invoke(post)
                 loading.update { false }
             }
         }
@@ -67,16 +69,36 @@ class NewPostViewModel @Inject constructor(
         _description.value = value
     }
 
-    fun setResource(value: ByteArray){
+    fun setResource(value: Uri?){
         _resource.value = value
-    }
-
-    fun setThumbnailResource(value: ByteArray){
-        _thumbnailResource.value = value
     }
 
     fun setType(value: Constants.ContentType){
         _type.value = value
+    }
+
+    private fun getBytesFromUri(context: Context, uri: Uri?): ByteArray? {
+        uri?.let {
+            return try {
+                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                val byteBuffer = ByteArrayOutputStream()
+                val buffer = ByteArray(1024)
+                var len: Int
+
+                while (inputStream?.read(buffer).also { len = it ?: -1 } != -1) {
+                    byteBuffer.write(buffer, 0, len)
+                }
+
+                inputStream?.close()
+
+                byteBuffer.toByteArray()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+        return null
     }
 }
 

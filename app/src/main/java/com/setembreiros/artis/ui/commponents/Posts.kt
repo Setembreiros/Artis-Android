@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
+import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.view.Gravity
 import android.widget.FrameLayout
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -57,12 +58,15 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
+import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
-fun PostThumbnail(post: Post, onNavigateToImageDetails: () -> Unit,){
+fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit,){
+    ensureThumbnailContent(context, post)
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -117,6 +121,21 @@ fun PostThumbnail(post: Post, onNavigateToImageDetails: () -> Unit,){
     }
 }
 
+private fun ensureThumbnailContent(context: Context, post: Post) {
+    if(post.thumbnail == null) {
+        var tempFile: File? = null
+        try {
+            tempFile = File.createTempFile("temp_file", "")
+            val fos = FileOutputStream(tempFile)
+            fos.write(post.content)
+            fos.close()
+            post.thumbnail = ThumbnailBuilder.createThumbnail(context, tempFile.toUri(), post.metadata.type)
+        } finally {
+            tempFile?.delete()
+        }
+    }
+}
+
 @Composable
 fun BasePostThumbnail(post: Post, onImageClick: () -> Unit){
     AsyncImage(
@@ -139,11 +158,11 @@ fun BasePostThumbnail(post: Post, onImageClick: () -> Unit){
 }
 
 @Composable
-fun BaseImagePost(post: Post){
+fun BaseImagePost(content: ByteArray?){
     var isFullScreen by rememberSaveable { mutableStateOf(false) }
 
     AsyncImage(
-        model = post.content,
+        model = content,
         contentDescription = "Image",
         modifier = Modifier
             .padding(16.dp)
@@ -166,7 +185,46 @@ fun BaseImagePost(post: Post){
                     .clickable { isFullScreen = false }
             ) {
                 AsyncImage(
-                    model = post.content,
+                    model = content,
+                    contentDescription = "Full screen image",
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BaseImagePost(uri: Uri?){
+    var isFullScreen by rememberSaveable { mutableStateOf(false) }
+
+    AsyncImage(
+        model = uri,
+        contentDescription = "Image",
+        modifier = Modifier
+            .padding(16.dp)
+            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
+            .height(400.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable {
+                isFullScreen = true
+            },
+        contentScale = ContentScale.Crop,
+    )
+
+    if (isFullScreen) {
+        Dialog(onDismissRequest = { isFullScreen = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)) {
+            Box(
+                modifier = Modifier
+                    .width(800.dp)
+                    .background(Color.Black)
+                    .clickable { isFullScreen = false }
+            ) {
+                AsyncImage(
+                    model = uri,
                     contentDescription = "Full screen image",
                     modifier = Modifier
                         .fillMaxSize(),
@@ -180,24 +238,24 @@ fun BaseImagePost(post: Post){
 @OptIn(UnstableApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MediaPlayer(post: Post) {
+fun MediaPlayer(uri: Uri?) {
+    if(uri == null) return
     val context = LocalContext.current
-    val videoFile = remember {
-        writeByteArrayToFile(context, post.content!!, "temp_media")
-    }
 
     var isFullScreen by remember { mutableStateOf(false) }
     var isMuted by remember { mutableStateOf(true) } // Track if the player is muted
 
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.Builder()
-                .setUri(videoFile.toUri())
-                .build()
+     val exoPlayer = ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.fromUri(uri)
             setMediaItem(mediaItem)
             prepare()
             playWhenReady = true
-            volume = if (isMuted) 0f else 1f // Apply initial volume
+            volume = if (isMuted) 0f else 1f
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release() // Release resources when the composable is removed
         }
     }
 
@@ -324,35 +382,21 @@ fun MediaPlayer(post: Post) {
     }
 }
 
-
 @Composable
-fun PdfReader(post: Post) {
+fun PdfReader(uri: Uri?) {
+    if(uri == null) return
     val context = LocalContext.current
 
     val fileDescriptor: ParcelFileDescriptor?
     val pdfRenderer: PdfRenderer?
 
-    val tempFile = remember {
-        val file = File.createTempFile("temp_pdf", "pdf", context.cacheDir)
-        val fos = FileOutputStream(file)
-        fos.write(post.content)
-        fos.close()
-        file
-    }
-
-    fileDescriptor = ParcelFileDescriptor.open(tempFile, ParcelFileDescriptor.MODE_READ_ONLY)
+    fileDescriptor = context.contentResolver.openFileDescriptor(uri, "r") ?: return
     pdfRenderer = PdfRenderer(fileDescriptor)
 
     fun openPdfExternally() {
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.provider",  // Nome do provider
-            tempFile
-        )
-
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/pdf")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // Conceder permiso de lectura
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
         try {
@@ -398,12 +442,4 @@ fun PdfReader(post: Post) {
             Text(text = stringResource(id = R.string.open_pdf),)
         }
     }
-}
-
-fun writeByteArrayToFile(context: Context, byteArray: ByteArray, fileName: String): File {
-    val file = File(context.cacheDir, fileName)
-    FileOutputStream(file).use { fos ->
-        fos.write(byteArray)
-    }
-    return file
 }

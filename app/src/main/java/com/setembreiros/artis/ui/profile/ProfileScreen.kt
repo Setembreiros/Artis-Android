@@ -1,5 +1,6 @@
 package com.setembreiros.artis.ui.profile
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -62,12 +63,14 @@ import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable
 fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
+    val context = LocalContext.current
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     ContentScreen(
+        context,
         userProfile = userProfile,
         posts = posts,
         onImageClick = onImageClick,
@@ -77,6 +80,7 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
 
 @Composable
 fun ContentScreen(
+    context: Context,
     userProfile: UserProfile?,
     posts: List<Post>,
     onImageClick: (postId: String) -> Unit,
@@ -261,7 +265,7 @@ fun ContentScreen(
                     ) {
                         val sortedPosts = posts.sortedBy { it.metadata.createdAt }
                         items(sortedPosts) { post ->
-                            PostThumbnail(post, onNavigateToImageDetails = {
+                            PostThumbnail(context, post, onNavigateToImageDetails = {
                                 onImageClick(post.metadata.postId)
                             })
                         }
@@ -334,6 +338,7 @@ fun ContentScreen(
 @Preview
 @Composable
 fun ProfilePreview() {
+    val context = LocalContext.current
     val imageResource = LocalContext.current.resources.openRawResource(R.raw.imaxe_de_proba)
     val imageContent = imageResource.readBytes()
     val imageResource2 = LocalContext.current.resources.openRawResource(R.raw.image_test_2)
@@ -344,6 +349,7 @@ fun ProfilePreview() {
     val videoContent2 = videoResource2.readBytes()
     ArtisTheme {
         ContentScreen(
+            context,
             UserProfile(
                 "guillerial",
                 "Guillermo Rial es reconocido por su experiencia y liderazgo en telecomunicaciones, donde se le considera \"el puto amo\" por su maestría técnica y profesionalismo.",

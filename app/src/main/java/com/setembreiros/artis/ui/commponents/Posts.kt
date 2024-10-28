@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.commponents
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -153,87 +152,64 @@ fun BasePostThumbnail(post: Post, onImageClick: () -> Unit){
             .clickable { onImageClick() }
             .background(Color.White),
         contentScale = ContentScale.Crop,
-        contentDescription = null,
+        contentDescription = "Thumbnail post"
+    )
+}
+
+@Composable
+fun BaseImagePost(model: Any?) {
+    var isFullScreen by rememberSaveable { mutableStateOf(false) }
+
+    ImagePost(
+        model = model,
+        onClick = { isFullScreen = true }
+    )
+
+    if (isFullScreen) {
+        FullScreenImageDialog(
+            model = model,
+            onDismiss = { isFullScreen = false }
         )
+    }
 }
 
 @Composable
-fun BaseImagePost(content: ByteArray?){
-    var isFullScreen by rememberSaveable { mutableStateOf(false) }
-
+private fun ImagePost(model: Any?, onClick: () -> Unit) {
     AsyncImage(
-        model = content,
-        contentDescription = "Image",
+        model = model,
+        contentDescription = "Image post",
         modifier = Modifier
             .padding(16.dp)
             .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
             .height(400.dp)
             .clip(RoundedCornerShape(16.dp))
-            .clickable {
-                isFullScreen = true
-            },
-        contentScale = ContentScale.Crop,
+            .clickable { onClick() },
+        contentScale = ContentScale.Crop
     )
-
-    if (isFullScreen) {
-        Dialog(onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Box(
-                modifier = Modifier
-                    .width(800.dp)
-                    .background(Color.Black)
-                    .clickable { isFullScreen = false }
-            ) {
-                AsyncImage(
-                    model = content,
-                    contentDescription = "Full screen image",
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            }
-        }
-    }
 }
 
 @Composable
-fun BaseImagePost(uri: Uri?){
-    var isFullScreen by rememberSaveable { mutableStateOf(false) }
-
-    AsyncImage(
-        model = uri,
-        contentDescription = "Image",
-        modifier = Modifier
-            .padding(16.dp)
-            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-            .height(400.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable {
-                isFullScreen = true
-            },
-        contentScale = ContentScale.Crop,
-    )
-
-    if (isFullScreen) {
-        Dialog(onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Box(
-                modifier = Modifier
-                    .width(800.dp)
-                    .background(Color.Black)
-                    .clickable { isFullScreen = false }
-            ) {
-                AsyncImage(
-                    model = uri,
-                    contentDescription = "Full screen image",
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            }
+private fun FullScreenImageDialog(model: Any?, onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(800.dp)
+                .background(Color.Black)
+                .clickable { onDismiss() }
+        ) {
+            AsyncImage(
+                model = model,
+                contentDescription = "Full screen image",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
         }
     }
 }
+
 
 @Composable
 fun MediaPlayer(uri: Uri?) {
@@ -252,7 +228,7 @@ fun MediaPlayer(uri: Uri?) {
     }
 
     if (isFullScreen) {
-        FullscreenDialog(
+        FullscreenMediaPlayerDialog(
             onDismiss = { isFullScreen = false },
             context = context,
             exoPlayer = exoPlayer,
@@ -280,7 +256,7 @@ private fun rememberExoPlayer(context: Context, uri: Uri, isMuted: Boolean) = re
 }
 
 @Composable
-private fun FullscreenDialog(
+private fun FullscreenMediaPlayerDialog(
     onDismiss: () -> Unit,
     context: Context,
     exoPlayer: ExoPlayer,

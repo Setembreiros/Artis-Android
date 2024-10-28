@@ -23,8 +23,6 @@ import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.VideoCameraBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -46,6 +44,7 @@ import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.ui.commponents.TextPost
 import com.setembreiros.artis.ui.commponents.ImagePost
 import com.setembreiros.artis.ui.commponents.AVPost
+import com.setembreiros.artis.ui.commponents.IconButton
 import com.setembreiros.artis.ui.commponents.StandardButton
 import com.setembreiros.artis.ui.commponents.TextFieldPost
 import com.setembreiros.artis.ui.theme.ArtisTheme
@@ -128,7 +127,6 @@ fun Content(
     }
 }
 
-
 @Composable
 fun ImagePickerScreen(onResult: (Uri) -> Unit, onType: (Constants.ContentType) -> Unit) {
     var contentType by remember { mutableStateOf(Constants.ContentType.IMAGE) }
@@ -176,54 +174,26 @@ fun ImagePickerScreen(onResult: (Uri) -> Unit, onType: (Constants.ContentType) -
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            IconButton(modifier = Modifier.size(60.dp), onClick = {
+            IconButton(Icons.Default.PictureAsPdf, onClick = {
                 thereIsContent = false
                 contentPickerLauncher.launch("application/pdf")
                 contentType = Constants.ContentType.TEXT
-            }) {
-                Icon(
-                    imageVector = Icons.Default.PictureAsPdf,
-                    contentDescription = "PDF File",
-                    modifier = Modifier.size(60.dp),
-                    tint = gray
-                )
-            }
-            IconButton(modifier = Modifier.size(60.dp), onClick = {
+            })
+            IconButton(Icons.Default.Image, onClick = {
                 thereIsContent = false
                 contentPickerLauncher.launch("image/*")
                 contentType = Constants.ContentType.IMAGE
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Image,
-                    contentDescription = "Image",
-                    modifier = Modifier.size(60.dp),
-                    tint = gray
-                )
-            }
-            IconButton(modifier = Modifier.size(60.dp), onClick = {
+            })
+            IconButton(Icons.Default.AudioFile, onClick = {
                 thereIsContent = false
                 contentPickerLauncher.launch("audio/*")
                 contentType = Constants.ContentType.AUDIO
-            }) {
-                Icon(
-                    imageVector = Icons.Default.AudioFile,
-                    contentDescription = "Audio",
-                    modifier = Modifier.size(60.dp),
-                    tint = gray
-                )
-            }
-            IconButton(modifier = Modifier.size(60.dp), onClick = {
+            })
+            IconButton(Icons.Default.VideoCameraBack, onClick = {
                 thereIsContent = false
                 contentPickerLauncher.launch("video/*")
                 contentType = Constants.ContentType.VIDEO
-            }) {
-                Icon(
-                    imageVector = Icons.Default.VideoCameraBack,
-                    contentDescription = "Video",
-                    modifier = Modifier.size(60.dp),
-                    tint = gray
-                )
-            }
+            })
         }
     }
 }

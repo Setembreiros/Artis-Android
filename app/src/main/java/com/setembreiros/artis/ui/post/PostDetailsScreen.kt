@@ -2,6 +2,7 @@ package com.setembreiros.artis.ui.post
 
 import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
@@ -77,9 +79,9 @@ fun PostDetailsView(context: Context, post: Post) {
     Spacer(modifier = Modifier.height(10.dp))
     when (post.metadata.type) {
         Constants.ContentType.IMAGE -> BaseImagePost(post.content)
-        Constants.ContentType.TEXT -> PdfReader(createTempFile(context, post.content)?.toUri())
-        Constants.ContentType.AUDIO -> MediaPlayer(createTempFile(context, post.content)?.toUri())
-        Constants.ContentType.VIDEO -> MediaPlayer(createTempFile(context, post.content)?.toUri())
+        Constants.ContentType.TEXT -> PdfReader(createUriTempFile(context, post.content))
+        Constants.ContentType.AUDIO -> MediaPlayer(createUriTempFile(context, post.content))
+        Constants.ContentType.VIDEO -> MediaPlayer(createUriTempFile(context, post.content))
     }
     Spacer(modifier = Modifier.height(10.dp))
     Text(
@@ -211,14 +213,39 @@ fun PdfPostDetailsPreview() {
     }
 }
 
-fun createTempFile(context: Context, content: ByteArray?): File? {
+@Composable
+private fun createUriTempFile(context: Context, content: ByteArray?): Uri? {
     content?.let {
-        val file = File(context.cacheDir, "temp_file")
+        val tempFile = createTempFile(context, content)
 
-        FileOutputStream(file).use { fos ->
-            fos.write(content)
+        tempFile?.let {
+            return remember {
+                FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    tempFile
+                )
+            }
         }
-        return file
+
+        return null
+    }
+
+    return null
+}
+
+@Composable
+private fun createTempFile(context: Context, content: ByteArray?): File? {
+    content?.let {
+        val tempFile = remember {
+            val file = File.createTempFile("temp_pdf", "", context.cacheDir)
+            val fos = FileOutputStream(file)
+            fos.write(content)
+            fos.close()
+            file
+        }
+
+        return tempFile
     }
 
     return null

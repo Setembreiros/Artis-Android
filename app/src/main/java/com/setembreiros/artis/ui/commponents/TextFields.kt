@@ -135,7 +135,6 @@ fun StandardPassTextField(
     )
 }
 
-
 @Composable
 fun TextFieldPost(hint: String,
                   value: String = "",
@@ -171,10 +170,6 @@ fun TextFieldPost(hint: String,
             innerTextField()
         }
     }
-
-
-
-
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)

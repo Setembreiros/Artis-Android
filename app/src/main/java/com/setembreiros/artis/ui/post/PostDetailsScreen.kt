@@ -30,9 +30,9 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.model.post.PostMetadata
-import com.setembreiros.artis.ui.commponents.BaseImagePost
-import com.setembreiros.artis.ui.commponents.MediaPlayer
-import com.setembreiros.artis.ui.commponents.PdfReader
+import com.setembreiros.artis.ui.commponents.AVPost
+import com.setembreiros.artis.ui.commponents.ImagePost
+import com.setembreiros.artis.ui.commponents.TextPost
 import com.setembreiros.artis.ui.theme.ArtisTheme
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -78,10 +78,10 @@ fun PostDetailsView(context: Context, post: Post) {
     )
     Spacer(modifier = Modifier.height(10.dp))
     when (post.metadata.type) {
-        Constants.ContentType.IMAGE -> BaseImagePost(post.content)
-        Constants.ContentType.TEXT -> PdfReader(createUriTempFile(context, post.content))
-        Constants.ContentType.AUDIO -> MediaPlayer(createUriTempFile(context, post.content))
-        Constants.ContentType.VIDEO -> MediaPlayer(createUriTempFile(context, post.content))
+        Constants.ContentType.TEXT -> TextPost(createUriTempFile(context, post.content))
+        Constants.ContentType.IMAGE -> ImagePost(post.content)
+        Constants.ContentType.AUDIO -> AVPost(createUriTempFile(context, post.content))
+        Constants.ContentType.VIDEO -> AVPost(createUriTempFile(context, post.content))
     }
     Spacer(modifier = Modifier.height(10.dp))
     Text(

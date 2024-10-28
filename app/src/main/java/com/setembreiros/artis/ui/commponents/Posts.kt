@@ -341,30 +341,12 @@ private fun createLayoutParams(gravity: Int): FrameLayout.LayoutParams {
     }
 }
 
-
 @Composable
 fun PdfReader(uri: Uri?) {
-    if(uri == null) return
+    if (uri == null) return
     val context = LocalContext.current
 
-    val fileDescriptor: ParcelFileDescriptor?
-    val pdfRenderer: PdfRenderer?
-
-    fileDescriptor = context.contentResolver.openFileDescriptor(uri, "r") ?: return
-    pdfRenderer = PdfRenderer(fileDescriptor)
-
-    fun openPdfExternally() {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/pdf")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        try {
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Non hai aplicacións para ler PDFs", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val pdfRenderer = rememberPdfRenderer(context, uri) ?: return
 
     Box(
         modifier = Modifier
@@ -375,31 +357,75 @@ fun PdfReader(uri: Uri?) {
             .clip(RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
-        LazyRow(modifier = Modifier.padding(vertical = 16.dp)) {
-            items(count = pdfRenderer.pageCount) { index ->
-                val page = pdfRenderer.openPage(index)
-                val bitmap = Bitmap.createBitmap(page.width * 2, page.height * 2, Bitmap.Config.ARGB_8888)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+        PdfPageList(pdfRenderer)
+        OpenPdfButton(uri = uri, context = context, modifier = Modifier.align(Alignment.BottomCenter))
+    }
+}
 
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "PDF page number: $index",
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                        .shadow(10.dp, RoundedCornerShape(16.dp))
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                )
+@Composable
+private fun rememberPdfRenderer(context: Context, uri: Uri): PdfRenderer? {
+    val fileDescriptor = remember {
+        context.contentResolver.openFileDescriptor(uri, "r")
+    }
+    val pdfRenderer = remember(fileDescriptor) { fileDescriptor?.let { PdfRenderer(it) } }
 
-                page.close()
-            }
+    DisposableEffect(Unit) {
+        onDispose {
+            pdfRenderer?.close()
+            fileDescriptor?.close()
         }
+    }
 
-        Button(
-            onClick = { openPdfExternally() },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            Text(text = stringResource(id = R.string.open_pdf))
+    return pdfRenderer
+}
+
+@Composable
+private fun PdfPageList(pdfRenderer: PdfRenderer) {
+    LazyRow(modifier = Modifier.padding(vertical = 16.dp)) {
+        items(count = pdfRenderer.pageCount) { index ->
+            PdfPage(pdfRenderer, index)
         }
+    }
+}
+
+@Composable
+private fun PdfPage(pdfRenderer: PdfRenderer, pageIndex: Int) {
+    val bitmap = remember(pageIndex) {
+        val page = pdfRenderer.openPage(pageIndex)
+        Bitmap.createBitmap(page.width * 2, page.height * 2, Bitmap.Config.ARGB_8888).apply {
+            page.render(this, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+        }.also {
+            page.close()
+        }
+    }
+
+    Image(
+        bitmap = bitmap.asImageBitmap(),
+        contentDescription = "PDF page number: $pageIndex",
+        modifier = Modifier
+            .padding(start = 10.dp)
+            .shadow(10.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+    )
+}
+
+@Composable
+private fun OpenPdfButton(uri: Uri, context: Context, modifier: Modifier = Modifier) {
+    Button(onClick = { openPdfExternally(context, uri) }, modifier = modifier) {
+        Text(text = stringResource(id = R.string.open_pdf))
+    }
+}
+
+private fun openPdfExternally(context: Context, uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "application/pdf")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, R.string.no_external_pdf_app, Toast.LENGTH_SHORT).show()
     }
 }

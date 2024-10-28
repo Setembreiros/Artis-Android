@@ -239,35 +239,40 @@ fun BaseImagePost(uri: Uri?){
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MediaPlayer(uri: Uri?) {
-    if(uri == null) return
+    if (uri == null) return
     val context = LocalContext.current
 
     var isFullScreen by remember { mutableStateOf(false) }
-    var isMuted by remember { mutableStateOf(true) } // Track if the player is muted
+    var isMuted by remember { mutableStateOf(true) }
 
-     val exoPlayer = ExoPlayer.Builder(context).build().apply {
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
             val mediaItem = MediaItem.fromUri(uri)
             setMediaItem(mediaItem)
             prepare()
             playWhenReady = true
             volume = if (isMuted) 0f else 1f
+        }
     }
 
+    // Release ExoPlayer resources when composable is removed
     DisposableEffect(Unit) {
         onDispose {
-            exoPlayer.release() // Release resources when the composable is removed
+            exoPlayer.release()
         }
     }
 
     // Function to toggle the volume
     fun toggleVolume() {
         isMuted = !isMuted
-        exoPlayer.volume = if (isMuted) 0f else 1f // Update player volume accordingly
+        exoPlayer.volume = if (isMuted) 0f else 1f
     }
 
     if (isFullScreen) {
-        Dialog(onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Dialog(
+            onDismissRequest = { isFullScreen = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -284,18 +289,15 @@ fun MediaPlayer(uri: Uri?) {
                             // Fullscreen exit button
                             val fullscreenButton = ImageButton(context).apply {
                                 setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                                setOnClickListener {
-                                    isFullScreen = false
-                                }
+                                setOnClickListener { isFullScreen = false }
                             }
                             this.addView(fullscreenButton)
-                            val params = FrameLayout.LayoutParams(
+                            fullscreenButton.layoutParams = FrameLayout.LayoutParams(
                                 FrameLayout.LayoutParams.WRAP_CONTENT,
                                 FrameLayout.LayoutParams.WRAP_CONTENT
                             ).apply {
                                 gravity = Gravity.END or Gravity.TOP
                             }
-                            fullscreenButton.layoutParams = params
 
                             // Volume toggle button
                             val volumeButton = ImageButton(context).apply {
@@ -312,13 +314,12 @@ fun MediaPlayer(uri: Uri?) {
                                 }
                             }
                             this.addView(volumeButton)
-                            val volumeParams = FrameLayout.LayoutParams(
+                            volumeButton.layoutParams = FrameLayout.LayoutParams(
                                 FrameLayout.LayoutParams.WRAP_CONTENT,
                                 FrameLayout.LayoutParams.WRAP_CONTENT
                             ).apply {
                                 gravity = Gravity.END or Gravity.BOTTOM
                             }
-                            volumeButton.layoutParams = volumeParams
                         }
                     }
                 )
@@ -341,18 +342,15 @@ fun MediaPlayer(uri: Uri?) {
                     // Fullscreen enter button
                     val fullscreenButton = ImageButton(context).apply {
                         setImageResource(android.R.drawable.ic_menu_view)
-                        setOnClickListener {
-                            isFullScreen = true
-                        }
+                        setOnClickListener { isFullScreen = true }
                     }
                     this.addView(fullscreenButton)
-                    val params = FrameLayout.LayoutParams(
+                    fullscreenButton.layoutParams = FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
                         FrameLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
                         gravity = Gravity.END or Gravity.TOP
                     }
-                    fullscreenButton.layoutParams = params
 
                     // Volume toggle button
                     val volumeButton = ImageButton(context).apply {
@@ -369,13 +367,12 @@ fun MediaPlayer(uri: Uri?) {
                         }
                     }
                     this.addView(volumeButton)
-                    val volumeParams = FrameLayout.LayoutParams(
+                    volumeButton.layoutParams = FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
                         FrameLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
                         gravity = Gravity.END or Gravity.BOTTOM
                     }
-                    volumeButton.layoutParams = volumeParams
                 }
             }
         )

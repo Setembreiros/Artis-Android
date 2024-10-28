@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.VideoCameraBack
@@ -162,10 +163,10 @@ fun ImagePickerScreen(onResult: (Uri) -> Unit, onType: (Constants.ContentType) -
                     .background(gray),
             ) {
                 when (contentType) {
-                    Constants.ContentType.IMAGE -> BaseImagePost(uriContent)
                     Constants.ContentType.TEXT -> PdfReader(uriContent)
+                    Constants.ContentType.IMAGE -> BaseImagePost(uriContent)
+                    Constants.ContentType.AUDIO -> MediaPlayer(uriContent)
                     Constants.ContentType.VIDEO -> MediaPlayer(uriContent)
-                    else -> {}
                 }
             }
         }
@@ -175,6 +176,18 @@ fun ImagePickerScreen(onResult: (Uri) -> Unit, onType: (Constants.ContentType) -
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            IconButton(modifier = Modifier.size(60.dp), onClick = {
+                thereIsContent = false
+                contentPickerLauncher.launch("application/pdf")
+                contentType = Constants.ContentType.TEXT
+            }) {
+                Icon(
+                    imageVector = Icons.Default.PictureAsPdf,
+                    contentDescription = "PDF File",
+                    modifier = Modifier.size(60.dp),
+                    tint = gray
+                )
+            }
             IconButton(modifier = Modifier.size(60.dp), onClick = {
                 thereIsContent = false
                 contentPickerLauncher.launch("image/*")
@@ -189,24 +202,24 @@ fun ImagePickerScreen(onResult: (Uri) -> Unit, onType: (Constants.ContentType) -
             }
             IconButton(modifier = Modifier.size(60.dp), onClick = {
                 thereIsContent = false
-                contentPickerLauncher.launch("video/*")
-                contentType = Constants.ContentType.VIDEO
+                contentPickerLauncher.launch("audio/*")
+                contentType = Constants.ContentType.AUDIO
             }) {
                 Icon(
-                    imageVector = Icons.Default.VideoCameraBack,
-                    contentDescription = "Video",
+                    imageVector = Icons.Default.AudioFile,
+                    contentDescription = "Audio",
                     modifier = Modifier.size(60.dp),
                     tint = gray
                 )
             }
             IconButton(modifier = Modifier.size(60.dp), onClick = {
                 thereIsContent = false
-                contentPickerLauncher.launch("application/pdf")
-                contentType = Constants.ContentType.TEXT
+                contentPickerLauncher.launch("video/*")
+                contentType = Constants.ContentType.VIDEO
             }) {
                 Icon(
-                    imageVector = Icons.Default.PictureAsPdf,
-                    contentDescription = "PDF File",
+                    imageVector = Icons.Default.VideoCameraBack,
+                    contentDescription = "Video",
                     modifier = Modifier.size(60.dp),
                     tint = gray
                 )

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
-import android.os.ParcelFileDescriptor
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -60,10 +59,9 @@ import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
 import java.io.File
-import java.io.FileOutputStream
 
 @Composable
-fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit){
+fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit) {
     ensureThumbnailContent(context, post)
 
     Box(
@@ -71,88 +69,107 @@ fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> 
         contentAlignment = Alignment.Center
     ) {
         when (post.metadata.type) {
-            Constants.ContentType.IMAGE -> BasePostThumbnail(
-                post,
-                onImageClick = { onNavigateToImageDetails() }
-            )
-            Constants.ContentType.VIDEO -> {
-                BasePostThumbnail(
-                    post,
-                    onImageClick = { onNavigateToImageDetails() }
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.play_button),
-                    contentDescription = "Play Button",
-                    modifier = Modifier.size(50.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-            }
-            Constants.ContentType.AUDIO -> {
-                if(post.thumbnail != null && post.thumbnail!!.isNotEmpty())
-                    BasePostThumbnail(
-                        post,
-                        onImageClick = { onNavigateToImageDetails() }
-                    )
-                else {
-                    Image(
-                        painter = painterResource(id = R.drawable.audio_default_thumbnail),
-                        contentDescription = "Audio default thumbnail",
-                        modifier = Modifier
-                            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-                            .height(150.dp)
-                            .width(100.dp)
-                            .border(
-                                2.dp,
-                                Color.Black,
-                                RoundedCornerShape(16.dp)
-                            )
-                            .clip(RoundedCornerShape(16.dp))
-                            .clickable { onNavigateToImageDetails() },
-                        contentScale = ContentScale.Crop,
-                    )
-                }
-            }
-            Constants.ContentType.TEXT -> BasePostThumbnail(
-                post,
-                onImageClick = { onNavigateToImageDetails() }
-            )
+            Constants.ContentType.TEXT -> TextPostThumbnail(post, onNavigateToImageDetails)
+            Constants.ContentType.IMAGE -> ImagePostThumbnail(post, onNavigateToImageDetails)
+            Constants.ContentType.VIDEO -> VideoPostThumbnail(post, onNavigateToImageDetails)
+            Constants.ContentType.AUDIO -> AudioPostThumbnail(post, onNavigateToImageDetails)
         }
     }
 }
 
 private fun ensureThumbnailContent(context: Context, post: Post) {
-    if(post.thumbnail == null) {
-        var tempFile: File? = null
-        try {
-            tempFile = File.createTempFile("temp_file", "")
-            val fos = FileOutputStream(tempFile)
-            fos.write(post.content)
-            fos.close()
-            post.thumbnail = ThumbnailBuilder.createThumbnail(context, tempFile.toUri(), post.metadata.type)
-        } finally {
-            tempFile?.delete()
+    if (post.thumbnail == null) {
+        val tempFile = File.createTempFile("temp_file", "").apply {
+            post.content?.let { writeBytes(it) }
+        }
+        post.thumbnail = ThumbnailBuilder.createThumbnail(context, tempFile.toUri(), post.metadata.type)
+        tempFile.delete()
+    }
+}
+
+@Composable
+private fun TextPostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        BasePostThumbnail(post)
+    }
+}
+
+@Composable
+private fun ImagePostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        BasePostThumbnail(post)
+    }
+}
+
+@Composable
+private fun VideoPostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        BasePostThumbnail(post)
+        PlayButtonOverlay()
+    }
+}
+
+@Composable
+private fun AudioPostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        if (post.thumbnail != null && post.thumbnail!!.isNotEmpty()) {
+            BasePostThumbnail(post)
+        } else {
+            DefaultAudioThumbnail(onClick)
         }
     }
 }
 
 @Composable
-fun BasePostThumbnail(post: Post, onImageClick: () -> Unit){
+private fun ThumbnailContainer(onClick: () -> Unit, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .shadow(10.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun BasePostThumbnail(post: Post) {
     AsyncImage(
         model = post.thumbnail,
         modifier = Modifier
-            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
             .height(150.dp)
             .width(100.dp)
-            .border(
-                2.dp,
-                Color.Black,
-                RoundedCornerShape(16.dp)
-            )
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onImageClick() }
-            .background(Color.White),
+            .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
         contentScale = ContentScale.Crop,
         contentDescription = "Thumbnail post"
+    )
+}
+
+@Composable
+private fun PlayButtonOverlay() {
+    Image(
+        painter = painterResource(id = R.drawable.play_button),
+        contentDescription = "Play Button",
+        modifier = Modifier.size(50.dp),
+        colorFilter = ColorFilter.tint(Color.White)
+    )
+}
+
+@Composable
+private fun DefaultAudioThumbnail(onClick: () -> Unit) {
+    Image(
+        painter = painterResource(id = R.drawable.audio_default_thumbnail),
+        contentDescription = "Audio default thumbnail",
+        modifier = Modifier
+            .height(150.dp)
+            .width(100.dp)
+            .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        contentScale = ContentScale.Crop
     )
 }
 
@@ -209,7 +226,6 @@ private fun FullScreenImageDialog(model: Any?, onDismiss: () -> Unit) {
         }
     }
 }
-
 
 @Composable
 fun MediaPlayer(uri: Uri?) {

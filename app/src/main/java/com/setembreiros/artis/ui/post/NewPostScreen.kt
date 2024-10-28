@@ -43,9 +43,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
-import com.setembreiros.artis.ui.commponents.BaseImagePost
-import com.setembreiros.artis.ui.commponents.MediaPlayer
-import com.setembreiros.artis.ui.commponents.PdfReader
+import com.setembreiros.artis.ui.commponents.TextPost
+import com.setembreiros.artis.ui.commponents.ImagePost
+import com.setembreiros.artis.ui.commponents.AVPost
 import com.setembreiros.artis.ui.commponents.StandardButton
 import com.setembreiros.artis.ui.commponents.TextFieldPost
 import com.setembreiros.artis.ui.theme.ArtisTheme
@@ -163,10 +163,10 @@ fun ImagePickerScreen(onResult: (Uri) -> Unit, onType: (Constants.ContentType) -
                     .background(gray),
             ) {
                 when (contentType) {
-                    Constants.ContentType.TEXT -> PdfReader(uriContent)
-                    Constants.ContentType.IMAGE -> BaseImagePost(uriContent)
-                    Constants.ContentType.AUDIO -> MediaPlayer(uriContent)
-                    Constants.ContentType.VIDEO -> MediaPlayer(uriContent)
+                    Constants.ContentType.TEXT -> TextPost(uriContent)
+                    Constants.ContentType.IMAGE -> ImagePost(uriContent)
+                    Constants.ContentType.AUDIO -> AVPost(uriContent)
+                    Constants.ContentType.VIDEO -> AVPost(uriContent)
                 }
             }
         }

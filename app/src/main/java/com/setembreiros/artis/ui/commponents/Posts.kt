@@ -64,7 +64,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 @Composable
-fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit,){
+fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit){
     ensureThumbnailContent(context, post)
 
     Box(
@@ -235,149 +235,136 @@ fun BaseImagePost(uri: Uri?){
     }
 }
 
-@OptIn(UnstableApi::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MediaPlayer(uri: Uri?) {
     if (uri == null) return
     val context = LocalContext.current
 
     var isFullScreen by remember { mutableStateOf(false) }
-    var isMuted by remember { mutableStateOf(true) }
+    val isMuted by remember { mutableStateOf(true) }
 
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.fromUri(uri)
-            setMediaItem(mediaItem)
-            prepare()
-            playWhenReady = true
-            volume = if (isMuted) 0f else 1f
-        }
-    }
+    val exoPlayer = rememberExoPlayer(context, uri, isMuted)
 
-    // Release ExoPlayer resources when composable is removed
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
 
-    // Function to toggle the volume
-    fun toggleVolume() {
-        isMuted = !isMuted
-        exoPlayer.volume = if (isMuted) 0f else 1f
-    }
-
     if (isFullScreen) {
-        Dialog(
-            onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = {
-                        PlayerView(context).apply {
-                            player = exoPlayer
-                            useController = true
-                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-
-                            // Fullscreen exit button
-                            val fullscreenButton = ImageButton(context).apply {
-                                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                                setOnClickListener { isFullScreen = false }
-                            }
-                            this.addView(fullscreenButton)
-                            fullscreenButton.layoutParams = FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.WRAP_CONTENT,
-                                FrameLayout.LayoutParams.WRAP_CONTENT
-                            ).apply {
-                                gravity = Gravity.END or Gravity.TOP
-                            }
-
-                            // Volume toggle button
-                            val volumeButton = ImageButton(context).apply {
-                                setImageResource(
-                                    if (isMuted) android.R.drawable.ic_lock_silent_mode
-                                    else android.R.drawable.ic_lock_silent_mode_off
-                                )
-                                setOnClickListener {
-                                    toggleVolume()
-                                    this.setImageResource(
-                                        if (isMuted) android.R.drawable.ic_lock_silent_mode
-                                        else android.R.drawable.ic_lock_silent_mode_off
-                                    )
-                                }
-                            }
-                            this.addView(volumeButton)
-                            volumeButton.layoutParams = FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.WRAP_CONTENT,
-                                FrameLayout.LayoutParams.WRAP_CONTENT
-                            ).apply {
-                                gravity = Gravity.END or Gravity.BOTTOM
-                            }
-                        }
-                    }
-                )
-            }
-        }
+        FullscreenDialog(
+            onDismiss = { isFullScreen = false },
+            context = context,
+            exoPlayer = exoPlayer,
+            isMuted = isMuted,
+            onFullscreenToggle = { isFullScreen = false }
+        )
     } else {
-        AndroidView(
-            modifier = Modifier
-                .padding(16.dp)
-                .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-                .height(400.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.Black),
-            factory = {
-                PlayerView(context).apply {
-                    player = exoPlayer
-                    useController = true
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-
-                    // Fullscreen enter button
-                    val fullscreenButton = ImageButton(context).apply {
-                        setImageResource(android.R.drawable.ic_menu_view)
-                        setOnClickListener { isFullScreen = true }
-                    }
-                    this.addView(fullscreenButton)
-                    fullscreenButton.layoutParams = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        gravity = Gravity.END or Gravity.TOP
-                    }
-
-                    // Volume toggle button
-                    val volumeButton = ImageButton(context).apply {
-                        setImageResource(
-                            if (isMuted) android.R.drawable.ic_lock_silent_mode
-                            else android.R.drawable.ic_lock_silent_mode_off
-                        )
-                        setOnClickListener {
-                            toggleVolume()
-                            this.setImageResource(
-                                if (isMuted) android.R.drawable.ic_lock_silent_mode
-                                else android.R.drawable.ic_lock_silent_mode_off
-                            )
-                        }
-                    }
-                    this.addView(volumeButton)
-                    volumeButton.layoutParams = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        gravity = Gravity.END or Gravity.BOTTOM
-                    }
-                }
-            }
+        EmbeddedPlayerView(
+            context = context,
+            exoPlayer = exoPlayer,
+            isMuted = isMuted,
+            onFullscreenToggle = { isFullScreen = true }
         )
     }
 }
+
+@Composable
+private fun rememberExoPlayer(context: Context, uri: Uri, isMuted: Boolean) = remember {
+    ExoPlayer.Builder(context).build().apply {
+        setMediaItem(MediaItem.fromUri(uri))
+        prepare()
+        playWhenReady = true
+        volume = if (isMuted) 0f else 1f
+    }
+}
+
+@Composable
+private fun FullscreenDialog(
+    onDismiss: () -> Unit,
+    context: Context,
+    exoPlayer: ExoPlayer,
+    isMuted: Boolean,
+    onFullscreenToggle: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = {
+                    playerViewWithControls(context, exoPlayer, isMuted, onFullscreenToggle)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmbeddedPlayerView(
+    context: Context,
+    exoPlayer: ExoPlayer,
+    isMuted: Boolean,
+    onFullscreenToggle: () -> Unit
+) {
+    AndroidView(
+        modifier = Modifier
+            .padding(16.dp)
+            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
+            .height(400.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Black),
+        factory = {
+            playerViewWithControls(context, exoPlayer, isMuted, onFullscreenToggle)
+        }
+    )
+}
+
+@OptIn(UnstableApi::class)
+private fun playerViewWithControls(
+    context: Context,
+    exoPlayer: ExoPlayer,
+    isMuted: Boolean,
+    onFullscreenToggle: () -> Unit
+): PlayerView {
+    return PlayerView(context).apply {
+        player = exoPlayer
+        useController = true
+        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+
+        addFullscreenButton(context, onFullscreenToggle)
+        addVolumeToggleButton(context, isMuted, exoPlayer)
+    }
+}
+
+private fun PlayerView.addFullscreenButton(context: Context, onFullscreenToggle: () -> Unit) {
+    val fullscreenButton = ImageButton(context).apply {
+        setImageResource(android.R.drawable.ic_menu_view)
+        setOnClickListener { onFullscreenToggle() }
+    }
+    addView(fullscreenButton, createLayoutParams(Gravity.END or Gravity.TOP))
+}
+
+private fun PlayerView.addVolumeToggleButton(context: Context, isMuted: Boolean, exoPlayer: ExoPlayer) {
+    val volumeButton = ImageButton(context).apply {
+        setImageResource(if (isMuted) android.R.drawable.ic_lock_silent_mode else android.R.drawable.ic_lock_silent_mode_off)
+        setOnClickListener {
+            exoPlayer.volume = if (exoPlayer.volume == 0f) 1f else 0f
+            setImageResource(if (exoPlayer.volume == 0f) android.R.drawable.ic_lock_silent_mode else android.R.drawable.ic_lock_silent_mode_off)
+        }
+    }
+    addView(volumeButton, createLayoutParams(Gravity.END or Gravity.BOTTOM))
+}
+
+private fun createLayoutParams(gravity: Int): FrameLayout.LayoutParams {
+    return FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+        this.gravity = gravity
+    }
+}
+
 
 @Composable
 fun PdfReader(uri: Uri?) {
@@ -436,7 +423,7 @@ fun PdfReader(uri: Uri?) {
             onClick = { openPdfExternally() },
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            Text(text = stringResource(id = R.string.open_pdf),)
+            Text(text = stringResource(id = R.string.open_pdf))
         }
     }
 }

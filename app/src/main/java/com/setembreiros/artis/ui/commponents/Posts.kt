@@ -1,18 +1,7 @@
 package com.setembreiros.artis.ui.commponents
 
-import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.pdf.PdfRenderer
 import android.net.Uri
-import android.os.ParcelFileDescriptor
-import android.view.Gravity
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,10 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -40,31 +26,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
 import java.io.File
-import java.io.FileOutputStream
 
 @Composable
-fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit,){
+fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit) {
     ensureThumbnailContent(context, post)
 
     Box(
@@ -72,339 +49,20 @@ fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> 
         contentAlignment = Alignment.Center
     ) {
         when (post.metadata.type) {
-            Constants.ContentType.IMAGE -> BasePostThumbnail(
-                post,
-                onImageClick = { onNavigateToImageDetails() }
-            )
-            Constants.ContentType.VIDEO -> {
-                BasePostThumbnail(
-                    post,
-                    onImageClick = { onNavigateToImageDetails() }
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.play_button),
-                    contentDescription = "Play Button",
-                    modifier = Modifier.size(50.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-            }
-            Constants.ContentType.AUDIO -> {
-                if(post.thumbnail != null && post.thumbnail!!.isNotEmpty())
-                    BasePostThumbnail(
-                        post,
-                        onImageClick = { onNavigateToImageDetails() }
-                    )
-                else {
-                    Image(
-                        painter = painterResource(id = R.drawable.audio_default_thumbnail),
-                        contentDescription = "Audio default thumbnail",
-                        modifier = Modifier
-                            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-                            .height(150.dp)
-                            .width(100.dp)
-                            .border(
-                                2.dp,
-                                Color.Black,
-                                RoundedCornerShape(16.dp)
-                            )
-                            .clip(RoundedCornerShape(16.dp))
-                            .clickable { onNavigateToImageDetails() },
-                        contentScale = ContentScale.Crop,
-                    )
-                }
-            }
-            Constants.ContentType.TEXT -> BasePostThumbnail(
-                post,
-                onImageClick = { onNavigateToImageDetails() }
-            )
-        }
-    }
-}
-
-private fun ensureThumbnailContent(context: Context, post: Post) {
-    if(post.thumbnail == null) {
-        var tempFile: File? = null
-        try {
-            tempFile = File.createTempFile("temp_file", "")
-            val fos = FileOutputStream(tempFile)
-            fos.write(post.content)
-            fos.close()
-            post.thumbnail = ThumbnailBuilder.createThumbnail(context, tempFile.toUri(), post.metadata.type)
-        } finally {
-            tempFile?.delete()
+            Constants.ContentType.TEXT -> TextPostThumbnail(post, onNavigateToImageDetails)
+            Constants.ContentType.IMAGE -> ImagePostThumbnail(post, onNavigateToImageDetails)
+            Constants.ContentType.VIDEO -> VideoPostThumbnail(post, onNavigateToImageDetails)
+            Constants.ContentType.AUDIO -> AudioPostThumbnail(post, onNavigateToImageDetails)
         }
     }
 }
 
 @Composable
-fun BasePostThumbnail(post: Post, onImageClick: () -> Unit){
-    AsyncImage(
-        model = post.thumbnail,
-        modifier = Modifier
-            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-            .height(150.dp)
-            .width(100.dp)
-            .border(
-                2.dp,
-                Color.Black,
-                RoundedCornerShape(16.dp)
-            )
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onImageClick() }
-            .background(Color.White),
-        contentScale = ContentScale.Crop,
-        contentDescription = null,
-        )
-}
-
-@Composable
-fun BaseImagePost(content: ByteArray?){
-    var isFullScreen by rememberSaveable { mutableStateOf(false) }
-
-    AsyncImage(
-        model = content,
-        contentDescription = "Image",
-        modifier = Modifier
-            .padding(16.dp)
-            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-            .height(400.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable {
-                isFullScreen = true
-            },
-        contentScale = ContentScale.Crop,
-    )
-
-    if (isFullScreen) {
-        Dialog(onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Box(
-                modifier = Modifier
-                    .width(800.dp)
-                    .background(Color.Black)
-                    .clickable { isFullScreen = false }
-            ) {
-                AsyncImage(
-                    model = content,
-                    contentDescription = "Full screen image",
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun BaseImagePost(uri: Uri?){
-    var isFullScreen by rememberSaveable { mutableStateOf(false) }
-
-    AsyncImage(
-        model = uri,
-        contentDescription = "Image",
-        modifier = Modifier
-            .padding(16.dp)
-            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-            .height(400.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable {
-                isFullScreen = true
-            },
-        contentScale = ContentScale.Crop,
-    )
-
-    if (isFullScreen) {
-        Dialog(onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Box(
-                modifier = Modifier
-                    .width(800.dp)
-                    .background(Color.Black)
-                    .clickable { isFullScreen = false }
-            ) {
-                AsyncImage(
-                    model = uri,
-                    contentDescription = "Full screen image",
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            }
-        }
-    }
-}
-
-@OptIn(UnstableApi::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Composable
-fun MediaPlayer(uri: Uri?) {
-    if(uri == null) return
+fun TextPost(uri: Uri?) {
+    if (uri == null) return
     val context = LocalContext.current
 
-    var isFullScreen by remember { mutableStateOf(false) }
-    var isMuted by remember { mutableStateOf(true) } // Track if the player is muted
-
-     val exoPlayer = ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.fromUri(uri)
-            setMediaItem(mediaItem)
-            prepare()
-            playWhenReady = true
-            volume = if (isMuted) 0f else 1f
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release() // Release resources when the composable is removed
-        }
-    }
-
-    // Function to toggle the volume
-    fun toggleVolume() {
-        isMuted = !isMuted
-        exoPlayer.volume = if (isMuted) 0f else 1f // Update player volume accordingly
-    }
-
-    if (isFullScreen) {
-        Dialog(onDismissRequest = { isFullScreen = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = {
-                        PlayerView(context).apply {
-                            player = exoPlayer
-                            useController = true
-                            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-
-                            // Fullscreen exit button
-                            val fullscreenButton = ImageButton(context).apply {
-                                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                                setOnClickListener {
-                                    isFullScreen = false
-                                }
-                            }
-                            this.addView(fullscreenButton)
-                            val params = FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.WRAP_CONTENT,
-                                FrameLayout.LayoutParams.WRAP_CONTENT
-                            ).apply {
-                                gravity = Gravity.END or Gravity.TOP
-                            }
-                            fullscreenButton.layoutParams = params
-
-                            // Volume toggle button
-                            val volumeButton = ImageButton(context).apply {
-                                setImageResource(
-                                    if (isMuted) android.R.drawable.ic_lock_silent_mode
-                                    else android.R.drawable.ic_lock_silent_mode_off
-                                )
-                                setOnClickListener {
-                                    toggleVolume()
-                                    this.setImageResource(
-                                        if (isMuted) android.R.drawable.ic_lock_silent_mode
-                                        else android.R.drawable.ic_lock_silent_mode_off
-                                    )
-                                }
-                            }
-                            this.addView(volumeButton)
-                            val volumeParams = FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.WRAP_CONTENT,
-                                FrameLayout.LayoutParams.WRAP_CONTENT
-                            ).apply {
-                                gravity = Gravity.END or Gravity.BOTTOM
-                            }
-                            volumeButton.layoutParams = volumeParams
-                        }
-                    }
-                )
-            }
-        }
-    } else {
-        AndroidView(
-            modifier = Modifier
-                .padding(16.dp)
-                .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
-                .height(400.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.Black),
-            factory = {
-                PlayerView(context).apply {
-                    player = exoPlayer
-                    useController = true
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-
-                    // Fullscreen enter button
-                    val fullscreenButton = ImageButton(context).apply {
-                        setImageResource(android.R.drawable.ic_menu_view)
-                        setOnClickListener {
-                            isFullScreen = true
-                        }
-                    }
-                    this.addView(fullscreenButton)
-                    val params = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        gravity = Gravity.END or Gravity.TOP
-                    }
-                    fullscreenButton.layoutParams = params
-
-                    // Volume toggle button
-                    val volumeButton = ImageButton(context).apply {
-                        setImageResource(
-                            if (isMuted) android.R.drawable.ic_lock_silent_mode
-                            else android.R.drawable.ic_lock_silent_mode_off
-                        )
-                        setOnClickListener {
-                            toggleVolume()
-                            this.setImageResource(
-                                if (isMuted) android.R.drawable.ic_lock_silent_mode
-                                else android.R.drawable.ic_lock_silent_mode_off
-                            )
-                        }
-                    }
-                    this.addView(volumeButton)
-                    val volumeParams = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        gravity = Gravity.END or Gravity.BOTTOM
-                    }
-                    volumeButton.layoutParams = volumeParams
-                }
-            }
-        )
-    }
-}
-
-@Composable
-fun PdfReader(uri: Uri?) {
-    if(uri == null) return
-    val context = LocalContext.current
-
-    val fileDescriptor: ParcelFileDescriptor?
-    val pdfRenderer: PdfRenderer?
-
-    fileDescriptor = context.contentResolver.openFileDescriptor(uri, "r") ?: return
-    pdfRenderer = PdfRenderer(fileDescriptor)
-
-    fun openPdfExternally() {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/pdf")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        try {
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Non hai aplicacións para ler PDFs", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val pdfRenderer = RememberPdfRenderer(context, uri) ?: return
 
     Box(
         modifier = Modifier
@@ -415,31 +73,191 @@ fun PdfReader(uri: Uri?) {
             .clip(RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
-        LazyRow(modifier = Modifier.padding(vertical = 16.dp)) {
-            items(count = pdfRenderer.pageCount) { index ->
-                val page = pdfRenderer.openPage(index)
-                val bitmap = Bitmap.createBitmap(page.width * 2, page.height * 2, Bitmap.Config.ARGB_8888)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+        PdfPageList(pdfRenderer)
+        OpenPdfButton(uri = uri, context = context, modifier = Modifier.align(Alignment.BottomCenter))
+    }
+}
 
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "PDF page number: $index",
-                    modifier = Modifier
-                        .padding(start = 10.dp)
-                        .shadow(10.dp, RoundedCornerShape(16.dp))
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                )
+@Composable
+fun ImagePost(model: Any?) {
+    var isFullScreen by rememberSaveable { mutableStateOf(false) }
 
-                page.close()
-            }
+    CroppedImagePost(
+        model = model,
+        onClick = { isFullScreen = true }
+    )
+
+    if (isFullScreen) {
+        FullScreenImageDialog(
+            model = model,
+            onDismiss = { isFullScreen = false }
+        )
+    }
+}
+
+@Composable
+fun AVPost(uri: Uri?) {
+    if (uri == null) return
+    val context = LocalContext.current
+
+    var isFullScreen by remember { mutableStateOf(false) }
+    val isMuted by remember { mutableStateOf(true) }
+
+    val exoPlayer = RememberExoPlayer(context, uri, isMuted)
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
         }
+    }
 
-        Button(
-            onClick = { openPdfExternally() },
-            modifier = Modifier.align(Alignment.BottomCenter)
+    if (isFullScreen) {
+        FullscreenMediaPlayerDialog(
+            onDismiss = { isFullScreen = false },
+            context = context,
+            exoPlayer = exoPlayer,
+            isMuted = isMuted,
+            onFullscreenToggle = { isFullScreen = false }
+        )
+    } else {
+        EmbeddedPlayerView(
+            context = context,
+            exoPlayer = exoPlayer,
+            isMuted = isMuted,
+            onFullscreenToggle = { isFullScreen = true }
+        )
+    }
+}
+
+@Composable
+private fun TextPostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        BasePostThumbnail(post)
+    }
+}
+
+@Composable
+private fun ImagePostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        BasePostThumbnail(post)
+    }
+}
+
+@Composable
+private fun VideoPostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        BasePostThumbnail(post)
+        PlayImageOverlay()
+    }
+}
+
+@Composable
+private fun AudioPostThumbnail(post: Post, onClick: () -> Unit) {
+    ThumbnailContainer(onClick = onClick) {
+        if (post.thumbnail != null && post.thumbnail!!.isNotEmpty()) {
+            BasePostThumbnail(post)
+        } else {
+            DefaultAudioThumbnail(onClick)
+        }
+    }
+}
+
+@Composable
+private fun ThumbnailContainer(onClick: () -> Unit, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .shadow(10.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun DefaultAudioThumbnail(onClick: () -> Unit) {
+    Image(
+        painter = painterResource(id = R.drawable.audio_default_thumbnail),
+        contentDescription = "Audio default thumbnail",
+        modifier = Modifier
+            .height(150.dp)
+            .width(100.dp)
+            .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+private fun BasePostThumbnail(post: Post) {
+    AsyncImage(
+        model = post.thumbnail,
+        modifier = Modifier
+            .height(150.dp)
+            .width(100.dp)
+            .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        contentScale = ContentScale.Crop,
+        contentDescription = "Thumbnail post"
+    )
+}
+
+@Composable
+private fun PlayImageOverlay() {
+    Image(
+        painter = painterResource(id = R.drawable.play_button),
+        contentDescription = "Play Button",
+        modifier = Modifier.size(50.dp),
+        colorFilter = ColorFilter.tint(Color.White)
+    )
+}
+
+@Composable
+private fun CroppedImagePost(model: Any?, onClick: () -> Unit) {
+    AsyncImage(
+        model = model,
+        contentDescription = "Image post",
+        modifier = Modifier
+            .padding(16.dp)
+            .shadow(10.dp, RoundedCornerShape(16.dp), clip = true)
+            .height(400.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+private fun FullScreenImageDialog(model: Any?, onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(800.dp)
+                .background(Color.Black)
+                .clickable { onDismiss() }
         ) {
-            Text(text = stringResource(id = R.string.open_pdf),)
+            AsyncImage(
+                model = model,
+                contentDescription = "Full screen image",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
         }
+    }
+}
+
+private fun ensureThumbnailContent(context: Context, post: Post) {
+    if (post.thumbnail == null) {
+        val tempFile = File.createTempFile("temp_file", "").apply {
+            post.content?.let { writeBytes(it) }
+        }
+        post.thumbnail = ThumbnailBuilder.createThumbnail(context, tempFile.toUri(), post.metadata.type)
+        tempFile.delete()
     }
 }

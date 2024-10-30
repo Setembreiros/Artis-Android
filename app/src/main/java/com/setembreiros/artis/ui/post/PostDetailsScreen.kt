@@ -1,6 +1,8 @@
 package com.setembreiros.artis.ui.post
 
+import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +14,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
@@ -31,10 +35,13 @@ import com.setembreiros.artis.ui.commponents.MediaPlayer
 import com.setembreiros.artis.ui.commponents.PdfReader
 import com.setembreiros.artis.ui.theme.ArtisTheme
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 
 @Composable
 fun PostDetailsScreen(postId: String) {
+    val context = LocalContext.current
     val viewModel: PostDetailsViewModel = hiltViewModel()
     val posts = viewModel.getPosts()
     val listState = rememberLazyListState()
@@ -55,13 +62,13 @@ fun PostDetailsScreen(postId: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         items(posts) { post ->
-            PostDetailsView(post)
+            PostDetailsView(context, post)
         }
     }
 }
 
 @Composable
-fun PostDetailsView(post: Post) {
+fun PostDetailsView(context: Context, post: Post) {
     Text(
         text = post.metadata.title,
         fontSize = 42.sp,
@@ -71,10 +78,10 @@ fun PostDetailsView(post: Post) {
     )
     Spacer(modifier = Modifier.height(10.dp))
     when (post.metadata.type) {
-        Constants.ContentType.IMAGE -> BaseImagePost(post)
-        Constants.ContentType.TEXT -> PdfReader(post)
-        Constants.ContentType.AUDIO -> MediaPlayer(post)
-        Constants.ContentType.VIDEO -> MediaPlayer(post)
+        Constants.ContentType.IMAGE -> BaseImagePost(post.content)
+        Constants.ContentType.TEXT -> PdfReader(createUriTempFile(context, post.content))
+        Constants.ContentType.AUDIO -> MediaPlayer(createUriTempFile(context, post.content))
+        Constants.ContentType.VIDEO -> MediaPlayer(createUriTempFile(context, post.content))
     }
     Spacer(modifier = Modifier.height(10.dp))
     Text(
@@ -88,7 +95,8 @@ fun PostDetailsView(post: Post) {
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ImagePostDetailsPreview() {
-    val imageResource = LocalContext.current.resources.openRawResource(R.raw.imaxe_de_proba)
+    val context = LocalContext.current
+    val imageResource = context.resources.openRawResource(R.raw.imaxe_de_proba)
     val content = imageResource.readBytes()
 
     val samplePost = Post(
@@ -102,14 +110,15 @@ fun ImagePostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(post = samplePost)
+        PostDetailsView(context, post = samplePost)
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun Image2PostDetailsPreview() {
-    val imageResource = LocalContext.current.resources.openRawResource(R.raw.image_test_2)
+    val context = LocalContext.current
+    val imageResource = context.resources.openRawResource(R.raw.image_test_2)
     val content = imageResource.readBytes()
 
     val samplePost = Post(
@@ -123,14 +132,15 @@ fun Image2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(post = samplePost)
+        PostDetailsView(context, post = samplePost)
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun Video1PostDetailsPreview() {
-    val videoResource = LocalContext.current.resources.openRawResource(R.raw.video_test_1)
+    val context = LocalContext.current
+    val videoResource = context.resources.openRawResource(R.raw.video_test_1)
     val content = videoResource.readBytes()
 
     val samplePost = Post(
@@ -144,14 +154,15 @@ fun Video1PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(samplePost)
+        PostDetailsView(context, samplePost)
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun Video2PostDetailsPreview() {
-    val videoResource = LocalContext.current.resources.openRawResource(R.raw.video_test_2)
+    val context = LocalContext.current
+    val videoResource = context.resources.openRawResource(R.raw.video_test_2)
     val content = videoResource.readBytes()
 
     val samplePost = Post(
@@ -165,14 +176,15 @@ fun Video2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(samplePost)
+        PostDetailsView(context, samplePost)
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PdfPostDetailsPreview() {
-    val pdfResourceDescriptor = LocalContext.current.resources.openRawResourceFd(R.raw.pdf_test)
+    val context = LocalContext.current
+    val pdfResourceDescriptor = context.resources.openRawResourceFd(R.raw.pdf_test)
     val inputStream: InputStream = pdfResourceDescriptor.createInputStream()
     val buffer = ByteArrayOutputStream()
     val data = ByteArray(1024)  // Buffer to read data in chunks
@@ -197,6 +209,44 @@ fun PdfPostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(samplePost)
+        PostDetailsView(context, samplePost)
     }
+}
+
+@Composable
+private fun createUriTempFile(context: Context, content: ByteArray?): Uri? {
+    content?.let {
+        val tempFile = createTempFile(context, content)
+
+        tempFile?.let {
+            return remember {
+                FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    tempFile
+                )
+            }
+        }
+
+        return null
+    }
+
+    return null
+}
+
+@Composable
+private fun createTempFile(context: Context, content: ByteArray?): File? {
+    content?.let {
+        val tempFile = remember {
+            val file = File.createTempFile("temp_pdf", "", context.cacheDir)
+            val fos = FileOutputStream(file)
+            fos.write(content)
+            fos.close()
+            file
+        }
+
+        return tempFile
+    }
+
+    return null
 }

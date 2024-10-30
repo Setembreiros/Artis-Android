@@ -6,7 +6,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class S3Service {
-   suspend fun putContent(s3Url: String, content: ByteArray,): Boolean {
+   suspend fun putContent(s3Url: String, content: ByteArray?): Boolean {
         return withContext(Dispatchers.IO) {
             var result: Boolean
             try {

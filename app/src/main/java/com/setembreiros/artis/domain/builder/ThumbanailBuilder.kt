@@ -1,34 +1,56 @@
 package com.setembreiros.artis.domain.builder
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.media.MediaMetadataRetriever
-import android.os.ParcelFileDescriptor
+import android.net.Uri
 import com.setembreiros.artis.common.Constants
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
+import java.io.InputStream
 
 class ThumbnailBuilder {
     companion object {
-        fun createThumbnail(content: ByteArray?, contentType: Constants.ContentType): ByteArray? {
+        fun createThumbnail(context: Context, uri: Uri?, contentType: Constants.ContentType): ByteArray {
             return when (contentType) {
-                Constants.ContentType.IMAGE -> content
-                Constants.ContentType.TEXT -> createPdfThumbnail(content)
+                Constants.ContentType.IMAGE -> createImageThumbnail(context, uri)
+                Constants.ContentType.TEXT -> createPdfThumbnail(context, uri)
                 Constants.ContentType.AUDIO -> ByteArray(0)
-                Constants.ContentType.VIDEO -> createVideoThumbnail(content)
+                Constants.ContentType.VIDEO -> createVideoThumbnail(context, uri)
             }
         }
 
-        private fun createPdfThumbnail(content: ByteArray?): ByteArray {
-            var tempFile: File? = null
-            try {
-                tempFile = File.createTempFile("temp_pdf", "pdf")
-                val fos = FileOutputStream(tempFile)
-                fos.write(content)
-                fos.close()
+        private fun createImageThumbnail(context: Context, uri: Uri?): ByteArray {
+            if(uri == null)
+                return ByteArray(0)
 
-                val fileDescriptor: ParcelFileDescriptor = ParcelFileDescriptor.open(tempFile, ParcelFileDescriptor.MODE_READ_ONLY)
+            try {
+                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                val byteBuffer = ByteArrayOutputStream()
+                val buffer = ByteArray(1024)
+                var len: Int
+
+                while (inputStream?.read(buffer).also { len = it ?: -1 } != -1) {
+                    byteBuffer.write(buffer, 0, len)
+                }
+
+                inputStream?.close()
+
+                return byteBuffer.toByteArray()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            return ByteArray(0)
+        }
+
+        private fun createPdfThumbnail(context: Context, uri: Uri?): ByteArray {
+            if(uri == null)
+                return ByteArray(0)
+
+            try {
+                val fileDescriptor = context.contentResolver.openFileDescriptor(uri, "r") ?: return ByteArray(0)
                 val pdfRenderer = PdfRenderer(fileDescriptor)
 
                 val page = pdfRenderer.openPage(0)
@@ -47,24 +69,18 @@ class ThumbnailBuilder {
                 return thumbnail
             } catch (e: Exception) {
                 e.printStackTrace()
-            } finally {
-                tempFile?.delete()
             }
 
             return ByteArray(0)
         }
 
-        private fun createVideoThumbnail(content: ByteArray?): ByteArray {
+        private fun createVideoThumbnail(context: Context, uri: Uri?): ByteArray {
+            if(uri == null)
+                return ByteArray(0)
+
             val retriever = MediaMetadataRetriever()
-            var tempFile: File? = null
             try {
-                tempFile = File.createTempFile("temp_video", "")
-                val fos = FileOutputStream(tempFile)
-                fos.write(content)
-                fos.close()
-
-                retriever.setDataSource(tempFile!!.absolutePath)
-
+                retriever.setDataSource(context, uri)
                 val bitmap = retriever.getFrameAtTime(1 * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream) // Compress the bitmap to PNG
@@ -76,7 +92,6 @@ class ThumbnailBuilder {
             }
             finally {
                 retriever.release()
-                tempFile?.delete()
             }
 
             return ByteArray(0)

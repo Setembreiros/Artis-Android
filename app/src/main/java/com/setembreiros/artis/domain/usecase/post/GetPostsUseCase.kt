@@ -5,7 +5,6 @@ import com.setembreiros.artis.data.repository.PostRepository
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
-import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.model.post.PostUrl
@@ -30,7 +29,6 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
                 Pair(it.second, it.third)
             }
             val post = Post(postMetadata, matchingContent!!.first, matchingContent.second)
-            ensureThumbnailContent(post)
             println("Post: ${post.metadata.postId}, Content: ${post.content}")
             posts.add(post)
             profileRepository.savePost(post)
@@ -87,12 +85,6 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
 
         deferredResponses.awaitAll()
-    }
-
-    private fun ensureThumbnailContent(post: Post) {
-        if(post.thumbnail == null) {
-            post.thumbnail = ThumbnailBuilder.createThumbnail(post.content, post.metadata.type)
-        }
     }
 
     private fun getUrlDebug(url: String) : String{

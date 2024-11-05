@@ -45,7 +45,6 @@ fun App(activity: Activity = Activity()){
 
     val session by viewModel.session.collectAsStateWithLifecycle()
 
-
     Scaffold(
         topBar = {
             if(showTopBar){

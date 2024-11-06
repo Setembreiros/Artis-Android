@@ -197,17 +197,16 @@ class RegisterViewModel @Inject constructor(
         }
 
         CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
-                    try {
-                        identityProviderClient.confirmSignUp(signUpRequest)
-                        loading.update { false }
-                        signIn(userType)
-                        println("${_userName.value}  was confirmed")
-                    }catch (e : Exception){
-                        loading.update { false }
-                        println(e.toString())
-                    }
-
-                }
+            try {
+                identityProviderClient.confirmSignUp(signUpRequest)
+                loading.update { false }
+                signIn(userType)
+                println("${_userName.value}  was confirmed")
+            }catch (e : Exception){
+                loading.update { false }
+                println(e.toString())
+            }
+        }
     }
 
     private suspend fun signIn(userType: UserType): Boolean {

@@ -5,8 +5,10 @@ import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthFlowType
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthenticationResultType
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.InitiateAuthRequest
 import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedException
+import aws.sdk.kotlin.services.cognitoidentityprovider.revokeToken
 import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.Constants.UserType
+import com.setembreiros.artis.domain.model.Session
 import com.setembreiros.artis.ui.account.calculateSecretHash
 import javax.inject.Inject
 
@@ -47,6 +49,23 @@ class AuthenticationService @Inject constructor() {
         }
 
         return getCognitoTokens(request)
+    }
+
+    suspend fun revokeAuthTokens(session: Session) {
+        val clientIdVal = getClientId(session.userType)
+        val secretKey = getSecretKey(session.userType)
+
+        CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
+            try {
+                identityProviderClient.revokeToken {
+                    clientId = clientIdVal
+                    clientSecret = secretKey
+                    token = session.refreshToken
+                }
+            } catch (e: Exception) {
+                println("Error occurred: $e")
+            }
+        }
     }
 
     private fun getClientId(userType: UserType): String {

@@ -10,19 +10,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
 
+@Singleton
 class RefreshSessionUseCase @Inject constructor(private val authService: AuthenticationService,
                                                 private val saveSessionUseCase: SaveSessionUseCase) {
+    private var refreshJob: Job? = null
+
     fun invoke(session: Session) {
         scheduleSessionRefresh(session)
     }
 
     private fun scheduleSessionRefresh(session: Session) {
+        // Cancel any existing job to avoid multiple refresh loops
+        refreshJob?.cancel()
+
         val scope = CoroutineScope(Dispatchers.IO + Job())
 
-        val delay = session.expiresIn - 60
-        scope.launch {
+        val delay = 60
+        refreshJob = scope.launch {
             while (isActive) {
                 println("Starting refreshing")
 
@@ -40,6 +47,11 @@ class RefreshSessionUseCase @Inject constructor(private val authService: Authent
                 delay(delay.seconds.inWholeMilliseconds)
             }
         }
+    }
+
+    fun stopRefreshing() {
+        refreshJob?.cancel()
+        println("Session refreshing stopped.")
     }
 
     private fun storeSessionToken(refreshToken: String, idToken: String, expiresIn: Long, username: String, userType: UserType) {

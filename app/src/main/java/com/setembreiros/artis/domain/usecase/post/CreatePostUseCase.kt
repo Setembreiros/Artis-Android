@@ -33,7 +33,7 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
     private suspend fun sendContentS3(content: ByteArray?, thumbnailContent: ByteArray?, metadata: PostResponse) : Boolean{
         var url = metadata.presignedUrl
         var thumbnailUrl = metadata.presignedThumbnailUrl
-         if(BuildConfig.DEBUG) {
+        if(BuildConfig.DEBUG) {
              url = getUrlDebug(metadata.presignedUrl)
              if(thumbnailUrl != "") {
                  thumbnailUrl = getUrlDebug(metadata.presignedThumbnailUrl)

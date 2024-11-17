@@ -75,7 +75,6 @@ fun App(activity: Activity = Activity()){
             viewModel= viewModel,
             stateTopBar = {showTopBar = it},
             stateButtonMenu = {showButtonMenu = it},
-            updateSession = {viewModel.updateSession()},
             stateBackButtonChanged = { showBackButton = it },
             modifier = Modifier.padding(innerPadding)
         )

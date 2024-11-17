@@ -6,6 +6,7 @@ import com.setembreiros.artis.domain.model.Session
 import javax.inject.Inject
 
 class CreateSessionUseCase @Inject constructor(private val authService: AuthenticationService,
+                                               private val saveSessionUseCase: SaveSessionUseCase,
                                                private val refreshSessionUseCase: RefreshSessionUseCase) {
     suspend fun invoke(username: String, password: String, userType: UserType): Boolean {
         val tokens = authService.createAuthTokens(userType, username, password)
@@ -16,6 +17,7 @@ class CreateSessionUseCase @Inject constructor(private val authService: Authenti
             idToken?.let {
                 refreshToken?.let {
                     val session = Session(refreshToken, idToken = idToken, expiresIn= expiresIn, userType = userType, username = username)
+                    saveSessionUseCase.invoke(session)
                     refreshSessionUseCase.invoke(session)
                 }
             }?: return false

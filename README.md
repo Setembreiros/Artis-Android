@@ -1,6 +1,6 @@
 ## COGNITO
 
-Para que o login en a creación de conta poida funcionar é preciso engadir 4 variables no ficheiro  
+Para que o login e a creación de conta poida funcionar é preciso engadir 4 variables no ficheiro  
 secret.properties. Estas claves saen de AWS.  
 O fichero local.properties está no .gitignore. Este ficheiro baixo ningún concepto pódese subir a  
 github.

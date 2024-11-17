@@ -21,7 +21,7 @@ class CreateSessionUseCase @Inject constructor(private val authService: Authenti
                     refreshSessionUseCase.invoke(session)
                 }
             }?: return false
-        }
+        }?: return false
 
         return true
     }

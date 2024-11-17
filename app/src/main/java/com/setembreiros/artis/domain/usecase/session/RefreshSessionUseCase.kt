@@ -28,7 +28,7 @@ class RefreshSessionUseCase @Inject constructor(private val authService: Authent
 
         val scope = CoroutineScope(Dispatchers.IO + Job())
 
-        val delay = session.expiresIn - 300
+        var delay = session.expiresIn - session.expiresIn * 0.1
         refreshJob = scope.launch {
             while (isActive) {
                 println("Waiting for refreshing: $delay seconds")
@@ -39,6 +39,7 @@ class RefreshSessionUseCase @Inject constructor(private val authService: Authent
                 tokens?.let {
                     val idToken = it.idToken
                     val expiresIn = it.expiresIn.toLong()
+                    delay = session.expiresIn - expiresIn * 0.1
                     idToken?.let { token ->
                         storeSessionToken(session.refreshToken, token, expiresIn, session.username, session.userType)
                         println("New Session stored with idToken: $idToken")

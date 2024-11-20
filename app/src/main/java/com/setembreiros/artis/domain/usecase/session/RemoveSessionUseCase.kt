@@ -1,39 +1,20 @@
 package com.setembreiros.artis.domain.usecase.session
 
-import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
-import aws.sdk.kotlin.services.cognitoidentityprovider.revokeToken
-import com.setembreiros.artis.BuildConfig
-import com.setembreiros.artis.common.Constants.UserType
 import com.setembreiros.artis.data.repository.SessionRepository
+import com.setembreiros.artis.data.service.AuthenticationService
 import javax.inject.Inject
 
-class RemoveSessionUseCase @Inject constructor(private val sessionRepository: SessionRepository) {
+class RemoveSessionUseCase @Inject constructor(
+    private val refreshSessionUseCase: RefreshSessionUseCase,
+    private val sessionRepository: SessionRepository,
+    private val authService: AuthenticationService
+) {
     suspend fun invoke(){
         val session = sessionRepository.getSession()
-        val clientIdVal: String
-        val secretKey: String
-
-        if(session?.userType  == UserType.UA) {
-            clientIdVal = BuildConfig.CLIENT_ID_UA
-            secretKey = BuildConfig.SECRET_KEY_UA
-        } else {
-            clientIdVal = BuildConfig.CLIENT_ID_UE
-            secretKey = BuildConfig.SECRET_KEY_UE
+        if (session != null) {
+            refreshSessionUseCase.stopRefreshing()
+            authService.revokeAuthTokens(session)
+            sessionRepository.removeSession()
         }
-
-        CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
-            try {
-                sessionRepository.getSession()
-                identityProviderClient.revokeToken {
-                    clientId = clientIdVal
-                    clientSecret = secretKey
-                    token = session?.refreshToken
-                }
-            } catch (e: Exception) {
-                println("Error occurred: $e")
-            }
-        }
-
-        sessionRepository.removeSession()
     }
 }

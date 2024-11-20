@@ -40,7 +40,6 @@ fun LoginScreen(onNavigateToRegister: () -> Unit, onNavigateToHome: () -> Unit) 
     val loading by viewModel.loading.collectAsStateWithLifecycle()
     val loginSuccess by viewModel.loginSuccess.collectAsStateWithLifecycle()
 
-
     LaunchedEffect(key1 = loginSuccess) {
         if(loginSuccess)
             onNavigateToHome()
@@ -54,7 +53,6 @@ fun LoginScreen(onNavigateToRegister: () -> Unit, onNavigateToHome: () -> Unit) 
         },
         onNavigateToRegister = { onNavigateToRegister() }
     )
-
 }
 
 @Composable

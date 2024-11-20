@@ -1,9 +1,9 @@
 package com.setembreiros.artis.ui.main
 
 import android.util.Log
-import com.setembreiros.artis.common.Constants.UserType
 import com.setembreiros.artis.domain.model.Session
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
+import com.setembreiros.artis.domain.usecase.session.RefreshSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-     private val getSessionUseCase: GetSessionUseCase
+     private val getSessionUseCase: GetSessionUseCase,
+     private val refreshSessionUseCase: RefreshSessionUseCase
 ) : BaseViewModel() {
 
     private val _session = MutableStateFlow<Session?>(null)
@@ -23,6 +24,10 @@ class AppViewModel @Inject constructor(
     }
 
     fun updateSession(){
+        val session = getSessionUseCase.invoke()
+        if (session != null)
+            refreshSessionUseCase.invoke(session)
+
         _session.value = getSessionUseCase.invoke()
     }
 }

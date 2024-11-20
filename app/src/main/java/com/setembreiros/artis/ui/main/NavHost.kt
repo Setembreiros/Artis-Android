@@ -22,7 +22,6 @@ fun NavHostApp(
     viewModel: AppViewModel,
     stateTopBar: (Boolean) -> Unit,
     stateButtonMenu: (Boolean) -> Unit,
-    updateSession: () -> Unit,
     stateBackButtonChanged: (Boolean) -> Unit,
     modifier: Modifier
 ) {
@@ -36,11 +35,9 @@ fun NavHostApp(
             LoginScreen(
                 onNavigateToRegister = {
                     navController.navigationToRegister()
-                    updateSession()
-                                       },
+                },
                 onNavigateToHome = {
                     navController.navigationToHome()
-                    updateSession()
                 }
             )
         }

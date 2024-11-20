@@ -2,16 +2,9 @@ package com.setembreiros.artis.ui.account.login
 
 import androidx.lifecycle.viewModelScope
 
-import aws.sdk.kotlin.services.cognitoidentityprovider.CognitoIdentityProviderClient
-import aws.sdk.kotlin.services.cognitoidentityprovider.model.AuthFlowType
-import aws.sdk.kotlin.services.cognitoidentityprovider.model.InitiateAuthRequest
-import aws.sdk.kotlin.services.cognitoidentityprovider.model.NotAuthorizedException
-import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.Constants.UserType
-import com.setembreiros.artis.domain.model.Session
+import com.setembreiros.artis.domain.usecase.session.CreateSessionUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
-import com.setembreiros.artis.domain.usecase.session.SaveSessionUseCase
-import com.setembreiros.artis.ui.account.calculateSecretHash
 import com.setembreiros.artis.ui.base.BaseViewModel
 import com.setembreiros.artis.ui.base.ResponseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val  saveSessionUseCase: SaveSessionUseCase,
+    private val  createSessionUseCase: CreateSessionUseCase,
     private val getSessionUseCase: GetSessionUseCase
 ): BaseViewModel() {
 
@@ -62,56 +55,11 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun signIn(userType: UserType): Boolean {
-        val clientIdVal: String
-        val secretKey: String
-
-        if(userType == UserType.UA) {
-            clientIdVal = BuildConfig.CLIENT_ID_UA
-            secretKey = BuildConfig.SECRET_KEY_UA
-        } else {
-            clientIdVal = BuildConfig.CLIENT_ID_UE
-            secretKey = BuildConfig.SECRET_KEY_UE
-        }
-
         loading.update { true }
-        val authParas = mutableMapOf<String, String>()
-        authParas["USERNAME"] = _userName.value
-        authParas["PASSWORD"] = _password.value
-        authParas["SECRET_HASH"] = calculateSecretHash(clientIdVal, secretKey, _userName.value)
+        val isLogged = createSessionUseCase.invoke(_userName.value, _password.value, userType)
+        if (isLogged) _loginSuccess.update { true }
+        loading.update { false }
 
-        val request = InitiateAuthRequest {
-            clientId = clientIdVal
-            authFlow = AuthFlowType.UserPasswordAuth
-            authParameters  = authParas
-        }
-
-        CognitoIdentityProviderClient { region = "eu-west-3" }.use { identityProviderClient ->
-            try {
-                val result = identityProviderClient.initiateAuth(request)
-                result.authenticationResult?.let {
-                    val idToken = it.idToken
-                    val refreshToken = it.refreshToken
-                    idToken?.let {
-                        refreshToken?.let {
-                            storeSessionToken(refreshToken, idToken, userType)
-                        _loginSuccess.update { true }
-                        }
-                    }?: return false
-                }
-                loading.update { false }
-            } catch (e: NotAuthorizedException) {
-                return false
-            }catch (e: Exception) {
-                println("Error occurred: $e")
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun storeSessionToken(refreshToken: String, idToken: String, userType: UserType) {
-            val session = Session(refreshToken, idToken = idToken, userType = userType, username = _userName.value)
-            saveSessionUseCase.invoke(session)
-
+        return isLogged
     }
 }

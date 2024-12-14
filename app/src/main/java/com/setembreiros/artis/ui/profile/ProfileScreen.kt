@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,8 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,11 +52,9 @@ import com.setembreiros.artis.ui.theme.ArtisTheme
 import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.CircularProgressIndicator
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.model.post.PostMetadata
-import com.setembreiros.artis.ui.commponents.PostThumbnail
+import com.setembreiros.artis.ui.commponents.DynamicVerticalGrid
 
 @Composable
 fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
@@ -74,6 +69,7 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
         userProfile = userProfile,
         posts = posts,
         onImageClick = onImageClick,
+        onLoadMore = { viewModel.loadMorePosts() },
         isLoading = isLoading,
     )
 }
@@ -84,6 +80,7 @@ fun ContentScreen(
     userProfile: UserProfile?,
     posts: List<Post>,
     onImageClick: (postId: String) -> Unit,
+    onLoadMore: () -> Unit,
     isLoading: Boolean
 ) {
     Column(
@@ -257,29 +254,7 @@ fun ContentScreen(
                         )
                     }
                     HorizontalDivider(color = Color.Black, thickness = 2.dp)
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        contentPadding = PaddingValues(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        val sortedPosts = posts.sortedBy { it.metadata.createdAt }
-                        items(sortedPosts) { post ->
-                            PostThumbnail(context, post, onNavigateToImageDetails = {
-                                onImageClick(post.metadata.postId)
-                            })
-                        }
-                    }
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
+                    DynamicVerticalGrid(context, posts, onLoadMore, onImageClick, isLoading)
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -406,6 +381,7 @@ fun ProfilePreview() {
                 thumbnail = null
             )),
             onImageClick = {},
+            onLoadMore = {},
             false)
     }
 }

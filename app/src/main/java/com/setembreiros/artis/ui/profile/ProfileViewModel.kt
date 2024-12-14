@@ -52,7 +52,19 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             getSessionUseCase.invoke()?.username?.let { username->
                 _isLoading.value = true
-                _posts.value = getPostsUseCase.invoke(username).sortedBy { it.metadata.createdAt }
+                _posts.value = getPostsUseCase.invoke(username, "", "").sortedBy { it.metadata.createdAt }
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadMorePosts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            getSessionUseCase.invoke()?.username?.let { username ->
+                _isLoading.value = true
+                val lastPost = _posts.value.last()
+                val newPosts = getPostsUseCase.invoke(username, lastPost.metadata.postId, lastPost.metadata.createdAt).sortedBy { it.metadata.createdAt }
+                _posts.value += newPosts
                 _isLoading.value = false
             }
         }

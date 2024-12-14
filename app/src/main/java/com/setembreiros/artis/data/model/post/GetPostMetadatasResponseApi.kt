@@ -2,7 +2,7 @@ package com.setembreiros.artis.data.model.post
 
 import com.setembreiros.artis.common.Constants.ContentType
 
-data class GetPostMetadatasResponseApi(val posts: Array<GetPostMetadataDto>)
+data class GetPostMetadatasResponseApi(val posts: Array<GetPostMetadataDto>, val lastPostId: String, val lastPostCreatedAt: String)
 
 data class GetPostMetadataDto(
     val post_id: String,

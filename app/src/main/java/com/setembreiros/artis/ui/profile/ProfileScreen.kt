@@ -63,6 +63,7 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val isThereMorePosts by viewModel.isThereMorePosts.collectAsStateWithLifecycle()
 
     ContentScreen(
         context,
@@ -71,6 +72,7 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
         onImageClick = onImageClick,
         onLoadMore = { viewModel.loadMorePosts() },
         isLoading = isLoading,
+        isThereMorePosts = isThereMorePosts,
     )
 }
 
@@ -81,7 +83,8 @@ fun ContentScreen(
     posts: List<Post>,
     onImageClick: (postId: String) -> Unit,
     onLoadMore: () -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isThereMorePosts: Boolean
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -254,7 +257,7 @@ fun ContentScreen(
                         )
                     }
                     HorizontalDivider(color = Color.Black, thickness = 2.dp)
-                    DynamicVerticalGrid(context, posts, onLoadMore, onImageClick, isLoading)
+                    DynamicVerticalGrid(context, posts, onLoadMore, onImageClick, isLoading, isThereMorePosts)
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -382,6 +385,7 @@ fun ProfilePreview() {
             )),
             onImageClick = {},
             onLoadMore = {},
+            false,
             false)
     }
 }

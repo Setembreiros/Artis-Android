@@ -20,7 +20,8 @@ fun DynamicVerticalGrid(
     posts: List<Post>,
     onLoadMore: () -> Unit,
     onImageClick: (postId: String) -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isThereMorePosts: Boolean
 ) {
     val listState = rememberLazyGridState()
 
@@ -29,19 +30,21 @@ fun DynamicVerticalGrid(
         derivedStateOf {
             val totalItems = listState.layoutInfo.totalItemsCount
             val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-            totalItems > 0 && lastVisibleIndex == totalItems - 1
+            totalItems > 1 && lastVisibleIndex >= totalItems - 6
         }
     }
-    LaunchedEffect(isLoading) {
-        println("isLoading: $isLoading")
-    }
-    LaunchedEffect(isAtBottom) {
-        if (isAtBottom && !isLoading) {
+
+    LaunchedEffect(isAtBottom, isLoading) {
+        if (isAtBottom && !isLoading && isThereMorePosts) {
             onLoadMore()
         }
     }
 
-    Box(
+    val sortedPosts = remember(posts) {
+        posts.distinctBy { it.metadata.postId }.sortedBy { it.metadata.createdAt }
+    }
+
+    Column(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyVerticalGrid(
@@ -49,16 +52,16 @@ fun DynamicVerticalGrid(
             columns = GridCells.Fixed(3),
             contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f)
         ) {
-            val sortedPosts = posts.sortedBy { it.metadata.createdAt }
             items(sortedPosts) { post ->
                 PostThumbnail(context, post, onNavigateToImageDetails = {
                     onImageClick(post.metadata.postId)
                 })
             }
-            if (isLoading) {
-                item {
+            item {
+                if (isLoading) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

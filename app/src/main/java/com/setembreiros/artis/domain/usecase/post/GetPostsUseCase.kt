@@ -16,7 +16,7 @@ import javax.inject.Inject
 class GetPostsUseCase @Inject constructor(private val postRepository: PostRepository,
                                           private val profileRepository: ProfileRepository,
                                           private val s3Service: S3Service)  {
-    suspend fun invoke(username: String, lastPostId: String, lastPostCreatedAt: String) : Array<Post> = coroutineScope {
+    suspend fun invoke(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<Post>,Boolean> = coroutineScope {
         val postMetadatasDeferred = async { getMetaData(username, lastPostId, lastPostCreatedAt) }
         val contentsDeferred = async { getContent(username, lastPostId, lastPostCreatedAt) }
 
@@ -24,25 +24,24 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         val contents = contentsDeferred.await()
 
         val posts = ArrayList<Post>()
-        for (postMetadata in postMetadatas) {
+        for (postMetadata in postMetadatas.first) {
             val matchingContent = contents.find { it.first == postMetadata.postId }?.let {
                 Pair(it.second, it.third)
             }
             val post = Post(postMetadata, matchingContent!!.first, matchingContent.second)
-            println("Post: ${post.metadata.postId}, Content: ${post.content}")
             posts.add(post)
             profileRepository.savePost(post)
         }
 
-        posts.toTypedArray()
+        Pair(posts.toTypedArray(), postMetadatas.second)
     }
 
-    private suspend fun getMetaData(username: String, lastPostId: String, lastPostCreatedAt: String) : Array<PostMetadata> {
+    private suspend fun getMetaData(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<PostMetadata>, Boolean> {
         return when(val response = postRepository.getPostMetadatas(username, lastPostId, lastPostCreatedAt)){
             is Resource.Success -> {
                 response.value
             }
-            is Resource.Failure -> arrayOf()
+            is Resource.Failure -> Pair(arrayOf(), false)
         }
     }
 

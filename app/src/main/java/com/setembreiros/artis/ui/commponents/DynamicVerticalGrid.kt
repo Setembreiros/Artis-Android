@@ -3,6 +3,7 @@ package com.setembreiros.artis.ui.commponents
 import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -60,11 +61,11 @@ fun DynamicVerticalGrid(
                     onImageClick(post.metadata.postId)
                 })
             }
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 if (isLoading) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {

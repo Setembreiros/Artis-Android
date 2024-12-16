@@ -54,7 +54,7 @@ import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.model.post.PostMetadata
-import com.setembreiros.artis.ui.commponents.DynamicVerticalGrid
+import com.setembreiros.artis.ui.post.DynamicPostsVerticalGrid
 
 @Composable
 fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
@@ -257,7 +257,7 @@ fun ContentScreen(
                         )
                     }
                     HorizontalDivider(color = Color.Black, thickness = 2.dp)
-                    DynamicVerticalGrid(context, posts, onLoadMore, onImageClick, isLoading, isThereMorePosts)
+                    DynamicPostsVerticalGrid(context, posts, onLoadMore, onImageClick, isLoading, isThereMorePosts)
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }

@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui.commponents
+package com.setembreiros.artis.ui.post
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
@@ -13,10 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 
 @Composable
-fun DynamicVerticalGrid(
+fun DynamicPostsVerticalGrid(
     context: Context,
     posts: List<Post>,
     onLoadMore: () -> Unit,

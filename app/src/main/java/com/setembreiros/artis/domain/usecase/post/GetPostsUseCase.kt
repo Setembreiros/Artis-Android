@@ -16,46 +16,45 @@ import javax.inject.Inject
 class GetPostsUseCase @Inject constructor(private val postRepository: PostRepository,
                                           private val profileRepository: ProfileRepository,
                                           private val s3Service: S3Service)  {
-    suspend fun invoke(username: String) : Array<Post> = coroutineScope {
-        val postMetadatasDeferred = async { getMetaData(username) }
-        val contentsDeferred = async { getContent(username) }
+    suspend fun invoke(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<Post>,Boolean> = coroutineScope {
+        val postMetadatasDeferred = async { getMetaData(username, lastPostId, lastPostCreatedAt) }
+        val contentsDeferred = async { getContent(username, lastPostId, lastPostCreatedAt) }
 
         val postMetadatas = postMetadatasDeferred.await()
         val contents = contentsDeferred.await()
 
         val posts = ArrayList<Post>()
-        for (postMetadata in postMetadatas) {
+        for (postMetadata in postMetadatas.first) {
             val matchingContent = contents.find { it.first == postMetadata.postId }?.let {
                 Pair(it.second, it.third)
             }
             val post = Post(postMetadata, matchingContent!!.first, matchingContent.second)
-            println("Post: ${post.metadata.postId}, Content: ${post.content}")
             posts.add(post)
             profileRepository.savePost(post)
         }
 
-        posts.toTypedArray()
+        Pair(posts.toTypedArray(), postMetadatas.second)
     }
 
-    private suspend fun getMetaData(username: String) : Array<PostMetadata> {
-        return when(val response = postRepository.getPostMetadatas(username)){
+    private suspend fun getMetaData(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<PostMetadata>, Boolean> {
+        return when(val response = postRepository.getPostMetadatas(username, lastPostId, lastPostCreatedAt)){
             is Resource.Success -> {
                 response.value
             }
-            is Resource.Failure -> arrayOf()
+            is Resource.Failure -> Pair(arrayOf(), false)
         }
     }
 
-    private suspend fun getContent(username: String) : List<Triple<String,ByteArray, ByteArray?>> {
-        val postUrls = getUrls(username)
+    private suspend fun getContent(username: String, lastPostId: String, lastPostCreatedAt: String) : List<Triple<String,ByteArray, ByteArray?>> {
+        val postUrls = getUrls(username, lastPostId, lastPostCreatedAt)
         if (postUrls.isNotEmpty())
             return getMultimediaContent(postUrls)
 
         return listOf()
     }
 
-    private suspend fun getUrls(username: String) : Array<PostUrl>{
-        return when(val response = postRepository.getUrlPosts(username)){
+    private suspend fun getUrls(username: String, lastPostId: String, lastPostCreatedAt: String) : Array<PostUrl>{
+        return when(val response = postRepository.getUrlPosts(username, lastPostId, lastPostCreatedAt)){
             is Resource.Success -> {
                 response.value
             }

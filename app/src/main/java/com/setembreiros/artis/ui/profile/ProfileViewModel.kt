@@ -28,6 +28,9 @@ class ProfileViewModel @Inject constructor(
     val posts = _posts
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _isThereMorePosts = MutableStateFlow(true)
+    val isThereMorePosts: StateFlow<Boolean> = _isThereMorePosts
+
     init {
         loadProfile()
         loadInitialPosts()
@@ -52,7 +55,23 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             getSessionUseCase.invoke()?.username?.let { username->
                 _isLoading.value = true
-                _posts.value = getPostsUseCase.invoke(username).sortedBy { it.metadata.createdAt }
+                val result = getPostsUseCase.invoke(username, "", "")
+                _posts.value = result.first.sortedBy { it.metadata.createdAt }
+                _isThereMorePosts.value = result.second
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadMorePosts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            getSessionUseCase.invoke()?.username?.let { username ->
+                _isLoading.value = true
+                val lastPost = _posts.value.last()
+                val result = getPostsUseCase.invoke(username, lastPost.metadata.postId, lastPost.metadata.createdAt)
+                val newPosts = result.first.sortedBy { it.metadata.createdAt }
+                _isThereMorePosts.value = result.second
+                _posts.value += newPosts
                 _isLoading.value = false
             }
         }

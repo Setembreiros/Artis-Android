@@ -25,11 +25,11 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
         apiClient.confirmPost(getToken(), ConfirmPostRequestMapper().map(confirmPostRequest))
     }
 
-    suspend fun getUrlPosts(username: String) = safeApiCall(GetUrlPostsResponseMapperApi()){
-        apiClient.getUrlPosts(getToken(), username)
+    suspend fun getUrlPosts(username: String, lastPostId: String, lastPostCreatedAt: String) = safeApiCall(GetUrlPostsResponseMapperApi()){
+        apiClient.getUrlPosts(getToken(), username, 9, lastPostId, lastPostCreatedAt)
     }
 
-    suspend fun getPostMetadatas(username: String) = safeApiCall(GetPostMetadatasResponseMapperApi()){
-        apiClient.getPostMetadatas(getToken() ,username)
+    suspend fun getPostMetadatas(username: String, lastPostId: String, lastPostCreatedAt: String) = safeApiCall(GetPostMetadatasResponseMapperApi()){
+        apiClient.getPostMetadatas(getToken() ,username, 9, lastPostId, lastPostCreatedAt)
     }
 }

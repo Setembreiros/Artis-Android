@@ -13,6 +13,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiClient {
 
@@ -26,8 +27,16 @@ interface ApiClient {
     suspend fun confirmPost(@Header("Authorization") token: String, @Body confirmPostRequestApi: ConfirmPostRequestApi) : WrapperApi<Boolean>
 
     @GET("postservice/user-posts/{username}")
-    suspend fun getUrlPosts(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<GetUrlPostsResponseApi>
+    suspend fun getUrlPosts(@Header("Authorization") token: String,
+                            @Path("username") username: String,
+                            @Query("limit") limit: Int = 9,
+                            @Query("lastPostId") lastPostId: String,
+                            @Query("lastPostCreatedAt") lastPostCreatedAt: String) : WrapperApi<GetUrlPostsResponseApi>
 
     @GET("readmodels/user-posts/{username}")
-    suspend fun getPostMetadatas(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<GetPostMetadatasResponseApi>
+    suspend fun getPostMetadatas(@Header("Authorization") token: String,
+                                 @Path("username") username: String,
+                                 @Query("limit") limit: Int = 9,
+                                 @Query("lastPostId") lastPostId: String,
+                                 @Query("lastPostCreatedAt") lastPostCreatedAt: String) : WrapperApi<GetPostMetadatasResponseApi>
 }

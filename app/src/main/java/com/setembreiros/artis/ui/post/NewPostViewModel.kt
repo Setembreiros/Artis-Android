@@ -49,7 +49,9 @@ class NewPostViewModel @Inject constructor(
                     username = session.value!!.username,
                     title = _title.value,
                     description = _description.value,
-                    type = _type.value
+                    type = _type.value,
+                    createdAt = "",
+                    lastUpdated = ""
                 ),
                 content = getBytesFromUri(context, it),
                 thumbnail = ThumbnailBuilder.createThumbnail(context, it, _type.value)

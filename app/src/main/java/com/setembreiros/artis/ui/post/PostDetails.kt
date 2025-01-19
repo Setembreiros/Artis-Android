@@ -105,7 +105,7 @@ fun ImagePostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 5, "", ""
         ),
         content = content,
         thumbnail = null
@@ -127,7 +127,7 @@ fun Image2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
         content = content,
         thumbnail = null
@@ -149,7 +149,7 @@ fun Video1PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
         content = content,
         thumbnail = null
@@ -171,7 +171,7 @@ fun Video2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
         content = content,
         thumbnail = null
@@ -204,7 +204,7 @@ fun PdfPostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.TEXT,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
         content = content,
         thumbnail = null

@@ -10,6 +10,7 @@ data class PostMetadata(
     val type: ContentType,
     val title: String,
     val description: String,
+    val size: Long,
     val createdAt: String,
     val lastUpdated: String
 )

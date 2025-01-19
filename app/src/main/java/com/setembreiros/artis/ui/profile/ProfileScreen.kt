@@ -338,7 +338,7 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE,
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/03", ""
+                    description = "This is a sample description for the post.", 0, "2024/01/03", ""
                 ),
                 content = imageContent2,
                 thumbnail = imageContent2
@@ -346,7 +346,7 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.VIDEO,
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/04", "",
+                    description = "This is a sample description for the post.", 0, "2024/01/04", "",
                 ),
                 content = videoContent,
                 thumbnail = null
@@ -354,7 +354,7 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.VIDEO,
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/06", ""
+                    description = "This is a sample description for the post.", 0, "2024/01/06", ""
                 ),
                 content = videoContent2,
                 thumbnail = null
@@ -362,7 +362,7 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE,
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/01", ""
+                    description = "This is a sample description for the post.", 0, "2024/01/01", ""
                 ),
                 content = imageContent,
                 thumbnail = imageContent
@@ -370,7 +370,7 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.IMAGE,
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/02", ""
+                    description = "This is a sample description for the post.", 0, "2024/01/02", ""
                 ),
                 content = imageContent2,
                 thumbnail = imageContent2
@@ -378,7 +378,7 @@ fun ProfilePreview() {
                 metadata = PostMetadata(
                     "","", Constants.ContentType.VIDEO,
                     title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/05", ""
+                    description = "This is a sample description for the post.", 0, "2024/01/05", ""
                 ),
                 content = videoContent,
                 thumbnail = null

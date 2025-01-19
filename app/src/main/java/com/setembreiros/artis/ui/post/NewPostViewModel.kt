@@ -43,6 +43,7 @@ class NewPostViewModel @Inject constructor(
     fun publish(context: Context){
         _resource.value?.let {
             loading.update { true }
+            val size = getFileSizeFromUri(context, it)
             val post = Post(
                 metadata = PostMetadata(
                     postId = "",
@@ -50,6 +51,7 @@ class NewPostViewModel @Inject constructor(
                     title = _title.value,
                     description = _description.value,
                     type = _type.value,
+                    size = size,
                     createdAt = "",
                     lastUpdated = ""
                 ),
@@ -101,6 +103,19 @@ class NewPostViewModel @Inject constructor(
             }
         }
         return null
+    }
+
+    private fun getFileSizeFromUri(context: Context, uri: Uri): Long {
+        var fileSize: Long = 0
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
+            if (sizeIndex != -1) {
+                it.moveToFirst()
+                fileSize = it.getLong(sizeIndex)
+            }
+        }
+        return fileSize / 1024 / 1024 // return MB
     }
 }
 

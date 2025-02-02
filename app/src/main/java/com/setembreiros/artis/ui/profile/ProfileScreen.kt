@@ -340,6 +340,7 @@ fun ProfilePreview() {
                     title = "Sample Title",
                     description = "This is a sample description for the post.", 0, "2024/01/03", ""
                 ),
+                uriContent = null,
                 content = imageContent2,
                 thumbnail = imageContent2
             ), Post(
@@ -348,6 +349,7 @@ fun ProfilePreview() {
                     title = "Sample Title",
                     description = "This is a sample description for the post.", 0, "2024/01/04", "",
                 ),
+                uriContent = null,
                 content = videoContent,
                 thumbnail = null
             ), Post(
@@ -356,6 +358,7 @@ fun ProfilePreview() {
                     title = "Sample Title",
                     description = "This is a sample description for the post.", 0, "2024/01/06", ""
                 ),
+                uriContent = null,
                 content = videoContent2,
                 thumbnail = null
             ), Post(
@@ -364,6 +367,7 @@ fun ProfilePreview() {
                     title = "Sample Title",
                     description = "This is a sample description for the post.", 0, "2024/01/01", ""
                 ),
+                uriContent = null,
                 content = imageContent,
                 thumbnail = imageContent
             ), Post(
@@ -372,6 +376,7 @@ fun ProfilePreview() {
                     title = "Sample Title",
                     description = "This is a sample description for the post.", 0, "2024/01/02", ""
                 ),
+                uriContent = null,
                 content = imageContent2,
                 thumbnail = imageContent2
             ), Post(
@@ -380,6 +385,7 @@ fun ProfilePreview() {
                     title = "Sample Title",
                     description = "This is a sample description for the post.", 0, "2024/01/05", ""
                 ),
+                uriContent = null,
                 content = videoContent,
                 thumbnail = null
             )),

@@ -1,8 +1,9 @@
 package com.setembreiros.artis.domain.model.post
 
+import android.net.Uri
 import com.setembreiros.artis.common.Constants.ContentType
 
-data class Post(val metadata : PostMetadata, var content: ByteArray?, var thumbnail:  ByteArray?)
+data class Post(val metadata : PostMetadata, var uriContent: Uri?, var content: ByteArray?, var thumbnail:  ByteArray?)
 
 data class PostMetadata(
     val postId : String,

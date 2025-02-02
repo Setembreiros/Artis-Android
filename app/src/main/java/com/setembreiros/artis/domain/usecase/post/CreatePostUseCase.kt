@@ -1,6 +1,9 @@
 package com.setembreiros.artis.domain.usecase.post
 
+import android.content.Context
+import android.net.Uri
 import com.setembreiros.artis.BuildConfig
+import com.setembreiros.artis.domain.model.post.CompletedPart
 import com.setembreiros.artis.data.repository.PostRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
@@ -11,27 +14,33 @@ import javax.inject.Inject
 
 class CreatePostUseCase @Inject constructor(private val postRepository: PostRepository, private val s3Service: S3Service) {
 
-    suspend fun invoke(post: Post) : Boolean{
-       return createMetaData(post)
+    suspend fun invoke(post: Post, context: Context) : Boolean{
+       return createMetaData(post, context)
     }
 
-    private suspend fun createMetaData(post: Post) : Boolean {
+    private suspend fun createMetaData(post: Post, context: Context) : Boolean {
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
-                val responseS3 = sendContentS3(post.content, post.thumbnail, response.value)
-                if(responseS3)
-                    confirmPost(true, response.value.postId)
+                val responseS3 = sendContentS3(post.uriContent, post.thumbnail, response.value,context)
+                if(responseS3.second)
+                    if(response.value.presignedUrls.size > 1) {
+                        confirmPost(true, response.value.postId, true, response.value.uploadId, responseS3.first)
+                        return true
+                    } else {
+                        confirmPost(true, response.value.postId, false, response.value.uploadId, null)
+                        return true
+                    }
                 else {
-                    confirmPost(false, response.value.postId)
-                    false
+                    confirmPost(false, response.value.postId, false, response.value.uploadId, null)
                 }
+                false
             }
             is Resource.Failure -> return false
         }
     }
 
-    private suspend fun sendContentS3(content: ByteArray?, thumbnailContent: ByteArray?, metadata: PostResponse) : Boolean{
-        var url = metadata.presignedUrl
+    private suspend fun sendContentS3(uriContent: Uri?, thumbnailContent: ByteArray?, metadata: PostResponse, context: Context) : Pair<List<CompletedPart>?, Boolean>{
+        var urls = metadata.presignedUrls
         var thumbnailUrl = metadata.presignedThumbnailUrl
         if(BuildConfig.DEBUG) {
              url = getUrlDebug(metadata.presignedUrl)
@@ -43,11 +52,11 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
         if(thumbnailUrl != "" && thumbnailContent != null) {
            s3Service.putContent(thumbnailUrl, thumbnailContent)
         }
-        return s3Service.putContent(url, content)
+        return s3Service.putContent(urls, uriContent, context)
     }
 
-    private suspend fun confirmPost(isConfirmed: Boolean, posId: String): Boolean{
-        val confirmPostRequest = ConfirmPostRequest(isConfirmed, posId)
+    private suspend fun confirmPost(isConfirmed: Boolean, postId: String, isMultipart: Boolean, uploadId: String, completedParts: List<CompletedPart>?): Boolean{
+        val confirmPostRequest = ConfirmPostRequest(isConfirmed, postId, isMultipart, uploadId, completedParts)
         return when(postRepository.confirmPost(confirmPostRequest)){
             is Resource.Success -> true
             is Resource.Failure -> false

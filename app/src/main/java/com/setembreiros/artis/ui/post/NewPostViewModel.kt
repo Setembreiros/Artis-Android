@@ -2,6 +2,8 @@ package com.setembreiros.artis.ui.post
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.builder.ThumbnailBuilder
@@ -55,11 +57,13 @@ class NewPostViewModel @Inject constructor(
                     createdAt = "",
                     lastUpdated = ""
                 ),
-                content = getBytesFromUri(context, it),
+                uriContent = it,
+                content = null,
                 thumbnail = ThumbnailBuilder.createThumbnail(context, it, _type.value)
             )
+            Log.d("aaaaa", "file size: " + size)
             viewModelScope.launch(Dispatchers.IO) {
-                createPostUseCase.invoke(post)
+                createPostUseCase.invoke(post, context)
                 loading.update { false }
             }
         }

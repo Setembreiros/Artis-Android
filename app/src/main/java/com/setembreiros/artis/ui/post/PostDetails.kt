@@ -107,6 +107,7 @@ fun ImagePostDetailsPreview() {
             title = "Sample Title",
             description = "This is a sample description for the post.", 5, "", ""
         ),
+        uriContent = null,
         content = content,
         thumbnail = null
     )
@@ -129,6 +130,7 @@ fun Image2PostDetailsPreview() {
             title = "Sample Title",
             description = "This is a sample description for the post.", 0, "", ""
         ),
+        uriContent = null,
         content = content,
         thumbnail = null
     )
@@ -151,6 +153,7 @@ fun Video1PostDetailsPreview() {
             title = "Sample Title",
             description = "This is a sample description for the post.", 0, "", ""
         ),
+        uriContent = null,
         content = content,
         thumbnail = null
     )
@@ -173,6 +176,7 @@ fun Video2PostDetailsPreview() {
             title = "Sample Title",
             description = "This is a sample description for the post.", 0, "", ""
         ),
+        uriContent = null,
         content = content,
         thumbnail = null
     )
@@ -206,6 +210,7 @@ fun PdfPostDetailsPreview() {
             title = "Sample Title",
             description = "This is a sample description for the post.", 0, "", ""
         ),
+        uriContent = null,
         content = content,
         thumbnail = null
     )

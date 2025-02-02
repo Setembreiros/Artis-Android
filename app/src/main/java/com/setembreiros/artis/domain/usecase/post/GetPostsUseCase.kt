@@ -28,7 +28,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
             val matchingContent = contents.find { it.first == postMetadata.postId }?.let {
                 Pair(it.second, it.third)
             }
-            val post = Post(postMetadata, matchingContent!!.first, matchingContent.second)
+            val post = Post(postMetadata, null, matchingContent!!.first, matchingContent.second)
             posts.add(post)
             profileRepository.savePost(post)
         }

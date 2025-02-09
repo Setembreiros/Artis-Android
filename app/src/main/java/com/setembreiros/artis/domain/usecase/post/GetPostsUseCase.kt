@@ -1,5 +1,6 @@
 package com.setembreiros.artis.domain.usecase.post
 
+import android.net.Uri
 import com.setembreiros.artis.BuildConfig
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.data.repository.PostRepository

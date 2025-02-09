@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.post
 
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -18,7 +17,6 @@ import com.setembreiros.artis.ui.commponents.PostThumbnail
 
 @Composable
 fun DynamicPostsVerticalGrid(
-    context: Context,
     posts: List<Post>,
     onLoadMore: () -> Unit,
     onImageClick: (postId: String) -> Unit,
@@ -58,7 +56,7 @@ fun DynamicPostsVerticalGrid(
             modifier = Modifier.weight(1f)
         ) {
             items(sortedPosts) { post ->
-                PostThumbnail(context, post, onNavigateToImageDetails = {
+                PostThumbnail(post, onNavigateToImageDetails = {
                     onImageClick(post.metadata.postId)
                 })
             }

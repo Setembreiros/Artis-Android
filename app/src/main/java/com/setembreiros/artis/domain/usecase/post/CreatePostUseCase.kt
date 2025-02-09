@@ -7,6 +7,7 @@ import com.setembreiros.artis.domain.model.post.CompletedPart
 import com.setembreiros.artis.data.repository.PostRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
+import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.ConfirmPostRequest
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.model.post.PostResponse
@@ -21,7 +22,7 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
     private suspend fun createMetaData(post: Post, context: Context) : Boolean {
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
-                val responseS3 = sendContentS3(post.uriContent, post.thumbnail, response.value,context)
+                val responseS3 = sendContentS3(post.content?.uriContent, ThumbnailBuilder.createThumbnail(context, post.content?.uriContent, post.metadata.type), response.value,context)
                 if(responseS3.second)
                     if(response.value.presignedUrls.size > 1) {
                         confirmPost(true, response.value.postId, true, response.value.uploadId, responseS3.first)

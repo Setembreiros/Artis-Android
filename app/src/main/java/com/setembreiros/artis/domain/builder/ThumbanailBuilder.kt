@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.util.Log
 import com.setembreiros.artis.common.Constants
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -87,11 +86,8 @@ class ThumbnailBuilder {
                 bitmap!!.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream) // Compress the bitmap to PNG
                 val thumbnail = byteArrayOutputStream.toByteArray()
                 byteArrayOutputStream.close()
-                Log.d("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "thumbnail " + thumbnail.size)
                 return thumbnail
             } catch (e: Exception) {
-                Log.d("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sssssssssssssssssssssssssssssssssssssss")
-
                 e.printStackTrace()
             }
             finally {

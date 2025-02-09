@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.commponents
 
-import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,18 +31,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.net.toUri
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
-import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
-import java.io.File
 
 @Composable
-fun PostThumbnail(context: Context, post: Post, onNavigateToImageDetails: () -> Unit) {
-    ensureThumbnailContent(context, post)
-
+fun PostThumbnail(post: Post, onNavigateToImageDetails: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -81,9 +77,14 @@ fun TextPost(uri: Uri?) {
 @Composable
 fun ImagePost(model: Any?) {
     var isFullScreen by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
 
     CroppedImagePost(
-        model = model,
+        model = ImageRequest.Builder(context)
+            .data(model)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .crossfade(true)
+            .build(),
         onClick = { isFullScreen = true }
     )
 
@@ -154,7 +155,7 @@ private fun VideoPostThumbnail(post: Post, onClick: () -> Unit) {
 @Composable
 private fun AudioPostThumbnail(post: Post, onClick: () -> Unit) {
     ThumbnailContainer(onClick = onClick) {
-        if (post.thumbnail != null && post.thumbnail!!.isNotEmpty()) {
+        if (post.content?.thumbnail != null && post.content?.thumbnail != "") {
             BasePostThumbnail(post)
         } else {
             DefaultAudioThumbnail(onClick)
@@ -194,7 +195,7 @@ private fun DefaultAudioThumbnail(onClick: () -> Unit) {
 @Composable
 private fun BasePostThumbnail(post: Post) {
     AsyncImage(
-        model = post.thumbnail,
+        model = post.content?.thumbnail,
         modifier = Modifier
             .height(150.dp)
             .width(100.dp)
@@ -249,15 +250,5 @@ private fun FullScreenImageDialog(model: Any?, onDismiss: () -> Unit) {
                 contentScale = ContentScale.Fit
             )
         }
-    }
-}
-
-private fun ensureThumbnailContent(context: Context, post: Post) {
-    if (post.thumbnail == null) {
-        val tempFile = File.createTempFile("temp_file", "").apply {
-            post.content?.let { writeBytes(it) }
-        }
-        post.thumbnail = ThumbnailBuilder.createThumbnail(context, tempFile.toUri(), post.metadata.type)
-        tempFile.delete()
     }
 }

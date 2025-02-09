@@ -3,11 +3,10 @@ package com.setembreiros.artis.ui.post
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.common.Constants
-import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.domain.model.post.PostContent
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.usecase.post.CreatePostUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
@@ -17,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,11 +54,12 @@ class NewPostViewModel @Inject constructor(
                     createdAt = "",
                     lastUpdated = ""
                 ),
-                uriContent = it,
-                content = null,
-                thumbnail = ThumbnailBuilder.createThumbnail(context, it, _type.value)
+                content = PostContent(
+                    uriContent = it,
+                    content = null,
+                    thumbnail = null
+                )
             )
-            Log.d("aaaaa", "file size: " + size)
             viewModelScope.launch(Dispatchers.IO) {
                 createPostUseCase.invoke(post, context)
                 loading.update { false }
@@ -83,30 +81,6 @@ class NewPostViewModel @Inject constructor(
 
     fun setType(value: Constants.ContentType){
         _type.value = value
-    }
-
-    private fun getBytesFromUri(context: Context, uri: Uri?): ByteArray? {
-        uri?.let {
-            return try {
-                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-                val byteBuffer = ByteArrayOutputStream()
-                val buffer = ByteArray(1024)
-                var len: Int
-
-                while (inputStream?.read(buffer).also { len = it ?: -1 } != -1) {
-                    byteBuffer.write(buffer, 0, len)
-                }
-
-                inputStream?.close()
-
-                byteBuffer.toByteArray()
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        }
-        return null
     }
 
     private fun getFileSizeFromUri(context: Context, uri: Uri): Long {

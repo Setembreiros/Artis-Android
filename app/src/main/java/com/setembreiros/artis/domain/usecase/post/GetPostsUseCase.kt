@@ -1,15 +1,16 @@
 package com.setembreiros.artis.domain.usecase.post
 
 import com.setembreiros.artis.BuildConfig
+import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.data.repository.PostRepository
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.data.service.S3Service
 import com.setembreiros.artis.domain.base.Resource
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.domain.model.post.PostContent
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.model.post.PostUrl
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 
@@ -18,17 +19,17 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
                                           private val s3Service: S3Service)  {
     suspend fun invoke(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<Post>,Boolean> = coroutineScope {
         val postMetadatasDeferred = async { getMetaData(username, lastPostId, lastPostCreatedAt) }
-        val contentsDeferred = async { getContent(username, lastPostId, lastPostCreatedAt) }
+        val postUrlsDeferred = async { getUrls(username, lastPostId, lastPostCreatedAt) }
 
         val postMetadatas = postMetadatasDeferred.await()
-        val contents = contentsDeferred.await()
+        val postUrls = postUrlsDeferred.await()
 
         val posts = ArrayList<Post>()
         for (postMetadata in postMetadatas.first) {
-            val matchingContent = contents.find { it.first == postMetadata.postId }?.let {
-                Pair(it.second, it.third)
+            val matchingContent = postUrls.find { it.postId == postMetadata.postId }?.let {
+                getMultimediaContent(it, postMetadata.type)
             }
-            val post = Post(postMetadata, null, matchingContent!!.first, matchingContent.second)
+            val post = Post(postMetadata, matchingContent)
             posts.add(post)
             profileRepository.savePost(post)
         }
@@ -45,13 +46,7 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-    private suspend fun getContent(username: String, lastPostId: String, lastPostCreatedAt: String) : List<Triple<String,ByteArray, ByteArray?>> {
-        val postUrls = getUrls(username, lastPostId, lastPostCreatedAt)
-        if (postUrls.isNotEmpty())
-            return getMultimediaContent(postUrls)
 
-        return listOf()
-    }
 
     private suspend fun getUrls(username: String, lastPostId: String, lastPostCreatedAt: String) : Array<PostUrl>{
         return when(val response = postRepository.getUrlPosts(username, lastPostId, lastPostCreatedAt)){
@@ -62,28 +57,22 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-    private suspend fun getMultimediaContent(postUrls: Array<PostUrl>): List<Triple<String,ByteArray,ByteArray?>> = coroutineScope {
-        val deferredResponses = postUrls.map { postUrl ->
-            async {
-                var url = postUrl.url
-                var thumbnailUrl = postUrl.thumbnailUrl
-                var thumbnailContent: ByteArray? = null
-                if(BuildConfig.DEBUG) {
+    private suspend fun getMultimediaContent(postUrl: PostUrl, postType: Constants.ContentType): PostContent = coroutineScope {
+        var url = postUrl.url
+        var thumbnailUrl = postUrl.thumbnailUrl
+        var content: ByteArray? = null
+        if(BuildConfig.DEBUG) {
                     url = getUrlDebug(postUrl.url)
                     if(thumbnailUrl != "") {
                         thumbnailUrl = getUrlDebug(postUrl.thumbnailUrl)
                     }
                 }
 
-                val multimediaContent = s3Service.getContent(url)
-                if(thumbnailUrl != "")
-                    thumbnailContent = s3Service.getContent(thumbnailUrl)
-
-                Triple(postUrl.postId, multimediaContent, thumbnailContent)
-            }
+        if (postType == Constants.ContentType.TEXT) {
+            content = s3Service.getContent(url)
         }
 
-        deferredResponses.awaitAll()
+        PostContent(Uri.parse(url), content, thumbnailUrl)
     }
 
     private fun getUrlDebug(url: String) : String{

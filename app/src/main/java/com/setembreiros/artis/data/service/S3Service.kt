@@ -4,13 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.setembreiros.artis.domain.model.post.CompletedPart
+import com.setembreiros.artis.domain.model.post.UploadProgress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
 
 class S3Service {
    suspend fun putContent(s3Url: String, content: ByteArray?): Boolean {
@@ -48,7 +47,7 @@ class S3Service {
         }
    }
 
-    suspend fun putContent(s3Urls: Array<String>, uriContent: Uri?, context: Context): Pair<List<CompletedPart>?, Boolean> {
+    suspend fun putContent(s3Urls: Array<String>, uriContent: Uri?, context: Context, onProgress: (UploadProgress) -> Unit): Pair<List<CompletedPart>?, Boolean> {
 
         if (uriContent == null || s3Urls.isEmpty())
             return Pair(null, false)
@@ -58,8 +57,9 @@ class S3Service {
             var inputStream: InputStream? = null
 
             try {
-                var partIndex = 1
+                onProgress(UploadProgress.Progress(0))
 
+                var partIndex = 1
                 val contentResolver = context.contentResolver
                 val fileSize = contentResolver.openFileDescriptor(uriContent, "r")?.statSize ?: throw RuntimeException("Failed to get file size")
                 val partSize = fileSize / s3Urls.size
@@ -77,16 +77,22 @@ class S3Service {
                     System.gc()
 
                     completedParts.add(uploadFilePart(context, presignedUrl, uriContent, partOffset, currentPartSize, partIndex))
+
+                    val percentage = 100 * partIndex / s3Urls.size
+                    onProgress(UploadProgress.Progress(percentage))
+
                     partIndex++
 
                     logMemoryUsage() // Log memory after upload
                     System.gc() // Force garbage collection
                 }
 
+                onProgress(UploadProgress.Complete)
                 Pair(completedParts, true)
             } catch (e: Exception) {
                 Log.d("Error","Erro : ${e.message}")
                 e.printStackTrace()
+                onProgress(UploadProgress.Error(e))
                 Pair(null, false)
             } finally {
                 inputStream?.close()
@@ -119,7 +125,7 @@ class S3Service {
         connection.setRequestProperty("Content-Type", "application/octet-stream")
 
         val contentResolver = context.contentResolver
-        val bufferSize = 4 * 1024 // 4KB buffer to reduce memory usage
+        val bufferSize = 100 * 1024 // 400KB buffer to reduce memory usage
         val buffer = ByteArray(bufferSize)
 
         try {

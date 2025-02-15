@@ -247,7 +247,7 @@ fun ContentScreen(
                                 .background(Color.Black)
                         )
                     }
-                    HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                   HorizontalDivider(color = Color.Black, thickness = 2.dp)
                     DynamicPostsVerticalGrid(posts, onLoadMore, onImageClick, isLoading, isThereMorePosts)
                     Spacer(modifier = Modifier.weight(1f))
                 }

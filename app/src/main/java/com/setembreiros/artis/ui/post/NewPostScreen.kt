@@ -51,7 +51,7 @@ import com.setembreiros.artis.ui.theme.ArtisTheme
 import com.setembreiros.artis.ui.theme.gray
 
 @Composable
-fun NewPostScreen() {
+fun NewPostScreen(onPublishClick: () -> Unit) {
     val context = LocalContext.current
     val viewModel: NewPostViewModel = hiltViewModel()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
@@ -76,7 +76,13 @@ fun NewPostScreen() {
         onType = {
             viewModel.setType(it)
         },
-        onPublish = {viewModel.publish(context)}
+        onPublish = {
+            val uri = viewModel.getResource()
+            if (uri != null) {
+                viewModel.publish(context)
+                onPublishClick()
+            }
+        }
         )
 }
 

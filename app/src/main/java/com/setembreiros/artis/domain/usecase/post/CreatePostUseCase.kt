@@ -11,18 +11,25 @@ import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.ConfirmPostRequest
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.model.post.PostResponse
+import com.setembreiros.artis.domain.model.post.UploadProgress
 import javax.inject.Inject
 
 class CreatePostUseCase @Inject constructor(private val postRepository: PostRepository, private val s3Service: S3Service) {
 
-    suspend fun invoke(post: Post, context: Context) : Boolean{
-       return createMetaData(post, context)
+    suspend fun invoke(post: Post, context: Context, onProgress: (UploadProgress) -> Unit) : Boolean{
+        onProgress(UploadProgress.Loading)
+        return createMetaData(post, context, onProgress)
     }
 
-    private suspend fun createMetaData(post: Post, context: Context) : Boolean {
+    private suspend fun createMetaData(post: Post, context: Context, onProgress: (UploadProgress) -> Unit) : Boolean {
         return when(val response = postRepository.createPost(post)){
             is Resource.Success -> {
-                val responseS3 = sendContentS3(post.content?.uriContent, ThumbnailBuilder.createThumbnail(context, post.content?.uriContent, post.metadata.type), response.value,context)
+                val responseS3 = sendContentS3(
+                    post.content?.uriContent,
+                    ThumbnailBuilder.createThumbnail(context, post.content?.uriContent, post.metadata.type),
+                    response.value,
+                    context,
+                    onProgress)
                 if(responseS3.second)
                     if(response.value.presignedUrls.size > 1) {
                         confirmPost(true, response.value.postId, true, response.value.uploadId, responseS3.first)
@@ -40,20 +47,20 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
         }
     }
 
-    private suspend fun sendContentS3(uriContent: Uri?, thumbnailContent: ByteArray?, metadata: PostResponse, context: Context) : Pair<List<CompletedPart>?, Boolean>{
+    private suspend fun sendContentS3(uriContent: Uri?, thumbnailContent: ByteArray?, metadata: PostResponse, context: Context, onProgress: (UploadProgress) -> Unit) : Pair<List<CompletedPart>?, Boolean>{
         var urls = metadata.presignedUrls
         var thumbnailUrl = metadata.presignedThumbnailUrl
         if(BuildConfig.DEBUG) {
-             url = getUrlDebug(metadata.presignedUrl)
-             if(thumbnailUrl != "") {
-                 thumbnailUrl = getUrlDebug(metadata.presignedThumbnailUrl)
-             }
+            urls.forEachIndexed  { i, url -> urls[i] = getUrlDebug(url) }
+            if(thumbnailUrl != "") {
+                thumbnailUrl = getUrlDebug(metadata.presignedThumbnailUrl)
+            }
          }
 
         if(thumbnailUrl != "" && thumbnailContent != null) {
            s3Service.putContent(thumbnailUrl, thumbnailContent)
         }
-        return s3Service.putContent(urls, uriContent, context)
+        return s3Service.putContent(urls, uriContent, context, onProgress)
     }
 
     private suspend fun confirmPost(isConfirmed: Boolean, postId: String, isMultipart: Boolean, uploadId: String, completedParts: List<CompletedPart>?): Boolean{
@@ -62,7 +69,6 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
             is Resource.Success -> true
             is Resource.Failure -> false
         }
-
     }
 
     private fun getUrlDebug(url: String) : String{

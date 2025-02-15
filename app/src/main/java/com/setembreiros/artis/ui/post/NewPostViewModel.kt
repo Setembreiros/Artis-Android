@@ -61,7 +61,9 @@ class NewPostViewModel @Inject constructor(
                 )
             )
             viewModelScope.launch(Dispatchers.IO) {
-                createPostUseCase.invoke(post, context)
+                createPostUseCase.invoke(post, context) { progress ->
+                    UploadProgressManager.updateProgress(progress)
+                }
                 loading.update { false }
             }
         }
@@ -77,6 +79,10 @@ class NewPostViewModel @Inject constructor(
 
     fun setResource(value: Uri?){
         _resource.value = value
+    }
+
+    fun getResource() : Uri?{
+        return _resource.value
     }
 
     fun setType(value: Constants.ContentType){

@@ -6,4 +6,5 @@ data class CreatePostRequestApi(val username: String,
                                 val type: ContentType,
                                 val title: String,
                                 val description: String,
+                                val size: Long,
                                 val hasThumbnail: Boolean)

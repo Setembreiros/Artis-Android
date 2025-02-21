@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.profile
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -34,12 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,17 +45,13 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.domain.model.UserProfile
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.ui.commponents.StandardTextField
-import com.setembreiros.artis.ui.theme.ArtisTheme
 import com.setembreiros.artis.ui.theme.greenBackground
 import com.setembreiros.artis.ui.theme.pinkBackground
 import com.setembreiros.artis.ui.theme.yellowBackground
-import com.setembreiros.artis.common.Constants
-import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.ui.post.DynamicPostsVerticalGrid
 
 @Composable
 fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
-    val context = LocalContext.current
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
@@ -66,7 +59,6 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
     val isThereMorePosts by viewModel.isThereMorePosts.collectAsStateWithLifecycle()
 
     ContentScreen(
-        context,
         userProfile = userProfile,
         posts = posts,
         onImageClick = onImageClick,
@@ -78,7 +70,6 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
 
 @Composable
 fun ContentScreen(
-    context: Context,
     userProfile: UserProfile?,
     posts: List<Post>,
     onImageClick: (postId: String) -> Unit,
@@ -256,8 +247,8 @@ fun ContentScreen(
                                 .background(Color.Black)
                         )
                     }
-                    HorizontalDivider(color = Color.Black, thickness = 2.dp)
-                    DynamicPostsVerticalGrid(context, posts, onLoadMore, onImageClick, isLoading, isThereMorePosts)
+                   HorizontalDivider(color = Color.Black, thickness = 2.dp)
+                    DynamicPostsVerticalGrid(posts, onLoadMore, onImageClick, isLoading, isThereMorePosts)
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -310,82 +301,5 @@ fun ContentScreen(
             }
 
         }
-    }
-}
-
-@Preview
-@Composable
-fun ProfilePreview() {
-    val context = LocalContext.current
-    val imageResource = LocalContext.current.resources.openRawResource(R.raw.imaxe_de_proba)
-    val imageContent = imageResource.readBytes()
-    val imageResource2 = LocalContext.current.resources.openRawResource(R.raw.image_test_2)
-    val imageContent2 = imageResource2.readBytes()
-    val videoResource = LocalContext.current.resources.openRawResource(R.raw.video_test_1)
-    val videoContent = videoResource.readBytes()
-    val videoResource2 = LocalContext.current.resources.openRawResource(R.raw.video_test_2)
-    val videoContent2 = videoResource2.readBytes()
-    ArtisTheme {
-        ContentScreen(
-            context,
-            UserProfile(
-                "guillerial",
-                "Guillermo Rial es reconocido por su experiencia y liderazgo en telecomunicaciones, donde se le considera \"el puto amo\" por su maestría técnica y profesionalismo.",
-                "Guille",
-                "https://fuckyou.com"
-            ),
-            listOf(Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.IMAGE,
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/03", ""
-                ),
-                content = imageContent2,
-                thumbnail = imageContent2
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.VIDEO,
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/04", "",
-                ),
-                content = videoContent,
-                thumbnail = null
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.VIDEO,
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/06", ""
-                ),
-                content = videoContent2,
-                thumbnail = null
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.IMAGE,
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/01", ""
-                ),
-                content = imageContent,
-                thumbnail = imageContent
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.IMAGE,
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/02", ""
-                ),
-                content = imageContent2,
-                thumbnail = imageContent2
-            ), Post(
-                metadata = PostMetadata(
-                    "","", Constants.ContentType.VIDEO,
-                    title = "Sample Title",
-                    description = "This is a sample description for the post.", "2024/01/05", ""
-                ),
-                content = videoContent,
-                thumbnail = null
-            )),
-            onImageClick = {},
-            onLoadMore = {},
-            false,
-            false)
     }
 }

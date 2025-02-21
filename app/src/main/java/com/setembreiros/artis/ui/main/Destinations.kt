@@ -31,6 +31,15 @@ object NewPost : Destinations{
         get() = "new_post"
 }
 
+object PublishPost : Destinations{
+    override val icon: Int
+        get() = 0
+    override val route: String
+        get() = "publish_post"
+    override val base: String
+        get() = "new_post"
+}
+
 object Register : Destinations{
     override val icon: Int
         get() = 0

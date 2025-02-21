@@ -25,7 +25,7 @@ class ProfileViewModel @Inject constructor(
     private val _profile = MutableStateFlow<UserProfile?>(null)
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val profile = _profile
-    val posts = _posts
+    val posts: StateFlow<List<Post>> get() = _posts
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _isThereMorePosts = MutableStateFlow(true)

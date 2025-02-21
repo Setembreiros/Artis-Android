@@ -2,10 +2,11 @@ package com.setembreiros.artis.ui.post
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.common.Constants
-import com.setembreiros.artis.domain.builder.ThumbnailBuilder
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.domain.model.post.PostContent
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.usecase.post.CreatePostUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
@@ -15,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,6 +42,7 @@ class NewPostViewModel @Inject constructor(
     fun publish(context: Context){
         _resource.value?.let {
             loading.update { true }
+            val size = getFileSizeFromUri(context, it)
             val post = Post(
                 metadata = PostMetadata(
                     postId = "",
@@ -50,14 +50,20 @@ class NewPostViewModel @Inject constructor(
                     title = _title.value,
                     description = _description.value,
                     type = _type.value,
+                    size = size,
                     createdAt = "",
                     lastUpdated = ""
                 ),
-                content = getBytesFromUri(context, it),
-                thumbnail = ThumbnailBuilder.createThumbnail(context, it, _type.value)
+                content = PostContent(
+                    uriContent = it,
+                    content = null,
+                    thumbnail = null
+                )
             )
             viewModelScope.launch(Dispatchers.IO) {
-                createPostUseCase.invoke(post)
+                createPostUseCase.invoke(post, context) { progress ->
+                    UploadProgressManager.updateProgress(progress)
+                }
                 loading.update { false }
             }
         }
@@ -75,32 +81,25 @@ class NewPostViewModel @Inject constructor(
         _resource.value = value
     }
 
+    fun getResource() : Uri?{
+        return _resource.value
+    }
+
     fun setType(value: Constants.ContentType){
         _type.value = value
     }
 
-    private fun getBytesFromUri(context: Context, uri: Uri?): ByteArray? {
-        uri?.let {
-            return try {
-                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-                val byteBuffer = ByteArrayOutputStream()
-                val buffer = ByteArray(1024)
-                var len: Int
-
-                while (inputStream?.read(buffer).also { len = it ?: -1 } != -1) {
-                    byteBuffer.write(buffer, 0, len)
-                }
-
-                inputStream?.close()
-
-                byteBuffer.toByteArray()
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
+    private fun getFileSizeFromUri(context: Context, uri: Uri): Long {
+        var fileSize: Long = 0
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
+            if (sizeIndex != -1) {
+                it.moveToFirst()
+                fileSize = it.getLong(sizeIndex)
             }
         }
-        return null
+        return fileSize / 1024 / 1024 // return MB
     }
 }
 

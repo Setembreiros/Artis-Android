@@ -12,6 +12,7 @@ import com.setembreiros.artis.ui.account.register.RegisterScreen
 import com.setembreiros.artis.ui.home.HomeScreen
 import com.setembreiros.artis.ui.post.NewPostScreen
 import com.setembreiros.artis.ui.post.PostDetailsScreen
+import com.setembreiros.artis.ui.post.PublishPostScreen
 import com.setembreiros.artis.ui.profile.ProfileScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -55,7 +56,13 @@ fun NavHostApp(
         composable(NewPost.route){
             stateTopBar(false)
             stateButtonMenu(true)
-            NewPostScreen()
+            NewPostScreen(
+                onPublishClick = {navController.navigationToPublishPost()}
+            )
+        }
+        composable(PublishPost.route){
+            stateButtonMenu(true)
+            PublishPostScreen()
         }
         composable(Profile.route){
             stateButtonMenu(true)
@@ -84,4 +91,8 @@ fun NavHostController.navigationToHome(){
 
 fun NavHostController.navigationToPostDetailsProfile(postId: String){
     this.navigate("post_details_profile/$postId")
+}
+
+fun NavHostController.navigationToPublishPost(){
+    this.navigate(PublishPost.route)
 }

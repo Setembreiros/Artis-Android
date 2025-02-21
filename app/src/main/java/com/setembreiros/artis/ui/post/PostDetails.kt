@@ -21,6 +21,7 @@ import androidx.core.content.FileProvider
 import com.setembreiros.artis.R
 import com.setembreiros.artis.common.Constants
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.domain.model.post.PostContent
 import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.ui.commponents.AVPost
 import com.setembreiros.artis.ui.commponents.ImagePost
@@ -41,11 +42,15 @@ fun PostDetailsView(context: Context, post: Post) {
         textAlign = TextAlign.Center
     )
     Spacer(modifier = Modifier.height(10.dp))
+    if(post.content?.content != null && post.content?.content!!.isNotEmpty()) {
+        post.content!!.uriContent = createUriTempFile(context, post.metadata.postId, post.content?.content)
+        post.content!!.content = null
+    }
     when (post.metadata.type) {
-        Constants.ContentType.TEXT -> TextPost(createUriTempFile(context, post.content))
-        Constants.ContentType.IMAGE -> ImagePost(post.content)
-        Constants.ContentType.AUDIO -> AVPost(createUriTempFile(context, post.content))
-        Constants.ContentType.VIDEO -> AVPost(createUriTempFile(context, post.content))
+        Constants.ContentType.TEXT -> TextPost(post.content!!.uriContent)
+        Constants.ContentType.IMAGE -> ImagePost(post.content!!.uriContent)
+        Constants.ContentType.AUDIO -> AVPost(post.content!!.uriContent)
+        Constants.ContentType.VIDEO -> AVPost(post.content!!.uriContent)
     }
     Spacer(modifier = Modifier.height(10.dp))
     Text(
@@ -57,9 +62,9 @@ fun PostDetailsView(context: Context, post: Post) {
 }
 
 @Composable
-private fun createUriTempFile(context: Context, content: ByteArray?): Uri? {
+private fun createUriTempFile(context: Context, postId: String, content: ByteArray?): Uri? {
     content?.let {
-        val tempFile = createTempFile(context, content)
+        val tempFile = createTempFile(context, postId, content)
 
         tempFile?.let {
             return remember {
@@ -78,10 +83,10 @@ private fun createUriTempFile(context: Context, content: ByteArray?): Uri? {
 }
 
 @Composable
-private fun createTempFile(context: Context, content: ByteArray?): File? {
+private fun createTempFile(context: Context, postId: String, content: ByteArray?): File? {
     content?.let {
         val tempFile = remember {
-            val file = File.createTempFile("temp_pdf", "", context.cacheDir)
+            val file = File.createTempFile("temp_$postId", "", context.cacheDir)
             val fos = FileOutputStream(file)
             fos.write(content)
             fos.close()
@@ -105,10 +110,13 @@ fun ImagePostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 5, "", ""
         ),
-        content = content,
-        thumbnail = null
+        content = PostContent(
+            uriContent = null,
+            content = content,
+            thumbnail = null
+        )
     )
 
     ArtisTheme {
@@ -127,10 +135,13 @@ fun Image2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
-        content = content,
-        thumbnail = null
+        content = PostContent(
+            uriContent = null,
+            content = content,
+            thumbnail = null
+        )
     )
 
     ArtisTheme {
@@ -149,10 +160,13 @@ fun Video1PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
-        content = content,
-        thumbnail = null
+        content = PostContent(
+            uriContent = null,
+            content = content,
+            thumbnail = null
+        )
     )
 
     ArtisTheme {
@@ -171,10 +185,13 @@ fun Video2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
-        content = content,
-        thumbnail = null
+        content = PostContent(
+            uriContent = null,
+            content = content,
+            thumbnail = null
+        )
     )
 
     ArtisTheme {
@@ -204,10 +221,13 @@ fun PdfPostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.TEXT,
             title = "Sample Title",
-            description = "This is a sample description for the post.", "", ""
+            description = "This is a sample description for the post.", 0, "", ""
         ),
-        content = content,
-        thumbnail = null
+        content = PostContent(
+            uriContent = null,
+            content = content,
+            thumbnail = null
+        )
     )
 
     ArtisTheme {

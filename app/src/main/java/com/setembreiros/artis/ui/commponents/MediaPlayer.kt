@@ -24,13 +24,30 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 
+private const val MIN_BUFFER_MS = 5000
+private const val MAX_BUFFER_MS = 10000
+private const val BUFFER_FOR_PLAYBACK_MS = 1000
+private const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 2000
+
+@OptIn(UnstableApi::class)
 @Composable
 fun RememberExoPlayer(context: Context, uri: Uri, isMuted: Boolean) = remember {
-    ExoPlayer.Builder(context).build().apply {
+    ExoPlayer.Builder(context)
+        .setLoadControl(
+            DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                MIN_BUFFER_MS,
+                MAX_BUFFER_MS,
+                BUFFER_FOR_PLAYBACK_MS,
+                BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+            )
+            .build())
+        .build().apply {
         setMediaItem(MediaItem.fromUri(uri))
         prepare()
         playWhenReady = true

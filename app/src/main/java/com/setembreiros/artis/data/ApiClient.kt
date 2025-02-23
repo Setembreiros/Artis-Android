@@ -8,6 +8,7 @@ import com.setembreiros.artis.data.model.post.CreatePostResponseApi
 import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -39,4 +40,8 @@ interface ApiClient {
                                  @Query("limit") limit: Int = 9,
                                  @Query("lastPostId") lastPostId: String,
                                  @Query("lastPostCreatedAt") lastPostCreatedAt: String) : WrapperApi<GetPostMetadatasResponseApi>
+
+    @DELETE("postservice/posts")
+    suspend fun deletePost(@Header("Authorization") token: String,
+                                 @Query("post_id") postId: String) : WrapperApi<Boolean>
 }

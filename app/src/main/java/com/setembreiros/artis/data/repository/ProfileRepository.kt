@@ -19,4 +19,9 @@ class ProfileRepository @Inject constructor() {
     fun getPosts(): List<Post> {
         return posts.values.sortedBy { it.metadata.createdAt }
     }
+
+    fun removePost(postId: String) {
+        if(posts.containsKey(postId))
+            posts.remove(postId)
+    }
 }

@@ -38,5 +38,9 @@
     <string name="new_post">New post</string>
     <string name="open_pdf">Open PDF</string>
     <string name="no_external_pdf_app">No apps to view PDF</string>
+    <string name="delete_post_title">Delete Post</string>
+    <string name="delete_post_description">Are you sure you want to delete this post? This action cannot be undone.</string>
+    <string name="delete_button">Delete</string>
+    <string name="cancel_button">Cancel</string>
 
 </resources>

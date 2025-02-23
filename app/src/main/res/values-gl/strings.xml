@@ -39,4 +39,8 @@
     <string name="new_post">Nova publicación</string>
     <string name="open_pdf">Abrir o PDF</string>
     <string name="no_external_pdf_app">Non hai aplicacións para ler PDFs</string>
+    <string name="delete_post_title">Eliminar Publicación</string>
+    <string name="delete_post_description">Estás seguro de querer eliminar esta publicación? Esta acción non se pode desfacer.</string>
+    <string name="delete_button">Eliminar</string>
+    <string name="cancel_button">Cancelar</string>
 </resources>

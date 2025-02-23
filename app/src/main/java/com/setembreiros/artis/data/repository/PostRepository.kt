@@ -32,4 +32,8 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
     suspend fun getPostMetadatas(username: String, lastPostId: String, lastPostCreatedAt: String) = safeApiCall(GetPostMetadatasResponseMapperApi()){
         apiClient.getPostMetadatas(getToken() ,username, 9, lastPostId, lastPostCreatedAt)
     }
+
+    suspend fun deletePost(postId: String) = safeApiCall(GenericBoolMapperApi()){
+        apiClient.deletePost(getToken() ,postId)
+    }
 }

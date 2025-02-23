@@ -63,11 +63,11 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         var thumbnailUrl = postUrl.thumbnailUrl
         var content: ByteArray? = null
         if(BuildConfig.DEBUG) {
-                    url = getUrlDebug(postUrl.url)
-                    if(thumbnailUrl != "") {
-                        thumbnailUrl = getUrlDebug(postUrl.thumbnailUrl)
-                    }
-                }
+            url = getUrlDebug(postUrl.url)
+            if(thumbnailUrl != "") {
+                thumbnailUrl = getUrlDebug(postUrl.thumbnailUrl)
+            }
+        }
 
         if (postType == Constants.ContentType.TEXT) {
             content = s3Service.getContent(url)

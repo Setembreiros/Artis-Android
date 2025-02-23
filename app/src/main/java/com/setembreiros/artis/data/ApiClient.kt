@@ -43,5 +43,5 @@ interface ApiClient {
 
     @DELETE("postservice/posts")
     suspend fun deletePost(@Header("Authorization") token: String,
-                                 @Query("post_id") postId: String) : WrapperApi<Boolean>
+                                 @Query("postId") postId: String) : WrapperApi<Boolean>
 }

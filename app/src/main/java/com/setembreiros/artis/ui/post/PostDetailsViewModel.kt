@@ -3,6 +3,7 @@ package com.setembreiros.artis.ui.post
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.post.Post
+import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.post.GetPostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class PostDetailsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val getPostsUseCase: GetPostsUseCase,
-    private val getSessionUseCase: GetSessionUseCase
+    private val getSessionUseCase: GetSessionUseCase,
+    private val deletePostsUseCase: DeletePostsUseCase
 ): BaseViewModel() {
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts = _posts
@@ -47,6 +49,14 @@ class PostDetailsViewModel @Inject constructor(
                 _posts.value += newPosts
                 _isLoading.value = false
             }
+        }
+    }
+
+    fun deletePost(postId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            deletePostsUseCase.invoke(postId)
+            profileRepository.removePost(postId)
+            _posts.value = profileRepository.getPosts()
         }
     }
 }

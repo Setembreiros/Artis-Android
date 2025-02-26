@@ -1,12 +1,17 @@
 package com.setembreiros.artis.data
 
-import com.setembreiros.artis.data.model.UserProfileApi
+import com.setembreiros.artis.data.model.profile.GetUserProfileResponseApi
 import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
 import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
+import com.setembreiros.artis.data.model.profile.ConfirmUserProfileImageRequestApi
+import com.setembreiros.artis.data.model.profile.UpdateUserProfileImageRequestApi
+import com.setembreiros.artis.data.model.profile.ConfirmUserProfileImageResponseApi
+import com.setembreiros.artis.data.model.profile.UpdateUserProfileRequestApi
+import com.setembreiros.artis.data.model.profile.UpdateUserProfileResponseApi
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -18,7 +23,16 @@ import retrofit2.http.Query
 interface ApiClient {
 
     @GET("readmodels/userprofile/{username}")
-    suspend fun getProfile(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<UserProfileApi>
+    suspend fun getProfile(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<GetUserProfileResponseApi>
+
+    @PUT("userservice/userprofile")
+    suspend fun updateProfile(@Header("Authorization") token: String, @Body userProfile: UpdateUserProfileRequestApi) : WrapperApi<UpdateUserProfileResponseApi>
+
+    @PUT("userservice/userprofile/image")
+    suspend fun updateProfileImage(@Header("Authorization") token: String, @Body updateUserProfileImageRequest: UpdateUserProfileImageRequestApi) : WrapperApi<ConfirmUserProfileImageResponseApi>
+
+    @PUT("userservice/userprofile/confirm-updated-image")
+    suspend fun confirmProfileImage(@Header("Authorization") token: String, @Body confirmUserProfileImageRequest: ConfirmUserProfileImageRequestApi) : WrapperApi<Boolean>
 
     @POST("postservice/post")
     suspend fun createPost(@Header("Authorization") token: String, @Body postApi: CreatePostRequestApi) : WrapperApi<CreatePostResponseApi>

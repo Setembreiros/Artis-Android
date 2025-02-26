@@ -45,7 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.setembreiros.artis.R
-import com.setembreiros.artis.domain.model.UserProfile
+import com.setembreiros.artis.domain.model.profile.UserProfile
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.ui.commponents.StandardTextField
 import com.setembreiros.artis.ui.theme.ArtisTheme
@@ -57,7 +57,7 @@ import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.ui.post.DynamicPostsVerticalGrid
 
 @Composable
-fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
+fun ProfileScreen(onImageClick: (postId: String) -> Unit, onEditProfileClick: () -> Unit) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = hiltViewModel()
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
@@ -71,6 +71,7 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
         posts = posts,
         onImageClick = onImageClick,
         onLoadMore = { viewModel.loadMorePosts() },
+        onEditProfileClick = onEditProfileClick,
         isLoading = isLoading,
         isThereMorePosts = isThereMorePosts,
     )
@@ -83,6 +84,7 @@ fun ContentScreen(
     posts: List<Post>,
     onImageClick: (postId: String) -> Unit,
     onLoadMore: () -> Unit,
+    onEditProfileClick: () -> Unit,
     isLoading: Boolean,
     isThereMorePosts: Boolean
 ) {
@@ -116,7 +118,7 @@ fun ContentScreen(
                         .height(80.dp)
                 )
                 SmallFloatingActionButton(
-                    onClick = { },
+                    onClick = { onEditProfileClick() },
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.secondary,
                     shape = CircleShape,
@@ -329,10 +331,11 @@ fun ProfilePreview() {
         ContentScreen(
             context,
             UserProfile(
-                "guillerial",
-                "Guillermo Rial es reconocido por su experiencia y liderazgo en telecomunicaciones, donde se le considera \"el puto amo\" por su maestría técnica y profesionalismo.",
-                "Guille",
-                "https://fuckyou.com"
+                "newHouses",
+                "Sergio Simons es reconocido por su experiencia y liderazgo en telecomunicaciones, donde se le considera \"el puto amo\" por su maestría técnica y profesionalismo.",
+                "Simons",
+                "https://seoi.net/penint/",
+                imageContent
             ),
             listOf(Post(
                 metadata = PostMetadata(
@@ -385,6 +388,7 @@ fun ProfilePreview() {
             )),
             onImageClick = {},
             onLoadMore = {},
+            onEditProfileClick = {},
             false,
             false)
     }

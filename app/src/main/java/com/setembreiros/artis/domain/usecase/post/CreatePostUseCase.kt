@@ -26,7 +26,7 @@ class CreatePostUseCase @Inject constructor(private val postRepository: PostRepo
                     false
                 }
             }
-            is Resource.Failure -> return false
+            is Resource.Failure -> false
         }
     }
 

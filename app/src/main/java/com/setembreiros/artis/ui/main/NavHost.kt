@@ -12,6 +12,7 @@ import com.setembreiros.artis.ui.account.register.RegisterScreen
 import com.setembreiros.artis.ui.home.HomeScreen
 import com.setembreiros.artis.ui.post.NewPostScreen
 import com.setembreiros.artis.ui.post.PostDetailsScreen
+import com.setembreiros.artis.ui.profile.EditProfileScreen
 import com.setembreiros.artis.ui.profile.ProfileScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -60,13 +61,20 @@ fun NavHostApp(
         composable(Profile.route){
             stateButtonMenu(true)
             ProfileScreen(
-                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId) }
+                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId) },
+                onEditProfileClick = { navController.navigationToEditProfile() }
             )
         }
         composable(PostDetailsProfile.route){ backStackEntry ->
             stateButtonMenu(true)
             val postId = backStackEntry.arguments?.getString("postId") ?: ""
             PostDetailsScreen(postId)
+        }
+        composable(EditProfile.route){
+            stateButtonMenu(false)
+            EditProfileScreen (
+                onSavedProfile = { navController.popBackStack() }
+            )
         }
     }
 }
@@ -84,4 +92,8 @@ fun NavHostController.navigationToHome(){
 
 fun NavHostController.navigationToPostDetailsProfile(postId: String){
     this.navigate("post_details_profile/$postId")
+}
+
+fun NavHostController.navigationToEditProfile(){
+    this.navigate(EditProfile.route)
 }

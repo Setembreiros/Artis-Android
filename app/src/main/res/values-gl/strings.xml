@@ -39,4 +39,6 @@
     <string name="new_post">Nova publicación</string>
     <string name="open_pdf">Abrir o PDF</string>
     <string name="no_external_pdf_app">Non hai aplicacións para ler PDFs</string>
+    <string name="your_socials">As tuas redes sociais</string>
+    <string name="save">Gardar</string>
 </resources>

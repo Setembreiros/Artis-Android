@@ -22,6 +22,15 @@ object Profile : Destinations{
         get() = "profile"
 }
 
+object EditProfile : Destinations{
+    override val icon: Int
+        get() = R.drawable.ic_user
+    override val route: String
+        get() = "edit_profile"
+    override val base: String
+        get() = "edit_profile"
+}
+
 object NewPost : Destinations{
     override val icon: Int
         get() = R.drawable.ic_add_box

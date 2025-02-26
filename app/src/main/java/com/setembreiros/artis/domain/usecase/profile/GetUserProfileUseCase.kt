@@ -1,4 +1,4 @@
-package com.setembreiros.artis.domain.usecase
+package com.setembreiros.artis.domain.usecase.profile
 
 import com.setembreiros.artis.data.repository.UserRepository
 import javax.inject.Inject

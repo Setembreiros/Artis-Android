@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -52,6 +50,12 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Comment
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
 
 @Composable
 fun PostDetailsView(context: Context, post: Post) {
@@ -119,6 +123,32 @@ fun PostDetailsView(context: Context, post: Post) {
         Constants.ContentType.AUDIO -> AVPost(post.content!!.uriContent)
         Constants.ContentType.VIDEO -> AVPost(post.content!!.uriContent)
     }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clickable { /* TODO: Add logic */ }
+                .padding(end = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Comment,
+                contentDescription = "Comments",
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "${post.metadata.comments}",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
     Spacer(modifier = Modifier.height(10.dp))
     Text(
         text = post.metadata.description,
@@ -177,7 +207,7 @@ fun ImagePostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 5, "", ""
+            description = "This is a sample description for the post.", 5, 0, "", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -202,7 +232,7 @@ fun Image2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, "", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -227,7 +257,7 @@ fun Video1PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, "", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -252,7 +282,7 @@ fun Video2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, "", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -288,7 +318,7 @@ fun PdfPostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.TEXT,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, "", ""
         ),
         content = PostContent(
             uriContent = null,

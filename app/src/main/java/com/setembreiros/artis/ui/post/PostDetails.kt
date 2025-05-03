@@ -3,6 +3,7 @@ package com.setembreiros.artis.ui.post
 import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -51,15 +52,38 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.imeNestedScroll
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 
 @Composable
 fun PostDetailsView(context: Context, post: Post) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
+    var showComments by remember { mutableStateOf(false) }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog) {
@@ -71,7 +95,8 @@ fun PostDetailsView(context: Context, post: Post) {
         )
     }
 
-    Row(
+
+        Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -133,7 +158,7 @@ fun PostDetailsView(context: Context, post: Post) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .clickable { /* TODO: Add logic */ }
+                .clickable { showComments = true }
                 .padding(end = 16.dp)
         ) {
             Icon(
@@ -156,6 +181,134 @@ fun PostDetailsView(context: Context, post: Post) {
         color = Color.Gray,
         textAlign = TextAlign.Center
     )
+
+    if (showComments) {
+        CommentsSection(
+            onDismiss = { showComments = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun CommentsSection(
+    onDismiss: () -> Unit,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var newComment by remember { mutableStateOf("") }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            keyboardController?.hide()
+            onDismiss()
+        },
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(2.dp)
+                    )
+            )
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.95f)
+                .imeNestedScroll() // Importante para o comportamento correcto
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 80.dp) // Espazo para o campo fixo
+            ) {
+                // Cabeceira
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.comment_section),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+
+                // Lista de comentarios
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                }
+            }
+
+            // Campo de comentario FIXO na parte inferior
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 8.dp)
+                    .navigationBarsPadding()
+                    .imePadding() // Só este elemento reacciona ao teclado
+            ) {
+                Surface(
+                    tonalElevation = 8.dp,
+                    shadowElevation = 8.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = newComment,
+                            onValueChange = { newComment = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text(stringResource(id = R.string.add_comment)) },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                            keyboardActions = KeyboardActions(onSend = {
+                                if (newComment.isNotBlank()) {
+                                    newComment = ""
+                                    keyboardController?.hide()
+                                }
+                            })
+                        )
+                        IconButton(
+                            onClick = {
+                                if (newComment.isNotBlank()) {
+                                    newComment = ""
+                                    keyboardController?.hide()
+                                }
+                            },
+                            enabled = newComment.isNotBlank()
+                        ) {
+                            Icon(
+                                Icons.Default.Send,
+                                contentDescription = "Enviar",
+                                tint = if (newComment.isNotBlank()) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable

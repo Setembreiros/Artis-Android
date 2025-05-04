@@ -112,8 +112,7 @@ fun PostDetailsView(context: Context, post: Post) {
         )
     }
 
-
-        Row(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),

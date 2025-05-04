@@ -1,6 +1,5 @@
 package com.setembreiros.artis.ui.profile
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.base.Resource

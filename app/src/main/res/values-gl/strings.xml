@@ -45,4 +45,7 @@
     <string name="cancel_button">Cancelar</string>
     <string name="add_comment">Engade un comentario</string>
     <string name="comment_section">Comentarios</string>
+    <string name="error_loading_comments">Erro ao cargar comentarios</string>
+    <string name="error_adding_comment">Erro ao engadir o comentario</string>
+    <string name="comment_failed">Non se puido engadir o comentario</string>
 </resources>

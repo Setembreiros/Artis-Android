@@ -3,6 +3,7 @@ package com.setembreiros.artis.ui.post
 import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -61,13 +62,13 @@ import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -76,14 +77,30 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
+import com.setembreiros.artis.domain.model.Comment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun PostDetailsView(context: Context, post: Post) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
+    val commentsByPost by viewModel.commentsByPost.collectAsState()
     var showComments by remember { mutableStateOf(false) }
+    val errorCode by viewModel.errorCode.collectAsState()
+
+    // Mostrar Toast cando haxa un erro
+    LaunchedEffect(errorCode) {
+        errorCode?.let { code ->
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, context.getString(code), Toast.LENGTH_SHORT).show()
+            }
+            viewModel.clearErrorMessage()
+        }
+    }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog) {
@@ -183,8 +200,14 @@ fun PostDetailsView(context: Context, post: Post) {
     )
 
     if (showComments) {
+        viewModel.loadCommentsForPost(post.metadata.postId)
+
         CommentsSection(
-            onDismiss = { showComments = false },
+            commentsByPost[post.metadata.postId] ?: emptyList(),
+            onSend = {
+                viewModel.addCommentAndUpdate(post.metadata.postId, it)
+            },
+            onDismiss = { showComments = false }
         )
     }
 }
@@ -192,10 +215,20 @@ fun PostDetailsView(context: Context, post: Post) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CommentsSection(
+    comments: List<Comment>,
+    onSend: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var newComment by remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
+
+    // Desprazar ao final cando se engade un novo comentario
+    LaunchedEffect(comments.size) {
+        if (comments.isNotEmpty()) {
+            listState.animateScrollToItem(comments.size)
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = {
@@ -252,10 +285,14 @@ fun CommentsSection(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
+                    items(comments) { comment ->
+                        CommentItem(comment = comment)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                    }
                 }
             }
 
-            // Campo de comentario FIXO na parte inferior
+            // Campo de comentario
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
@@ -279,18 +316,12 @@ fun CommentsSection(
                             value = newComment,
                             onValueChange = { newComment = it },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text(stringResource(id = R.string.add_comment)) },
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                            keyboardActions = KeyboardActions(onSend = {
-                                if (newComment.isNotBlank()) {
-                                    newComment = ""
-                                    keyboardController?.hide()
-                                }
-                            })
+                            placeholder = { Text(stringResource(id = R.string.add_comment), color = Color.LightGray) }
                         )
                         IconButton(
                             onClick = {
                                 if (newComment.isNotBlank()) {
+                                    onSend(newComment)
                                     newComment = ""
                                     keyboardController?.hide()
                                 }
@@ -298,8 +329,8 @@ fun CommentsSection(
                             enabled = newComment.isNotBlank()
                         ) {
                             Icon(
-                                Icons.Default.Send,
-                                contentDescription = "Enviar",
+                                Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Send",
                                 tint = if (newComment.isNotBlank()) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                             )
@@ -307,6 +338,36 @@ fun CommentsSection(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CommentItem(comment: Comment) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            // Nome de usuario
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = comment.username,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray,
+                    fontSize = 16.sp
+                )
+            }
+
+            // Contido do comentario
+            Text(
+                text = comment.content,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }

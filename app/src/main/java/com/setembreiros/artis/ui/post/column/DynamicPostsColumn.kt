@@ -19,7 +19,7 @@ fun DynamicPostsColumn(
     posts: List<Post>,
     onLoadMore: () -> Unit,
     isLoading: Boolean,
-    isThereMorePosts: Boolean,
+    thereAreMorePosts: Boolean,
     onChange: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -38,7 +38,7 @@ fun DynamicPostsColumn(
         },
         onLoadMore = onLoadMore,
         isLoading = isLoading,
-        thereAreMoreItems = isThereMorePosts,
+        thereAreMoreItems = thereAreMorePosts,
         modifier = Modifier.padding(8.dp),
         contentPadding = PaddingValues(bottom = 56.dp),
         listState = listState

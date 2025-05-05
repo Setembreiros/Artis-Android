@@ -47,8 +47,6 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         }
     }
 
-
-
     private suspend fun getUrls(username: String, lastPostId: String, lastPostCreatedAt: String) : Array<PostUrl>{
         return when(val response = postRepository.getUrlPosts(username, lastPostId, lastPostCreatedAt)){
             is Resource.Success -> {

@@ -1,6 +1,7 @@
 package com.setembreiros.artis.ui.post.column
 
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.usecase.post.GetPostsUseCase
@@ -25,8 +26,8 @@ class ColumnPostDetailsViewModel @Inject constructor(
     val post = _post
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
-    private val _isThereMorePosts = MutableStateFlow(true)
-    val isThereMorePosts: StateFlow<Boolean> = _isThereMorePosts
+    private val _thereAreMorePosts = MutableStateFlow(true)
+    val thereAreMorePosts: StateFlow<Boolean> = _thereAreMorePosts
 
     init {
         getPosts()
@@ -43,7 +44,7 @@ class ColumnPostDetailsViewModel @Inject constructor(
                 val lastPost = _posts.value.last()
                 val result = getPostsUseCase.invoke(username, lastPost.metadata.postId, lastPost.metadata.createdAt)
                 val newPosts = result.first.sortedBy { it.metadata.createdAt }
-                _isThereMorePosts.value = result.second
+                _thereAreMorePosts.value = result.second
                 _posts.value += newPosts
                 _isLoading.value = false
             }

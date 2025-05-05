@@ -12,7 +12,7 @@ fun ColumnPostDetailsScreen(postId: String) {
     val viewModel: ColumnPostDetailsViewModel = hiltViewModel()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val isThereMorePosts by viewModel.isThereMorePosts.collectAsStateWithLifecycle()
+    val thereAreMorePosts by viewModel.thereAreMorePosts.collectAsStateWithLifecycle()
 
-    DynamicPostsColumn(context, postId, posts, { viewModel.loadMorePosts() }, isLoading, isThereMorePosts, { viewModel.updatePosts()})
+    DynamicPostsColumn(context, postId, posts, { viewModel.loadMorePosts() }, isLoading, thereAreMorePosts, { viewModel.updatePosts()})
 }

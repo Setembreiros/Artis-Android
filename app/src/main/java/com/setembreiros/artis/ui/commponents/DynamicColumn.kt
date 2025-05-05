@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,15 +24,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun <T> DynamicColumn(
     items: List<T>,
-    itemView: @Composable (T) -> Unit, // View personalizada para cada elemento
+    itemView: @Composable (item: T) -> Unit,
     onLoadMore: () -> Unit,
     isLoading: Boolean,
-    isThereMorePosts: Boolean,
+    thereAreMoreItems: Boolean,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    listState: LazyListState = rememberLazyListState()
 ) {
-    val listState = rememberLazyListState()
-
     // Detectar cando o usuario chega ao final
     val isAtBottom by remember {
         derivedStateOf {
@@ -42,7 +42,7 @@ fun <T> DynamicColumn(
     }
 
     LaunchedEffect(isAtBottom, isLoading) {
-        if (isAtBottom && !isLoading && isThereMorePosts) {
+        if (isAtBottom && !isLoading && thereAreMoreItems) {
             onLoadMore()
         }
     }

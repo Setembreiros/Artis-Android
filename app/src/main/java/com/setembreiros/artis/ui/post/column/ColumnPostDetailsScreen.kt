@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui.post
+package com.setembreiros.artis.ui.post.column
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -7,12 +7,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun PostDetailsScreen(postId: String) {
+fun ColumnPostDetailsScreen(postId: String) {
     val context = LocalContext.current
-    val viewModel: PostDetailsViewModel = hiltViewModel()
+    val viewModel: ColumnPostDetailsViewModel = hiltViewModel()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val isThereMorePosts by viewModel.isThereMorePosts.collectAsStateWithLifecycle()
 
-    DynamicPostsColumn(context, postId, posts, { viewModel.loadMorePosts() }, isLoading, isThereMorePosts)
+    DynamicPostsColumn(context, postId, posts, { viewModel.loadMorePosts() }, isLoading, isThereMorePosts, { viewModel.updatePosts()})
 }

@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui.post
+package com.setembreiros.artis.ui.post.item
 
 import android.content.Context
 import android.content.res.Configuration
@@ -86,7 +86,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun PostDetailsView(context: Context, post: Post) {
+fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
     val commentsByPost by viewModel.commentsByPost.collectAsState()
     var showComments by remember { mutableStateOf(false) }
@@ -106,7 +106,13 @@ fun PostDetailsView(context: Context, post: Post) {
     if (showDeleteDialog) {
         DeleteAlertDialog(
             onConfirm = {
-                viewModel.deletePost(post.metadata.postId)
+                viewModel.deletePost(
+                    post.metadata.postId,
+                    onSuccess = {
+                        onChange()
+                        showDeleteDialog = false
+                    }
+                )
             },
             onDismiss = { showDeleteDialog = false }
         )
@@ -430,7 +436,7 @@ fun ImagePostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, post = samplePost)
+        PostDetailsView(context, post = samplePost, {})
     }
 }
 
@@ -455,7 +461,7 @@ fun Image2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, post = samplePost)
+        PostDetailsView(context, post = samplePost, {})
     }
 }
 
@@ -480,7 +486,7 @@ fun Video1PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost)
+        PostDetailsView(context, samplePost, {})
     }
 }
 
@@ -505,7 +511,7 @@ fun Video2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost)
+        PostDetailsView(context, samplePost, {})
     }
 }
 
@@ -541,6 +547,6 @@ fun PdfPostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost)
+        PostDetailsView(context, samplePost, {})
     }
 }

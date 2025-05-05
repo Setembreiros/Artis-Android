@@ -21,7 +21,7 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
         apiClient.createPost(getToken(), PostMapper().map(post))
     }
 
-    suspend fun confirmPost(confirmPostRequest: ConfirmPostRequest) = safeApiCall(GenericBoolMapperApi()){
+    suspend fun confirmPost(confirmPostRequest: ConfirmPostRequest) = safeApiCall{
         apiClient.confirmPost(getToken(), ConfirmPostRequestMapper().map(confirmPostRequest))
     }
 
@@ -33,7 +33,7 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
         apiClient.getPostMetadatas(getToken(), username, 9, lastPostId, lastPostCreatedAt)
     }
 
-    suspend fun deletePost(postId: String) = safeApiCall(GenericBoolMapperApi()){
+    suspend fun deletePost(postId: String) = safeApiCall{
         apiClient.deletePost(getToken(), postId)
     }
 }

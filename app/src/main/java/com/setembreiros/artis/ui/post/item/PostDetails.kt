@@ -78,6 +78,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,8 +94,11 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         viewModel.setAmountOfComments(post.metadata.postId, post.metadata.comments)
     }
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
-    val commentCountFlow = amountOfCommentsByPost[post.metadata.postId]
-    val commentCount = commentCountFlow?.collectAsState(initial = 0L)?.value ?: 0L
+    val commentCount by remember {
+        derivedStateOf {
+            amountOfCommentsByPost[post.metadata.postId] ?: post.metadata.comments
+        }
+    }
     val postComments by viewModel.postComments.collectAsState()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()

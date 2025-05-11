@@ -55,6 +55,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -84,10 +85,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.ui.commponents.DynamicColumn
+import com.setembreiros.artis.ui.commponents.comment.CommentAction
+import com.setembreiros.artis.ui.commponents.comment.CommentItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -235,7 +239,14 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             onSend = {
                 viewModel.addCommentAndUpdate(post.metadata.postId, it)
             },
-            onDismiss = { showComments = false }
+            onDismiss = { showComments = false },
+            onCommentAction = { action ->
+                when (action) {
+                    is CommentAction.Delete -> {
+                        viewModel.deleteComment(action.comment.commentId)
+                    }
+                }
+            }
         )
     }
 }
@@ -249,6 +260,7 @@ fun CommentsSection(
     thereAreMoreComments: Boolean,
     onSend: (String) -> Unit,
     onDismiss: () -> Unit,
+    onCommentAction: (CommentAction) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var newComment by remember { mutableStateOf("") }
@@ -307,7 +319,10 @@ fun CommentsSection(
                 DynamicColumn(
                     items = comments,
                     itemView = { comment ->
-                        CommentItem(comment)
+                        CommentItem(
+                            comment = comment,
+                            onAction = onCommentAction
+                        )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
                     },
                     onLoadMore = onLoadMore,
@@ -365,51 +380,6 @@ fun CommentsSection(
                     }
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CommentItem(comment: Comment) {
-    var showMenu by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = {},
-                onLongClick = { showMenu = true }
-            )
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Row {
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                // Nome de usuario
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = comment.username,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
-                        fontSize = 16.sp
-                    )
-                }
-
-                // Contido do comentario
-                Text(
-                    text = comment.content,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-        }
-
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false }
-        ) {
         }
     }
 }

@@ -128,6 +128,10 @@ class PostDetailsViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
+    fun deleteComment(commentId: Long)  {
+
+    }
+
     private suspend fun addComment(postId: String, content: String): Comment? {
         return withContext(Dispatchers.IO) {
             try {

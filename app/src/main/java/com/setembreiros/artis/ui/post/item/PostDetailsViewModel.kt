@@ -28,6 +28,8 @@ class PostDetailsViewModel @Inject constructor(
     private val addCommentUseCase: AddCommentUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
 ): BaseViewModel() {
+    private val _amountOfCommentsByPost = MutableStateFlow<Map<String, MutableStateFlow<Long>>>(emptyMap())
+    var amountOfCommentsByPost: StateFlow<Map<String, StateFlow<Long>>> = _amountOfCommentsByPost.asStateFlow()
     private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
     val postComments: StateFlow<List<Comment>> = _postComments.asStateFlow()
     private val _errorMessage = MutableStateFlow<Int?>(null)
@@ -36,6 +38,27 @@ class PostDetailsViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _thereAreMoreComments = MutableStateFlow(true)
     val thereAreMoreComments: StateFlow<Boolean> = _thereAreMoreComments
+
+    fun setAmountOfComments(postId: String, amountOfComments: Long) {
+        viewModelScope.launch {
+            _amountOfCommentsByPost.update { currentMap ->
+                currentMap.toMutableMap().apply {
+                    if(!this.containsKey(postId)) {
+                        this[postId] = MutableStateFlow(amountOfComments)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun increaseAmountOfCommentsByOne(postId: String) {
+        viewModelScope.launch {
+            val currentFlow = _amountOfCommentsByPost.value[postId]
+            if (currentFlow != null) {
+                currentFlow.value += 1
+            }
+        }
+    }
 
     fun deletePost(postId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
@@ -93,6 +116,7 @@ class PostDetailsViewModel @Inject constructor(
                     _postComments.update { currentList ->
                         currentList + comment
                     }
+                    increaseAmountOfCommentsByOne(postId)
                 } ?: run {
                     _errorMessage.value = R.string.comment_failed
                 }

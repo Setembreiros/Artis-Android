@@ -89,6 +89,12 @@ import kotlinx.coroutines.withContext
 @Composable
 fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
+    LaunchedEffect(post.metadata.postId) {
+        viewModel.setAmountOfComments(post.metadata.postId, post.metadata.comments)
+    }
+    val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
+    val commentCountFlow = amountOfCommentsByPost[post.metadata.postId]
+    val commentCount = commentCountFlow?.collectAsState(initial = 0L)?.value ?: 0L
     val postComments by viewModel.postComments.collectAsState()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()
@@ -184,8 +190,8 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clickable {
-                    showComments = true
                     viewModel.loadInitialComments(post.metadata.postId)
+                    showComments = true
                 }
                 .padding(end = 16.dp)
         ) {
@@ -196,7 +202,7 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "${post.metadata.comments}",
+                text = "$commentCount",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary
             )

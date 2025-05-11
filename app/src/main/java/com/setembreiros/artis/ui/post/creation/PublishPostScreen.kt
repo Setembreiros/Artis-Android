@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui.post
+package com.setembreiros.artis.ui.post.creation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.setembreiros.artis.domain.model.post.UploadProgress
+import com.setembreiros.artis.ui.post.UploadProgressManager
 
 @Composable
 fun PublishPostScreen() {

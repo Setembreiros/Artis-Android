@@ -1,11 +1,13 @@
-package com.setembreiros.artis.ui.post
+package com.setembreiros.artis.ui.commponents
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
@@ -18,26 +20,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.setembreiros.artis.domain.model.post.Post
 
 @Composable
-fun DynamicPostsColumn(
-    context: Context,
-    postId: String,
-    posts: List<Post>,
+fun <T> DynamicColumn(
+    items: List<T>,
+    itemView: @Composable (item: T) -> Unit,
     onLoadMore: () -> Unit,
     isLoading: Boolean,
-    isThereMorePosts: Boolean
+    thereAreMoreItems: Boolean,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    listState: LazyListState = rememberLazyListState()
 ) {
-    val listState = rememberLazyListState()
-
-    val postIndex = posts.indexOfFirst { it.metadata.postId == postId }
-    LaunchedEffect(postIndex) {
-        if (postIndex >= 0) {
-            listState.scrollToItem(postIndex)
-        }
-    }
-
     // Detectar cando o usuario chega ao final
     val isAtBottom by remember {
         derivedStateOf {
@@ -46,27 +40,30 @@ fun DynamicPostsColumn(
             totalItems > 1 && lastVisibleIndex >= totalItems - 6
         }
     }
+
     LaunchedEffect(isAtBottom, isLoading) {
-        if (isAtBottom && !isLoading && isThereMorePosts) {
+        if (isAtBottom && !isLoading && thereAreMoreItems) {
             onLoadMore()
         }
     }
 
     LazyColumn(
         state = listState,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color.White),
+        contentPadding = contentPadding,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        items(posts) { post ->
-            PostDetailsView(context, post)
+        items(items) { item ->
+            itemView(item)
         }
+
         item {
             if (isLoading) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {

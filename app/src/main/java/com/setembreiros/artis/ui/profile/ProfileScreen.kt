@@ -56,7 +56,7 @@ fun ProfileScreen(onImageClick: (postId: String) -> Unit) {
     val userProfile by viewModel.profile.collectAsStateWithLifecycle()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val isThereMorePosts by viewModel.isThereMorePosts.collectAsStateWithLifecycle()
+    val isThereMorePosts by viewModel.thereAreMorePosts.collectAsStateWithLifecycle()
 
     ContentScreen(
         userProfile = userProfile,

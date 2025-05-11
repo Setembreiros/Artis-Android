@@ -4,6 +4,7 @@ import com.setembreiros.artis.data.model.EmptyResponse
 import com.setembreiros.artis.data.model.UserProfileApi
 import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.comment.CreateCommentRequestApi
+import com.setembreiros.artis.data.model.comment.GetCommentsResponseApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
@@ -27,7 +28,7 @@ interface ApiClient {
     suspend fun createPost(@Header("Authorization") token: String, @Body postApi: CreatePostRequestApi) : WrapperApi<CreatePostResponseApi>
 
     @PUT("postservice/confirm-created-post")
-    suspend fun confirmPost(@Header("Authorization") token: String, @Body confirmPostRequestApi: ConfirmPostRequestApi) : WrapperApi<Boolean>
+    suspend fun confirmPost(@Header("Authorization") token: String, @Body confirmPostRequestApi: ConfirmPostRequestApi) : WrapperApi<EmptyResponse>
 
     @GET("postservice/user-posts/{username}")
     suspend fun getUrlPosts(@Header("Authorization") token: String,
@@ -45,9 +46,14 @@ interface ApiClient {
 
     @DELETE("postservice/posts")
     suspend fun deletePost(@Header("Authorization") token: String,
-                                 @Query("postId") postId: String) : WrapperApi<Boolean>
+                                 @Query("postId") postId: String) : WrapperApi<EmptyResponse>
 
     @POST("commentservice/comment")
     suspend fun createComment(@Header("Authorization") token: String, @Body commentApi: CreateCommentRequestApi) : WrapperApi<EmptyResponse>
 
+    @GET("readmodels/comments/{postId}")
+    suspend fun getComments(@Header("Authorization") token: String,
+                                 @Path("postId") postId: String,
+                                 @Query("limit") limit: Int = 12,
+                                 @Query("lastCommentId") lastCommentId: Long) : WrapperApi<GetCommentsResponseApi>
 }

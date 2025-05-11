@@ -32,8 +32,8 @@ class ProfileViewModel @Inject constructor(
     val posts: StateFlow<List<Post>> get() = _posts
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
-    private val _isThereMorePosts = MutableStateFlow(true)
-    val isThereMorePosts: StateFlow<Boolean> = _isThereMorePosts
+    private val _thereAreMorePosts = MutableStateFlow(true)
+    val thereAreMorePosts: StateFlow<Boolean> = _thereAreMorePosts
     private var periodicJob: Job? = null
 
     init {
@@ -58,25 +58,27 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun loadInitialPosts() {
+        _isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            getSessionUseCase.invoke()?.username?.let { username->
-                _isLoading.value = true
-                val result = getPostsUseCase.invoke(username, "", "")
-                _posts.value = result.first.sortedBy { it.metadata.createdAt }
-                _isThereMorePosts.value = result.second
+            getSessionUseCase.invoke()?.username?.let { username ->
+                if (_posts.value.isEmpty()) {
+                    val result = getPostsUseCase.invoke(username, "", "")
+                    _posts.value = result.first.sortedBy { it.metadata.createdAt }
+                    _thereAreMorePosts.value = result.second
+                }
                 _isLoading.value = false
             }
         }
     }
 
     fun loadMorePosts() {
+        _isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             getSessionUseCase.invoke()?.username?.let { username ->
-                _isLoading.value = true
                 val lastPost = _posts.value.last()
                 val result = getPostsUseCase.invoke(username, lastPost.metadata.postId, lastPost.metadata.createdAt)
                 val newPosts = result.first.sortedBy { it.metadata.createdAt }
-                _isThereMorePosts.value = result.second
+                _thereAreMorePosts.value = result.second
                 _posts.value += newPosts
                 _isLoading.value = false
             }

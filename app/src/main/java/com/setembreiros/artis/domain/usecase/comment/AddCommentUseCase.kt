@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class AddCommentUseCase @Inject constructor(private val commentRepository: CommentRepository) {
     suspend fun invoke(username: String, postId: String, content: String) : Comment? {
-        val comment = Comment(username, postId, content)
+        val comment = Comment(0, username, postId, content)
         return when(commentRepository.createComment(comment)){
             is Resource.Success -> comment
             is Resource.Failure -> null

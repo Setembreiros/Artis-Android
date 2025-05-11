@@ -1,4 +1,4 @@
-package com.setembreiros.artis.ui.post
+package com.setembreiros.artis.ui.post.creation
 
 import android.content.Context
 import android.net.Uri
@@ -11,6 +11,7 @@ import com.setembreiros.artis.domain.model.post.PostMetadata
 import com.setembreiros.artis.domain.usecase.post.CreatePostUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
+import com.setembreiros.artis.ui.post.UploadProgressManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

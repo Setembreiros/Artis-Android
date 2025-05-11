@@ -10,9 +10,9 @@ import androidx.navigation.compose.composable
 import com.setembreiros.artis.ui.account.login.LoginScreen
 import com.setembreiros.artis.ui.account.register.RegisterScreen
 import com.setembreiros.artis.ui.home.HomeScreen
-import com.setembreiros.artis.ui.post.NewPostScreen
-import com.setembreiros.artis.ui.post.PostDetailsScreen
-import com.setembreiros.artis.ui.post.PublishPostScreen
+import com.setembreiros.artis.ui.post.column.ColumnPostDetailsScreen
+import com.setembreiros.artis.ui.post.creation.NewPostScreen
+import com.setembreiros.artis.ui.post.creation.PublishPostScreen
 import com.setembreiros.artis.ui.profile.ProfileScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -73,7 +73,7 @@ fun NavHostApp(
         composable(PostDetailsProfile.route){ backStackEntry ->
             stateButtonMenu(true)
             val postId = backStackEntry.arguments?.getString("postId") ?: ""
-            PostDetailsScreen(postId)
+            ColumnPostDetailsScreen(postId)
         }
     }
 }

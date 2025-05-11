@@ -87,7 +87,7 @@ fun Link(text: String, func: (Int) -> Unit) {
     ClickableText(
         text = AnnotatedString(text),
         onClick = func ,
-        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.primary)
+        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surface)
     )
 }
 

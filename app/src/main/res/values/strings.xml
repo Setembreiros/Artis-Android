@@ -47,5 +47,6 @@
     <string name="error_loading_comments">Error loading comments</string>
     <string name="error_adding_comment">Error adding comment</string>
     <string name="comment_failed">Comment could not be added</string>
+    <string name="error_deleting_post">Error deleting comment</string>
 
 </resources>

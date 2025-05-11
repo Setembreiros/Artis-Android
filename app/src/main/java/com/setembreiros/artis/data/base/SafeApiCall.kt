@@ -36,7 +36,7 @@ interface SafeApiCall {
     }
 
     @OptIn(UnstableApi::class)
-    suspend fun safeApiCall(apiCall: suspend () -> WrapperApi<EmptyResponse>): Resource<EmptyResponse> {
+    suspend fun safeApiCall(apiCall: suspend () -> WrapperApi<EmptyResponse?>): Resource<EmptyResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val result = apiCall.invoke()

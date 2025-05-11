@@ -8,6 +8,8 @@ import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.usecase.comment.AddCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.DeleteCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.GetCommentsUseCase
+import com.setembreiros.artis.domain.usecase.like.AddLikePostUseCase
+import com.setembreiros.artis.domain.usecase.like.DeleteLikePostUseCase
 import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
@@ -29,11 +31,17 @@ class PostDetailsViewModel @Inject constructor(
     private val addCommentUseCase: AddCommentUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
     private val deleteCommentUseCase: DeleteCommentUseCase,
+    private val addLikePostUseCase: AddLikePostUseCase,
+    private val deleteLikePostUseCase: DeleteLikePostUseCase,
 ): BaseViewModel() {
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
     val amountOfCommentsByPost: StateFlow<Map<String, Long>> = _amountOfCommentsByPost.asStateFlow()
     private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
     val postComments: StateFlow<List<Comment>> = _postComments.asStateFlow()
+    private val _amountOfLikesByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
+    val likesByPost: StateFlow<Map<String, Long>> = _amountOfLikesByPost
+    private val _likedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val likedByUser: StateFlow<Map<String, Boolean>> = _likedByUser
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
@@ -51,20 +59,9 @@ class PostDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun increaseAmountOfCommentsByOne(postId: String) {
-        _amountOfCommentsByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) + 1
-            }
-        }
-    }
-
-    private fun decreaseAmountOfCommentsByOne(postId: String) {
-        _amountOfCommentsByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) - 1
-            }
-        }
+    fun initializeLikes(postId: String, likes: Long, isLikedByCurrentUser: Boolean) {
+        _amountOfLikesByPost.update { it + (postId to likes) }
+        _likedByUser.update { it + (postId to isLikedByCurrentUser) }
     }
 
     fun deletePost(postId: String, onSuccess: () -> Unit = {}) {
@@ -134,10 +131,6 @@ class PostDetailsViewModel @Inject constructor(
         }
     }
 
-    fun clearErrorMessage() {
-        _errorMessage.value = null
-    }
-
     fun deleteCommentAndUpdate(postId: String, commentId: Long)  {
         viewModelScope.launch {
             try {
@@ -155,6 +148,58 @@ class PostDetailsViewModel @Inject constructor(
                 _errorMessage.value = R.string.error_deleting_comment
             }
         }
+    }
+
+    fun toggleLikePost(postId: String) {
+        val isLiked = _likedByUser.value[postId] ?: false
+        viewModelScope.launch {
+            try {
+                if (isLiked) {
+                    deleteLikeAndUpdate(postId)
+                } else {
+                    addLikeAndUpdate(postId)
+                }
+                _likedByUser.update { it + (postId to !isLiked) }
+            } catch (e: Exception) {
+                _errorMessage.value = R.string.error_updating_like
+            }
+        }
+    }
+
+    private suspend fun addLikeAndUpdate(postId: String) {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = addLike(postId)
+                if (!result) {
+                    _errorMessage.value = R.string.error_adding_like
+                } else {
+                    increaseAmountOfLikesByOne(postId)
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error adding comment: ${e.message}")
+                _errorMessage.value = R.string.error_adding_like
+            }
+        }
+    }
+
+    private suspend fun deleteLikeAndUpdate(postId: String)  {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = deleteLike(postId)
+                if (!result) {
+                    _errorMessage.value = R.string.error_deleting_like
+                } else {
+                    decreaseAmountOfLikesByOne(postId)
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
+                _errorMessage.value = R.string.error_deleting_like
+            }
+        }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     private suspend fun addComment(postId: String, content: String): Comment? {
@@ -176,6 +221,68 @@ class PostDetailsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
                 false
+            }
+        }
+    }
+
+    private fun increaseAmountOfCommentsByOne(postId: String) {
+        _amountOfCommentsByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) + 1
+            }
+        }
+    }
+
+    private fun decreaseAmountOfCommentsByOne(postId: String) {
+        _amountOfCommentsByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) - 1
+            }
+        }
+    }
+
+    private suspend fun addLike(postId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                var result = false
+                getSessionUseCase.invoke()?.username?.let { username ->
+                    result = addLikePostUseCase.invoke(username, postId)
+                }
+                result
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error adding like: ${e.message}")
+                false
+            }
+        }
+    }
+
+    private suspend fun deleteLike(postId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                var result = false
+                getSessionUseCase.invoke()?.username?.let { username ->
+                    result = deleteLikePostUseCase.invoke(username, postId)
+                }
+                result
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting like: ${e.message}")
+                false
+            }
+        }
+    }
+
+    private fun increaseAmountOfLikesByOne(postId: String) {
+        _amountOfLikesByPost.update { currentLikes ->
+            currentLikes.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) + 1
+            }
+        }
+    }
+
+    private fun decreaseAmountOfLikesByOne(postId: String) {
+        _amountOfLikesByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) - 1
             }
         }
     }

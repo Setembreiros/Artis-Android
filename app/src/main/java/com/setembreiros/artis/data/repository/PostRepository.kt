@@ -4,7 +4,6 @@ import com.setembreiros.artis.data.ApiClient
 import com.setembreiros.artis.data.base.BaseApiClient
 import com.setembreiros.artis.data.mapper.fromdomain.ConfirmPostRequestMapper
 import com.setembreiros.artis.data.mapper.fromdomain.PostMapper
-import com.setembreiros.artis.data.mapper.todomain.GenericBoolMapperApi
 import com.setembreiros.artis.data.mapper.todomain.GetPostMetadatasResponseMapperApi
 import com.setembreiros.artis.data.mapper.todomain.GetUrlPostsResponseMapperApi
 import com.setembreiros.artis.data.mapper.todomain.PostResponseMapperApi
@@ -29,8 +28,8 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
         apiClient.getUrlPosts(getToken(), username, 9, lastPostId, lastPostCreatedAt)
     }
 
-    suspend fun getPostMetadatas(username: String, lastPostId: String, lastPostCreatedAt: String) = safeApiCall(GetPostMetadatasResponseMapperApi()){
-        apiClient.getPostMetadatas(getToken(), username, 9, lastPostId, lastPostCreatedAt)
+    suspend fun getPostMetadatas(username: String, currentUsername: String, lastPostId: String, lastPostCreatedAt: String) = safeApiCall(GetPostMetadatasResponseMapperApi()){
+        apiClient.getPostMetadatas(getToken(), username, currentUsername, 9, lastPostId, lastPostCreatedAt)
     }
 
     suspend fun deletePost(postId: String) = safeApiCall{

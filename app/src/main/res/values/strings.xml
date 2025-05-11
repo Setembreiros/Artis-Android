@@ -49,4 +49,7 @@
     <string name="comment_failed">Comment could not be added</string>
     <string name="error_deleting_post">Error deleting post</string>
     <string name="error_deleting_comment">Error deleting comment</string>
+    <string name="error_updating_like">Error updating like</string>
+    <string name="error_adding_like">Error adding like</string>
+    <string name="error_deleting_like">Error deleting like</string>
 </resources>

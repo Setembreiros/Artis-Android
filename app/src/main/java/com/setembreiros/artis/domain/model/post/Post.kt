@@ -14,7 +14,9 @@ data class PostMetadata(
     val size: Long,
     val comments: Long,
     val createdAt: String,
-    val lastUpdated: String
+    val lastUpdated: String,
+    val likes: Long = 0,
+    val isLikedByCurrentUser: Boolean = false,
 )
 
 data class PostContent(

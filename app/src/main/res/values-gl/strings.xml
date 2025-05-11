@@ -51,4 +51,6 @@
     <string name="error_deleting_post">Erro ao eliminar o post</string>
     <string name="error_deleting_comment">Erro ao eliminar o comentario</string>
     <string name="error_updating_like">Erro ao actualizar o like</string>
+    <string name="error_adding_like">Erro ao engadir o like</string>
+    <string name="error_deleting_like">Erro ao eliminar o like</string>
 </resources>

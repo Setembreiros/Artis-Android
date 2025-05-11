@@ -222,7 +222,7 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         LikeButton(
             isLiked = isLiked,
             likesCount = likesCount,
-            onClick = { viewModel.toggleLike(post.metadata.postId) },
+            onClick = { viewModel.toggleLikePost(post.metadata.postId) },
             modifier = Modifier.padding(end = 16.dp)
         )
     }

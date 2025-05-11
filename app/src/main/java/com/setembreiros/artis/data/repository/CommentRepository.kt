@@ -19,4 +19,8 @@ class CommentRepository @Inject constructor(private val apiClient: ApiClient, pr
    ){
         apiClient.getComments(getToken(), postId, 12, lastCommentId)
     }
+
+    suspend fun deleteComment(postId: String, commentId: Long) = safeApiCall{
+        apiClient.deleteComment(getToken(), postId, commentId)
+    }
 }

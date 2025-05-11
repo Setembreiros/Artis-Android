@@ -80,7 +80,7 @@ fun CommentItem(
         ) {
             //       if (comment.isOwnComment) {
             DropdownMenuItem(
-                text = { Text("dfdffd")},
+                text = { Text(stringResource(id = R.string.delete))},
                 onClick = {
                     onAction(CommentAction.Delete(comment))
                     showContextMenu = false

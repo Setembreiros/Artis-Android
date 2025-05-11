@@ -55,4 +55,9 @@
     <string name="error_deleting_like">Erro ao eliminar o like</string>
     <string name="error_loading_likes">Erro ao cargar likes</string>
     <string name="like_section">Likes</string>
+    <string name="error_updating_superlike">Erro ao actualizar o superlike</string>
+    <string name="error_adding_superlike">Erro ao engadir o superlike</string>
+    <string name="error_deleting_superlike">Erro ao eliminar o superlike</string>
+    <string name="error_loading_superlikes">Erro ao cargar superlikes</string>
+    <string name="superlike_section">Superlikes</string>
 </resources>

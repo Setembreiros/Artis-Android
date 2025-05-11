@@ -14,6 +14,8 @@ data class GetPostMetadataDto(
     val comments: Long,
     val likes: Long,
     val isLikedByCurrentUser: Boolean,
+    val superlikes: Long,
+    val isSuperlikedByCurrentUser: Boolean,
     val size: Long,
     val created_at: String,
     val last_updated: String

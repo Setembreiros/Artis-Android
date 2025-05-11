@@ -14,6 +14,8 @@ import com.setembreiros.artis.domain.usecase.like.DeleteLikePostUseCase
 import com.setembreiros.artis.domain.usecase.like.GetLikesUseCase
 import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
+import com.setembreiros.artis.domain.usecase.superlike.AddSuperlikePostUseCase
+import com.setembreiros.artis.domain.usecase.superlike.DeleteSuperlikePostUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +38,8 @@ class PostDetailsViewModel @Inject constructor(
     private val addLikePostUseCase: AddLikePostUseCase,
     private val getLikesUseCase: GetLikesUseCase,
     private val deleteLikePostUseCase: DeleteLikePostUseCase,
+    private val addSuperlikePostUseCase: AddSuperlikePostUseCase,
+    private val deleteSuperlikePostUseCase: DeleteSuperlikePostUseCase,
 ): BaseViewModel() {
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
     val amountOfCommentsByPost: StateFlow<Map<String, Long>> = _amountOfCommentsByPost.asStateFlow()
@@ -47,6 +51,10 @@ class PostDetailsViewModel @Inject constructor(
     val likedByUser: StateFlow<Map<String, Boolean>> = _likedByUser
     private val _postLikes = MutableStateFlow<List<Like>>(emptyList())
     val postLikes: StateFlow<List<Like>> = _postLikes.asStateFlow()
+    private val _amountOfSuperlikesByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
+    val amountOfSuperlikesByPost: StateFlow<Map<String, Long>> = _amountOfSuperlikesByPost
+    private val _superlikedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val superlikedByUser: StateFlow<Map<String, Boolean>> = _superlikedByUser
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
@@ -69,6 +77,11 @@ class PostDetailsViewModel @Inject constructor(
     fun initializeLikes(postId: String, likes: Long, isLikedByCurrentUser: Boolean) {
         _amountOfLikesByPost.update { it + (postId to likes) }
         _likedByUser.update { it + (postId to isLikedByCurrentUser) }
+    }
+
+    fun initializeSuperlikes(postId: String, superlikes: Long, isSuperlikedByCurrentUser: Boolean) {
+        _amountOfSuperlikesByPost.update { it + (postId to superlikes) }
+        _superlikedByUser.update { it + (postId to isSuperlikedByCurrentUser) }
     }
 
     fun deletePost(postId: String, onSuccess: () -> Unit = {}) {
@@ -216,7 +229,7 @@ class PostDetailsViewModel @Inject constructor(
                     increaseAmountOfLikesByOne(postId)
                 }
             } catch (e: Exception) {
-                Log.e("PostDetailsViewModel", "Error adding comment: ${e.message}")
+                Log.e("PostDetailsViewModel", "Error adding like: ${e.message}")
                 _errorMessage.value = R.string.error_adding_like
             }
         }
@@ -232,8 +245,56 @@ class PostDetailsViewModel @Inject constructor(
                     decreaseAmountOfLikesByOne(postId)
                 }
             } catch (e: Exception) {
-                Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
+                Log.e("PostDetailsViewModel", "Error deleting like: ${e.message}")
                 _errorMessage.value = R.string.error_deleting_like
+            }
+        }
+    }
+
+    fun toggleSuperlikePost(postId: String) {
+        val isSuperliked = _superlikedByUser.value[postId] ?: false
+        viewModelScope.launch {
+            try {
+                if (isSuperliked) {
+                    deleteSuperlikeAndUpdate(postId)
+                } else {
+                    addSuperlikeAndUpdate(postId)
+                }
+                _superlikedByUser.update { it + (postId to !isSuperliked) }
+            } catch (e: Exception) {
+                _errorMessage.value = R.string.error_updating_superlike
+            }
+        }
+    }
+
+    private suspend fun addSuperlikeAndUpdate(postId: String) {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = addSuperlike(postId)
+                if (!result) {
+                    _errorMessage.value = R.string.error_adding_superlike
+                } else {
+                    increaseAmountOfSuperlikesByOne(postId)
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error adding superlike: ${e.message}")
+                _errorMessage.value = R.string.error_adding_superlike
+            }
+        }
+    }
+
+    private suspend fun deleteSuperlikeAndUpdate(postId: String)  {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = deleteSuperlike(postId)
+                if (!result) {
+                    _errorMessage.value = R.string.error_deleting_superlike
+                } else {
+                    decreaseAmountOfSuperlikesByOne(postId)
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting superlike: ${e.message}")
+                _errorMessage.value = R.string.error_deleting_superlike
             }
         }
     }
@@ -321,6 +382,52 @@ class PostDetailsViewModel @Inject constructor(
 
     private fun decreaseAmountOfLikesByOne(postId: String) {
         _amountOfLikesByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) - 1
+            }
+        }
+    }
+
+    private suspend fun addSuperlike(postId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                var result = false
+                getSessionUseCase.invoke()?.username?.let { username ->
+                    result = addSuperlikePostUseCase.invoke(username, postId)
+                }
+                result
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error adding superlike: ${e.message}")
+                false
+            }
+        }
+    }
+
+    private suspend fun deleteSuperlike(postId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                var result = false
+                getSessionUseCase.invoke()?.username?.let { username ->
+                    result = deleteSuperlikePostUseCase.invoke(username, postId)
+                }
+                result
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting superlike: ${e.message}")
+                false
+            }
+        }
+    }
+
+    private fun increaseAmountOfSuperlikesByOne(postId: String) {
+        _amountOfSuperlikesByPost.update { currentSuperlikes ->
+            currentSuperlikes.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) + 1
+            }
+        }
+    }
+
+    private fun decreaseAmountOfSuperlikesByOne(postId: String) {
+        _amountOfSuperlikesByPost.update { currentMap ->
             currentMap.toMutableMap().apply {
                 this[postId] = (this[postId] ?: 0) - 1
             }

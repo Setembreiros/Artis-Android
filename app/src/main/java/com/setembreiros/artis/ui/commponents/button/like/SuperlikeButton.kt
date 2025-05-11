@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,15 +29,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun LikeButton(
-    isLiked: Boolean,
-    likesCount: Long,
-    onLike: () -> Unit,
+fun SuperlikeButton(
+    isSuperliked: Boolean,
+    superlikesCount: Long,
+    onSuperlike: () -> Unit,
     onShow: () -> Unit,
 ) {
-    var currentIsLiked by remember { mutableStateOf(isLiked) }
+    var currentIsSuperliked by remember { mutableStateOf(isSuperliked) }
     val scale by animateFloatAsState(
-        targetValue = if (currentIsLiked) 1.2f else 1f,
+        targetValue = if (currentIsSuperliked) 1.2f else 1f,
         animationSpec = spring(
             dampingRatio = 0.4f,
             stiffness = 200f
@@ -52,28 +50,28 @@ fun LikeButton(
             .padding(end = 16.dp)
     ) {
         Icon(
-            imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-            contentDescription = "Like",
-            tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.primary,
+            imageVector = if (isSuperliked)  Icons.Filled.Star else Icons.Outlined.StarBorder,
+            contentDescription = "Superlike",
+            tint = if (isSuperliked) Color.Yellow else MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null // elimina o efecto visual ao premer
                 ) {
-                    currentIsLiked = !currentIsLiked
-                    onLike()
+                    currentIsSuperliked = !currentIsSuperliked
+                    onSuperlike()
                 }
                 .scale(scale)
                 .graphicsLayer {
-                    rotationZ = if (currentIsLiked) 0f else 0f
+                    rotationZ = if (currentIsSuperliked) 0f else 0f
                 }
                 .animateContentSize()
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = "$likesCount",
+            text = "$superlikesCount",
             fontSize = 16.sp,
-            color = if (isLiked) Color.Red else MaterialTheme.colorScheme.primary,
+            color = if (isSuperliked) Color.Yellow else MaterialTheme.colorScheme.primary,
             modifier = Modifier.animateContentSize()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },

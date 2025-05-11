@@ -62,7 +62,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -84,10 +83,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.model.Like
+import com.setembreiros.artis.domain.model.Superlike
 import com.setembreiros.artis.ui.commponents.DynamicColumn
 import com.setembreiros.artis.ui.commponents.button.like.LikeButton
 import com.setembreiros.artis.ui.commponents.button.like.LikeItem
 import com.setembreiros.artis.ui.commponents.button.like.SuperlikeButton
+import com.setembreiros.artis.ui.commponents.button.like.SuperlikeItem
 import com.setembreiros.artis.ui.commponents.comment.CommentAction
 import com.setembreiros.artis.ui.commponents.comment.CommentItem
 import kotlinx.coroutines.Dispatchers
@@ -122,6 +123,9 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val postLikes by viewModel.postLikes.collectAsState()
     val thereAreMoreLikes by viewModel.thereAreMoreLikes.collectAsStateWithLifecycle()
     var showLikes by remember { mutableStateOf(false) }
+    val postSuperlikes by viewModel.postSuperlikes.collectAsState()
+    val thereAreMoreSuperlikes by viewModel.thereAreMoreSuperlikes.collectAsStateWithLifecycle()
+    var showSuperlikes by remember { mutableStateOf(false) }
     val errorCode by viewModel.errorCode.collectAsState()
 
     // Mostrar Toast cando haxa un erro
@@ -244,6 +248,8 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             superlikesCount = superlikesCount,
             onSuperlike = { viewModel.toggleSuperlikePost(post.metadata.postId) },
             onShow = {
+                viewModel.loadInitialSuperlikes(post.metadata.postId)
+                showSuperlikes = true
             }
         )
     }
@@ -286,6 +292,18 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             isLoading,
             thereAreMoreLikes,
             onDismiss = { showLikes = false }
+        )
+    }
+
+    if (showSuperlikes) {
+        SuperlikeSection(
+            postSuperlikes,
+            onLoadMore = {
+                viewModel.loadMoreSuperlikes(post.metadata.postId)
+            },
+            isLoading,
+            thereAreMoreSuperlikes,
+            onDismiss = { showSuperlikes = false }
         )
     }
 }
@@ -430,12 +448,8 @@ fun LikeSection(
     thereAreMoreLikes: Boolean,
     onDismiss: () -> Unit,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    var newComment by remember { mutableStateOf("") }
-
     ModalBottomSheet(
         onDismissRequest = {
-            keyboardController?.hide()
             onDismiss()
         },
         sheetState = rememberModalBottomSheetState(
@@ -498,51 +512,82 @@ fun LikeSection(
                     contentPadding = PaddingValues(bottom = 56.dp),
                 )
             }
+        }
+    }
+}
 
-            // Campo de comentario
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun SuperlikeSection(
+    superlikes: List<Superlike>,
+    onLoadMore: () -> Unit,
+    isLoading: Boolean,
+    thereAreMoreSuperlikes: Boolean,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(2.dp)
+                    )
+            )
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.95f)
+                .imeNestedScroll() // Importante para o comportamento correcto
+        ) {
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp)
-                    .navigationBarsPadding()
-                    .imePadding() // Só este elemento reacciona ao teclado
+                    .fillMaxWidth()
+                    .padding(bottom = 80.dp) // Espazo para o campo fixo
             ) {
-                Surface(
-                    tonalElevation = 8.dp,
-                    shadowElevation = 8.dp,
-                    modifier = Modifier.fillMaxWidth()
+                // Cabeceira
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = newComment,
-                            onValueChange = { newComment = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text(stringResource(id = R.string.add_comment), color = Color.LightGray) }
-                        )
-                        IconButton(
-                            onClick = {
-                                if (newComment.isNotBlank()) {
-                                    newComment = ""
-                                    keyboardController?.hide()
-                                }
-                            },
-                            enabled = newComment.isNotBlank()
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Send",
-                                tint = if (newComment.isNotBlank()) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                            )
-                        }
-                    }
+                    Text(
+                        text = stringResource(id = R.string.superlike_section),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
+
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+
+                // Lista de comentarios
+                DynamicColumn(
+                    items = superlikes,
+                    itemView = { superlike ->
+                        SuperlikeItem(
+                            superlike = superlike,
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                    },
+                    onLoadMore = onLoadMore,
+                    isLoading = isLoading,
+                    thereAreMoreItems = thereAreMoreSuperlikes,
+                    modifier = Modifier.padding(8.dp),
+                    contentPadding = PaddingValues(bottom = 56.dp),
+                )
             }
         }
     }

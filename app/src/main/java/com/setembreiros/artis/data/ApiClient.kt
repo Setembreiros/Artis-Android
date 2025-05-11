@@ -13,6 +13,7 @@ import com.setembreiros.artis.data.model.post.CreatePostResponseApi
 import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
 import com.setembreiros.artis.data.model.superlike.CreateSuperlikePostRequestApi
+import com.setembreiros.artis.data.model.superlike.GetPostSuperlikesResponseApi
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -82,6 +83,12 @@ interface ApiClient {
 
     @POST("reactionservice/superlikePost")
     suspend fun createPostSuperlike(@Header("Authorization") token: String, @Body likePostApi: CreateSuperlikePostRequestApi) : WrapperApi<EmptyResponse?>
+
+    @GET("readmodels/postSuperlikes/{postId}")
+    suspend fun getPostSuperlikes(@Header("Authorization") token: String,
+                             @Path("postId") postId: String,
+                             @Query("limit") limit: Int = 12,
+                             @Query("lastUsername") lastUsername: String) : WrapperApi<GetPostSuperlikesResponseApi>
 
     @DELETE("reactionservice/superlikePost/{postId}/{username}")
     suspend fun deletePostSuperlike(@Header("Authorization") token: String,

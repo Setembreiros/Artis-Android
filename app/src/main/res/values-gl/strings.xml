@@ -53,4 +53,6 @@
     <string name="error_updating_like">Erro ao actualizar o like</string>
     <string name="error_adding_like">Erro ao engadir o like</string>
     <string name="error_deleting_like">Erro ao eliminar o like</string>
+    <string name="error_loading_likes">Erro ao cargar likes</string>
+    <string name="like_section">Likes</string>
 </resources>

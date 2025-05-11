@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class DeleteLikePostUseCase @Inject constructor(private val likeRepository: LikeRepository) {
     suspend fun invoke(username: String, postId: String): Boolean {
-        val result = likeRepository.deleteLikePost(username, postId)
+        val result = likeRepository.deletePostLike(username, postId)
         return when(result){
             is Resource.Success -> true
             is Resource.Failure -> {

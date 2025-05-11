@@ -188,7 +188,6 @@ class S3Service {
                 connection.inputStream.use { inputStream ->
                     result = inputStream.readBytes()
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
             }finally {

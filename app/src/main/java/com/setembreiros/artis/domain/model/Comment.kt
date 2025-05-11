@@ -1,3 +1,3 @@
 package com.setembreiros.artis.domain.model
 
-data class Comment(val username: String, val postId: String, val content: String)
+data class Comment(val commentId: Long, val username: String, val postId: String, val content: String)

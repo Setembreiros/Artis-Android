@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.R
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.Comment
-import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.usecase.comment.AddCommentUseCase
+import com.setembreiros.artis.domain.usecase.comment.GetCommentsUseCase
 import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
@@ -26,13 +26,16 @@ class PostDetailsViewModel @Inject constructor(
     private val getSessionUseCase: GetSessionUseCase,
     private val deletePostsUseCase: DeletePostsUseCase,
     private val addCommentUseCase: AddCommentUseCase,
+    private val getCommentsUseCase: GetCommentsUseCase,
 ): BaseViewModel() {
-    private val _post = MutableStateFlow<Post?>(null)
-    val post = _post
-    private val _commentsByPost = MutableStateFlow<Map<String, List<Comment>>>(emptyMap())
-    val commentsByPost: StateFlow<Map<String, List<Comment>>> = _commentsByPost.asStateFlow()
+    private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
+    val postComments: StateFlow<List<Comment>> = _postComments.asStateFlow()
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+    private val _thereAreMoreComments = MutableStateFlow(true)
+    val thereAreMoreComments: StateFlow<Boolean> = _thereAreMoreComments
 
     fun deletePost(postId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
@@ -49,23 +52,36 @@ class PostDetailsViewModel @Inject constructor(
         }
     }
 
-    fun loadCommentsForPost(postId: String) {
+    fun loadInitialComments(postId: String) {
+        _isLoading.value = true
         viewModelScope.launch {
             try {
-                val comments = loadComments(postId)
-                _commentsByPost.update { currentMap ->
-                    currentMap + (postId to comments)
+                val result = getCommentsUseCase.invoke(postId, 0)
+                _postComments.value = result.first
+                _thereAreMoreComments.value = result.second
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading comments: ${e.message}")
+                _errorMessage.value = R.string.error_loading_comments
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun loadMoreComments(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val lastCommentId = _postComments.value.last().commentId
+                val result = getCommentsUseCase.invoke(postId, lastCommentId)
+                _thereAreMoreComments.value = result.second
+                _postComments.update { currentList ->
+                    currentList + result.first
                 }
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error loading comments: ${e.message}")
                 _errorMessage.value = R.string.error_loading_comments
             }
-        }
-    }
-
-    private suspend fun loadComments(postId: String): List<Comment> {
-        return withContext(Dispatchers.IO) {
-            _commentsByPost.value[postId] ?: emptyList()
+            _isLoading.value = false
         }
     }
 
@@ -74,9 +90,8 @@ class PostDetailsViewModel @Inject constructor(
             try {
                 val newComment = addComment(postId, content)
                 newComment?.let { comment ->
-                    _commentsByPost.update { currentMap ->
-                        val currentComments = currentMap[postId] ?: emptyList()
-                        currentMap + (postId to (currentComments + comment))
+                    _postComments.update { currentList ->
+                        currentList + comment
                     }
                 } ?: run {
                     _errorMessage.value = R.string.comment_failed

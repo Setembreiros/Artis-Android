@@ -56,13 +56,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -81,14 +80,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
+import com.setembreiros.artis.ui.commponents.DynamicColumn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
 fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
-    val commentsByPost by viewModel.commentsByPost.collectAsState()
+    val postComments by viewModel.postComments.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()
     var showComments by remember { mutableStateOf(false) }
     val errorCode by viewModel.errorCode.collectAsState()
 
@@ -180,7 +183,10 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .clickable { showComments = true }
+                .clickable {
+                    showComments = true
+                    viewModel.loadInitialComments(post.metadata.postId)
+                }
                 .padding(end = 16.dp)
         ) {
             Icon(
@@ -205,10 +211,13 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     )
 
     if (showComments) {
-        viewModel.loadCommentsForPost(post.metadata.postId)
-
         CommentsSection(
-            commentsByPost[post.metadata.postId] ?: emptyList(),
+            postComments,
+            onLoadMore = {
+                viewModel.loadMoreComments(post.metadata.postId)
+            },
+            isLoading,
+            thereAreMoreComments,
             onSend = {
                 viewModel.addCommentAndUpdate(post.metadata.postId, it)
             },
@@ -221,6 +230,9 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
 @Composable
 fun CommentsSection(
     comments: List<Comment>,
+    onLoadMore: () -> Unit,
+    isLoading: Boolean,
+    thereAreMoreComments: Boolean,
     onSend: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -285,16 +297,19 @@ fun CommentsSection(
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
                 // Lista de comentarios
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    items(comments) { comment ->
-                        CommentItem(comment = comment)
+                DynamicColumn(
+                    items = comments,
+                    itemView = { comment ->
+                        CommentItem(comment)
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-                    }
-                }
+                    },
+                    onLoadMore = onLoadMore,
+                    isLoading = isLoading,
+                    thereAreMoreItems = thereAreMoreComments,
+                    modifier = Modifier.padding(8.dp),
+                    contentPadding = PaddingValues(bottom = 56.dp),
+                    listState = listState
+                )
             }
 
             // Campo de comentario

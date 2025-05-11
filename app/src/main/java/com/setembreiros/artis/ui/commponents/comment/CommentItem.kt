@@ -78,22 +78,22 @@ fun CommentItem(
             expanded = showContextMenu,
             onDismissRequest = { showContextMenu = false }
         ) {
-            //       if (comment.isOwnComment) {
-            DropdownMenuItem(
-                text = { Text(stringResource(id = R.string.delete))},
-                onClick = {
-                    onAction(CommentAction.Delete(comment))
-                    showContextMenu = false
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = Color.Red
-                    )
-                }
-            )
-            //    }
+            if (comment.isOwner) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.delete))},
+                    onClick = {
+                        onAction(CommentAction.Delete(comment))
+                        showContextMenu = false
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = Color.Red
+                        )
+                    }
+                )
+            }
         }
     }
 }

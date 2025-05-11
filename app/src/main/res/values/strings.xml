@@ -54,4 +54,9 @@
     <string name="error_deleting_like">Error deleting like</string>
     <string name="error_loading_likes">Error loading likes</string>
     <string name="like_section">Likes</string>
+    <string name="error_updating_superlike">Error updating superlike</string>
+    <string name="error_adding_superlike">Error adding superlike</string>
+    <string name="error_deleting_superlike">Error deleting superlike</string>
+    <string name="error_loading_superlikes">Error loading superlikes</string>
+    <string name="superlike_section">Superlikes</string>
 </resources>

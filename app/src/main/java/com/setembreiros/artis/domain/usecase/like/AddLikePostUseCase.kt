@@ -10,7 +10,7 @@ class AddLikePostUseCase @Inject constructor(private val likeRepository: LikeRep
         return when(val result = likeRepository.createPostLike(username, postId)){
             is Resource.Success -> true
             is Resource.Failure -> {
-                Log.e("DeleteCommentUseCase", "Error adding like, type: ${result.type}, message: ${result.message}")
+                Log.e("AddLikePostUseCase", "Error adding like, type: ${result.type}, message: ${result.message}")
                 false
             }
         }

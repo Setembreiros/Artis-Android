@@ -16,6 +16,8 @@ class GetPostMetadatasResponseMapperApi: Mapper<GetPostMetadatasResponseApi, Pai
                 comments = dto.comments,
                 likes = dto.likes,
                 isLikedByCurrentUser = dto.isLikedByCurrentUser,
+                superlikes = dto.superlikes,
+                isSuperlikedByCurrentUser = dto.isSuperlikedByCurrentUser,
                 size = dto.size,
                 createdAt = dto.created_at,
                 lastUpdated = dto.last_updated

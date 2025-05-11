@@ -12,6 +12,7 @@ import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
 import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
+import com.setembreiros.artis.data.model.superlike.CreateSuperlikePostRequestApi
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -76,6 +77,14 @@ interface ApiClient {
 
     @DELETE("reactionservice/likePost/{postId}/{username}")
     suspend fun deletePostLike(@Header("Authorization") token: String,
+                               @Path("postId") postId: String,
+                               @Path("username") username: String,) : WrapperApi<EmptyResponse?>
+
+    @POST("reactionservice/superlikePost")
+    suspend fun createPostSuperlike(@Header("Authorization") token: String, @Body likePostApi: CreateSuperlikePostRequestApi) : WrapperApi<EmptyResponse?>
+
+    @DELETE("reactionservice/superlikePost/{postId}/{username}")
+    suspend fun deletePostSuperlike(@Header("Authorization") token: String,
                                @Path("postId") postId: String,
                                @Path("username") username: String,) : WrapperApi<EmptyResponse?>
 }

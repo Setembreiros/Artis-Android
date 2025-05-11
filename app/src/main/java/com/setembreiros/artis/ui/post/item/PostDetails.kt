@@ -87,6 +87,7 @@ import com.setembreiros.artis.domain.model.Like
 import com.setembreiros.artis.ui.commponents.DynamicColumn
 import com.setembreiros.artis.ui.commponents.button.like.LikeButton
 import com.setembreiros.artis.ui.commponents.button.like.LikeItem
+import com.setembreiros.artis.ui.commponents.button.like.SuperlikeButton
 import com.setembreiros.artis.ui.commponents.comment.CommentAction
 import com.setembreiros.artis.ui.commponents.comment.CommentItem
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +99,7 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     LaunchedEffect(post.metadata.postId) {
         viewModel.setAmountOfComments(post.metadata.postId, post.metadata.comments)
         viewModel.initializeLikes(post.metadata.postId, post.metadata.likes, post.metadata.isLikedByCurrentUser)
+        viewModel.initializeSuperlikes(post.metadata.postId, post.metadata.superlikes, post.metadata.isSuperlikedByCurrentUser)
     }
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
     val commentCount by remember {
@@ -109,6 +111,10 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val likedByUser by viewModel.likedByUser.collectAsState()
     val likesCount = likesByPost[post.metadata.postId] ?: post.metadata.likes
     val isLiked = likedByUser[post.metadata.postId] ?: post.metadata.isLikedByCurrentUser
+    val superlikesByPost by viewModel.amountOfSuperlikesByPost.collectAsState()
+    val superlikedByUser by viewModel.superlikedByUser.collectAsState()
+    val superlikesCount = superlikesByPost[post.metadata.postId] ?: post.metadata.superlikes
+    val isSuperliked = superlikedByUser[post.metadata.postId] ?: post.metadata.isSuperlikedByCurrentUser
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val postComments by viewModel.postComments.collectAsState()
     val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()
@@ -231,6 +237,13 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             onShow = {
                 viewModel.loadInitialLikes(post.metadata.postId)
                 showLikes = true
+            }
+        )
+        SuperlikeButton(
+            isSuperliked = isSuperliked,
+            superlikesCount = superlikesCount,
+            onSuperlike = { viewModel.toggleSuperlikePost(post.metadata.postId) },
+            onShow = {
             }
         )
     }

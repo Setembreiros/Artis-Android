@@ -111,7 +111,7 @@ class PostDetailsViewModel @Inject constructor(
                 val newComment = addComment(postId, content)
                 newComment?.let { comment ->
                     _postComments.update { currentList ->
-                        currentList + comment
+                        listOf(comment) + currentList // Engade ao comezo
                     }
                     increaseAmountOfCommentsByOne(postId)
                 } ?: run {

@@ -250,13 +250,6 @@ fun CommentsSection(
     var newComment by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // Desprazar ao final cando se engade un novo comentario
-    LaunchedEffect(comments.size) {
-        if (comments.isNotEmpty()) {
-            listState.animateScrollToItem(comments.size)
-        }
-    }
-
     ModalBottomSheet(
         onDismissRequest = {
             keyboardController?.hide()

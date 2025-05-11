@@ -18,8 +18,8 @@ import javax.inject.Inject
 class GetPostsUseCase @Inject constructor(private val postRepository: PostRepository,
                                           private val profileRepository: ProfileRepository,
                                           private val s3Service: S3Service)  {
-    suspend fun invoke(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<Post>,Boolean> = coroutineScope {
-        val postMetadatasDeferred = async { getMetaData(username, lastPostId, lastPostCreatedAt) }
+    suspend fun invoke(username: String, currentUsername: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<Post>,Boolean> = coroutineScope {
+        val postMetadatasDeferred = async { getMetaData(username, currentUsername, lastPostId, lastPostCreatedAt) }
         val postUrlsDeferred = async { getUrls(username, lastPostId, lastPostCreatedAt) }
 
         val postMetadatas = postMetadatasDeferred.await()
@@ -38,8 +38,8 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
         Pair(posts.toTypedArray(), postMetadatas.second)
     }
 
-    private suspend fun getMetaData(username: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<PostMetadata>, Boolean> {
-        return when(val response = postRepository.getPostMetadatas(username, lastPostId, lastPostCreatedAt)){
+    private suspend fun getMetaData(username: String, currentUsername: String, lastPostId: String, lastPostCreatedAt: String) : Pair<Array<PostMetadata>, Boolean> {
+        return when(val response = postRepository.getPostMetadatas(username, currentUsername, lastPostId, lastPostCreatedAt)){
             is Resource.Success -> {
                 response.value
             }

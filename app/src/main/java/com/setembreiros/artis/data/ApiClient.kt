@@ -38,9 +38,10 @@ interface ApiClient {
                             @Query("lastPostId") lastPostId: String,
                             @Query("lastPostCreatedAt") lastPostCreatedAt: String) : WrapperApi<GetUrlPostsResponseApi>
 
-    @GET("readmodels/user-posts/{username}")
+    @GET("readmodels/user-posts/{username}/{currentUsername}")
     suspend fun getPostMetadatas(@Header("Authorization") token: String,
                                  @Path("username") username: String,
+                                 @Path("currentUsername") currentUsername: String,
                                  @Query("limit") limit: Int = 9,
                                  @Query("lastPostId") lastPostId: String,
                                  @Query("lastPostCreatedAt") lastPostCreatedAt: String) : WrapperApi<GetPostMetadatasResponseApi>

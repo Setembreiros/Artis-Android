@@ -1,7 +1,6 @@
 package com.setembreiros.artis.ui.post.column
 
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.usecase.post.GetPostsUseCase
@@ -42,7 +41,7 @@ class ColumnPostDetailsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             getSessionUseCase.invoke()?.username?.let { username ->
                 val lastPost = _posts.value.last()
-                val result = getPostsUseCase.invoke(username, lastPost.metadata.postId, lastPost.metadata.createdAt)
+                val result = getPostsUseCase.invoke(username, username, lastPost.metadata.postId, lastPost.metadata.createdAt)
                 val newPosts = result.first.sortedBy { it.metadata.createdAt }
                 _thereAreMorePosts.value = result.second
                 _posts.value += newPosts

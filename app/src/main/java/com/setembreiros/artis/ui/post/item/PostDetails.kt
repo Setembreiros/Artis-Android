@@ -84,6 +84,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.ui.commponents.DynamicColumn
+import com.setembreiros.artis.ui.commponents.comment.CommentAction
+import com.setembreiros.artis.ui.commponents.comment.CommentItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -231,7 +233,14 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             onSend = {
                 viewModel.addCommentAndUpdate(post.metadata.postId, it)
             },
-            onDismiss = { showComments = false }
+            onDismiss = { showComments = false },
+            onCommentAction = { action ->
+                when (action) {
+                    is CommentAction.Delete -> {
+                        viewModel.deleteCommentAndUpdate(post.metadata.postId, action.comment.commentId)
+                    }
+                }
+            }
         )
     }
 }
@@ -245,6 +254,7 @@ fun CommentsSection(
     thereAreMoreComments: Boolean,
     onSend: (String) -> Unit,
     onDismiss: () -> Unit,
+    onCommentAction: (CommentAction) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var newComment by remember { mutableStateOf("") }
@@ -303,7 +313,10 @@ fun CommentsSection(
                 DynamicColumn(
                     items = comments,
                     itemView = { comment ->
-                        CommentItem(comment)
+                        CommentItem(
+                            comment = comment,
+                            onAction = onCommentAction
+                        )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
                     },
                     onLoadMore = onLoadMore,
@@ -361,36 +374,6 @@ fun CommentsSection(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun CommentItem(comment: Comment) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            // Nome de usuario
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = comment.username,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray,
-                    fontSize = 16.sp
-                )
-            }
-
-            // Contido do comentario
-            Text(
-                text = comment.content,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(top = 4.dp)
-            )
         }
     }
 }

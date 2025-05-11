@@ -6,6 +6,7 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.usecase.comment.AddCommentUseCase
+import com.setembreiros.artis.domain.usecase.comment.DeleteCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.GetCommentsUseCase
 import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
@@ -27,6 +28,7 @@ class PostDetailsViewModel @Inject constructor(
     private val deletePostsUseCase: DeletePostsUseCase,
     private val addCommentUseCase: AddCommentUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
+    private val deleteCommentUseCase: DeleteCommentUseCase,
 ): BaseViewModel() {
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
     val amountOfCommentsByPost: StateFlow<Map<String, Long>> = _amountOfCommentsByPost.asStateFlow()
@@ -53,6 +55,14 @@ class PostDetailsViewModel @Inject constructor(
         _amountOfCommentsByPost.update { currentMap ->
             currentMap.toMutableMap().apply {
                 this[postId] = (this[postId] ?: 0) + 1
+            }
+        }
+    }
+
+    private fun decreaseAmountOfCommentsByOne(postId: String) {
+        _amountOfCommentsByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = (this[postId] ?: 0) - 1
             }
         }
     }
@@ -128,6 +138,25 @@ class PostDetailsViewModel @Inject constructor(
         _errorMessage.value = null
     }
 
+    fun deleteCommentAndUpdate(postId: String, commentId: Long)  {
+        viewModelScope.launch {
+            try {
+                val result = deleteComment(postId, commentId)
+                if (!result) {
+                    _errorMessage.value = R.string.error_deleting_comment
+                } else {
+                    _postComments.update { currentList ->
+                        currentList.filterNot { it.commentId == commentId }// Eliminao da lista
+                    }
+                    decreaseAmountOfCommentsByOne(postId)
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
+                _errorMessage.value = R.string.error_deleting_comment
+            }
+        }
+    }
+
     private suspend fun addComment(postId: String, content: String): Comment? {
         return withContext(Dispatchers.IO) {
             try {
@@ -136,6 +165,17 @@ class PostDetailsViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 null
+            }
+        }
+    }
+
+    private suspend fun deleteComment(postId: String, commentId: Long): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                deleteCommentUseCase.invoke(postId, commentId)
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
+                false
             }
         }
     }

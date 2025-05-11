@@ -56,4 +56,9 @@ interface ApiClient {
                                  @Path("postId") postId: String,
                                  @Query("limit") limit: Int = 12,
                                  @Query("lastCommentId") lastCommentId: Long) : WrapperApi<GetCommentsResponseApi>
+
+    @DELETE("commentservice/comment/{postId}/{commentId}")
+    suspend fun deleteComment(@Header("Authorization") token: String,
+                              @Path("postId") postId: String,
+                              @Path("commentId") commentId: Long,) : WrapperApi<EmptyResponse>
 }

@@ -14,7 +14,7 @@ fun DeleteAlertDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         title = { Text(stringResource(id = R.string.delete_post_title)) },
         text = { Text(stringResource(id = R.string.delete_post_description)) },
         confirmButton = {
-            StandardButton(stringResource(id = R.string.delete_button), true, backgroundColor = Color.Red, onclick = {
+            StandardButton(stringResource(id = R.string.delete), true, backgroundColor = Color.Red, onclick = {
                 onConfirm()
                 onDismiss()
             })

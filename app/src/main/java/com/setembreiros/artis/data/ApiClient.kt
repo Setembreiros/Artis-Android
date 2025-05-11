@@ -6,6 +6,7 @@ import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.comment.CreateCommentRequestApi
 import com.setembreiros.artis.data.model.comment.GetCommentsResponseApi
 import com.setembreiros.artis.data.model.like.CreateLikePostRequestApi
+import com.setembreiros.artis.data.model.like.GetPostLikesResponseApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
@@ -65,10 +66,16 @@ interface ApiClient {
                               @Path("commentId") commentId: Long,) : WrapperApi<EmptyResponse?>
 
     @POST("reactionservice/likePost")
-    suspend fun createLikePost(@Header("Authorization") token: String, @Body likePostApi: CreateLikePostRequestApi) : WrapperApi<EmptyResponse?>
+    suspend fun createPostLike(@Header("Authorization") token: String, @Body likePostApi: CreateLikePostRequestApi) : WrapperApi<EmptyResponse?>
+
+    @GET("readmodels/postLikes/{postId}")
+    suspend fun getPostLikes(@Header("Authorization") token: String,
+                            @Path("postId") postId: String,
+                            @Query("limit") limit: Int = 12,
+                            @Query("lastUsername") lastUsername: String) : WrapperApi<GetPostLikesResponseApi>
 
     @DELETE("reactionservice/likePost/{postId}/{username}")
-    suspend fun deleteLikePost(@Header("Authorization") token: String,
-                              @Path("postId") postId: String,
-                              @Path("username") username: String,) : WrapperApi<EmptyResponse?>
+    suspend fun deletePostLike(@Header("Authorization") token: String,
+                               @Path("postId") postId: String,
+                               @Path("username") username: String,) : WrapperApi<EmptyResponse?>
 }

@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.sp
 fun LikeButton(
     isLiked: Boolean,
     likesCount: Long,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onLike: () -> Unit,
+    onShow: () -> Unit,
 ) {
     var currentIsLiked by remember { mutableStateOf(isLiked) }
     val scale by animateFloatAsState(
@@ -40,25 +40,24 @@ fun LikeButton(
         animationSpec = spring(
             dampingRatio = 0.4f,
             stiffness = 200f
-        )
+        ), label = ""
     )
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null // elimina o efecto visual ao premer
-            ) {
-                currentIsLiked = !currentIsLiked
-                onClick()
-            }
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.Favorite,
             contentDescription = "Like",
             tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.primary,
             modifier = Modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null // elimina o efecto visual ao premer
+                ) {
+                    currentIsLiked = !currentIsLiked
+                    onLike()
+                }
                 .scale(scale)
                 .graphicsLayer {
                     rotationZ = if (currentIsLiked) 0f else 0f
@@ -71,6 +70,12 @@ fun LikeButton(
             fontSize = 16.sp,
             color = if (isLiked) Color.Red else MaterialTheme.colorScheme.primary,
             modifier = Modifier.animateContentSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null // elimina o efecto visual ao premer
+                ) {
+                    onShow()
+                }
         )
     }
 }

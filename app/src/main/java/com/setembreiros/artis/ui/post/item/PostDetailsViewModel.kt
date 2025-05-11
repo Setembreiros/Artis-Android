@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.setembreiros.artis.R
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.Comment
+import com.setembreiros.artis.domain.model.Like
 import com.setembreiros.artis.domain.usecase.comment.AddCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.DeleteCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.GetCommentsUseCase
 import com.setembreiros.artis.domain.usecase.like.AddLikePostUseCase
 import com.setembreiros.artis.domain.usecase.like.DeleteLikePostUseCase
+import com.setembreiros.artis.domain.usecase.like.GetLikesUseCase
 import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
@@ -32,6 +34,7 @@ class PostDetailsViewModel @Inject constructor(
     private val getCommentsUseCase: GetCommentsUseCase,
     private val deleteCommentUseCase: DeleteCommentUseCase,
     private val addLikePostUseCase: AddLikePostUseCase,
+    private val getLikesUseCase: GetLikesUseCase,
     private val deleteLikePostUseCase: DeleteLikePostUseCase,
 ): BaseViewModel() {
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
@@ -39,15 +42,19 @@ class PostDetailsViewModel @Inject constructor(
     private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
     val postComments: StateFlow<List<Comment>> = _postComments.asStateFlow()
     private val _amountOfLikesByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
-    val likesByPost: StateFlow<Map<String, Long>> = _amountOfLikesByPost
+    val amountOfLikesByPost: StateFlow<Map<String, Long>> = _amountOfLikesByPost
     private val _likedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val likedByUser: StateFlow<Map<String, Boolean>> = _likedByUser
+    private val _postLikes = MutableStateFlow<List<Like>>(emptyList())
+    val postLikes: StateFlow<List<Like>> = _postLikes.asStateFlow()
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val _thereAreMoreComments = MutableStateFlow(true)
     val thereAreMoreComments: StateFlow<Boolean> = _thereAreMoreComments
+    private val _thereAreMoreLikes = MutableStateFlow(true)
+    val thereAreMoreLikes: StateFlow<Boolean> = _thereAreMoreLikes
 
     fun setAmountOfComments(postId: String, amountOfComments: Long) {
         _amountOfCommentsByPost.update { currentMap ->
@@ -147,6 +154,39 @@ class PostDetailsViewModel @Inject constructor(
                 Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
                 _errorMessage.value = R.string.error_deleting_comment
             }
+        }
+    }
+
+    fun loadInitialLikes(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = getLikesUseCase.invoke(postId, "")
+                _postLikes.value = result.first
+                _thereAreMoreLikes.value = result.second
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading likes: ${e.message}")
+                _errorMessage.value = R.string.error_loading_likes
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun loadMoreLikes(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val lastUsername = _postLikes.value.last().username
+                val result = getLikesUseCase.invoke(postId, lastUsername)
+                _thereAreMoreLikes.value = result.second
+                _postLikes.update { currentList ->
+                    currentList + result.first
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading likes: ${e.message}")
+                _errorMessage.value = R.string.error_loading_likes
+            }
+            _isLoading.value = false
         }
     }
 

@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class AddLikePostUseCase @Inject constructor(private val likeRepository: LikeRepository) {
     suspend fun invoke(username: String, postId: String): Boolean {
-        return when(val result = likeRepository.createLikePost(username, postId)){
+        return when(val result = likeRepository.createPostLike(username, postId)){
             is Resource.Success -> true
             is Resource.Failure -> {
                 Log.e("DeleteCommentUseCase", "Error adding like, type: ${result.type}, message: ${result.message}")

@@ -52,4 +52,6 @@
     <string name="error_updating_like">Error updating like</string>
     <string name="error_adding_like">Error adding like</string>
     <string name="error_deleting_like">Error deleting like</string>
+    <string name="error_loading_likes">Error loading likes</string>
+    <string name="like_section">Likes</string>
 </resources>

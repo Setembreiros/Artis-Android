@@ -84,6 +84,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.ui.commponents.DynamicColumn
+import com.setembreiros.artis.ui.commponents.button.like.LikeButton
 import com.setembreiros.artis.ui.commponents.comment.CommentAction
 import com.setembreiros.artis.ui.commponents.comment.CommentItem
 import kotlinx.coroutines.Dispatchers
@@ -94,6 +95,7 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
     LaunchedEffect(post.metadata.postId) {
         viewModel.setAmountOfComments(post.metadata.postId, post.metadata.comments)
+        viewModel.initializeLikes(post.metadata.postId, post.metadata.likes, post.metadata.isLikedByCurrentUser)
     }
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
     val commentCount by remember {
@@ -101,6 +103,10 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             amountOfCommentsByPost[post.metadata.postId] ?: post.metadata.comments
         }
     }
+    val likesByPost by viewModel.likesByPost.collectAsState()
+    val likedByUser by viewModel.likedByUser.collectAsState()
+    val likesCount = likesByPost[post.metadata.postId] ?: post.metadata.likes
+    val isLiked = likedByUser[post.metadata.postId] ?: post.metadata.isLikedByCurrentUser
     val postComments by viewModel.postComments.collectAsState()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()
@@ -213,6 +219,12 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
                 color = MaterialTheme.colorScheme.primary
             )
         }
+        LikeButton(
+            isLiked = isLiked,
+            likesCount = likesCount,
+            onClick = { viewModel.toggleLike(post.metadata.postId) },
+            modifier = Modifier.padding(end = 16.dp)
+        )
     }
     Spacer(modifier = Modifier.height(10.dp))
     Text(
@@ -452,7 +464,7 @@ fun Image2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,

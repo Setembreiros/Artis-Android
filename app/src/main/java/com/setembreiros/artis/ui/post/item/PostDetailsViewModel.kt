@@ -34,6 +34,10 @@ class PostDetailsViewModel @Inject constructor(
     val amountOfCommentsByPost: StateFlow<Map<String, Long>> = _amountOfCommentsByPost.asStateFlow()
     private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
     val postComments: StateFlow<List<Comment>> = _postComments.asStateFlow()
+    private val _likesByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
+    val likesByPost: StateFlow<Map<String, Long>> = _likesByPost
+    private val _likedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val likedByUser: StateFlow<Map<String, Boolean>> = _likedByUser
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
@@ -63,6 +67,37 @@ class PostDetailsViewModel @Inject constructor(
         _amountOfCommentsByPost.update { currentMap ->
             currentMap.toMutableMap().apply {
                 this[postId] = (this[postId] ?: 0) - 1
+            }
+        }
+    }
+
+    fun initializeLikes(postId: String, likes: Long, isLikedByCurrentUser: Boolean) {
+        _likesByPost.update { it + (postId to likes) }
+        _likedByUser.update { it + (postId to isLikedByCurrentUser) }
+    }
+
+    fun toggleLike(postId: String) {
+        val isLiked = _likedByUser.value[postId] ?: false
+        viewModelScope.launch {
+            try {
+                if (isLiked) {
+                   // profileRepository.removeLike(postId) // suposto
+                } else {
+                    //profileRepository.addLike(postId)
+                }
+                _likedByUser.update { it + (postId to !isLiked) }
+                _likesByPost.update {
+                    val currentLikes = it[postId] ?: 0
+                    it + (postId to if (isLiked) currentLikes - 1 else currentLikes + 1)
+                }
+            } catch (e: Exception) {
+                // Reverter o cambio local se falla
+                _likedByUser.update { it + (postId to isLiked) }
+                _likesByPost.update {
+                    val currentLikes = it[postId] ?: 0
+                    it + (postId to if (isLiked) currentLikes + 1 else currentLikes - 1)
+                }
+                _errorMessage.value = R.string.error_updating_like
             }
         }
     }

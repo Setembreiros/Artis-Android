@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -53,6 +54,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -68,6 +70,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -365,32 +369,47 @@ fun CommentsSection(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CommentItem(comment: Comment) {
-    Row(
+    var showMenu by remember { mutableStateOf(false) }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .combinedClickable(
+                onClick = {},
+                onLongClick = { showMenu = true }
+            )
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Spacer(modifier = Modifier.width(8.dp))
+        Row {
+            Spacer(modifier = Modifier.width(8.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            // Nome de usuario
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                // Nome de usuario
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = comment.username,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                }
+
+                // Contido do comentario
                 Text(
-                    text = comment.username,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray,
-                    fontSize = 16.sp
+                    text = comment.content,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
+        }
 
-            // Contido do comentario
-            Text(
-                text = comment.content,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
         }
     }
 }

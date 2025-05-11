@@ -13,6 +13,7 @@ class GetPostMetadatasResponseMapperApi: Mapper<GetPostMetadatasResponseApi, Pai
                 type = dto.type,
                 title = dto.title,
                 description = dto.description,
+                comments = dto.comments,
                 size = dto.size,
                 createdAt = dto.created_at,
                 lastUpdated = dto.last_updated

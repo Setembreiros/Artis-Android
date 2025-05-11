@@ -1,7 +1,9 @@
 package com.setembreiros.artis.data
 
+import com.setembreiros.artis.data.model.EmptyResponse
 import com.setembreiros.artis.data.model.UserProfileApi
 import com.setembreiros.artis.data.model.WrapperApi
+import com.setembreiros.artis.data.model.comment.CreateCommentRequestApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
@@ -44,4 +46,8 @@ interface ApiClient {
     @DELETE("postservice/posts")
     suspend fun deletePost(@Header("Authorization") token: String,
                                  @Query("postId") postId: String) : WrapperApi<Boolean>
+
+    @POST("commentservice/comment")
+    suspend fun createComment(@Header("Authorization") token: String, @Body commentApi: CreateCommentRequestApi) : WrapperApi<EmptyResponse>
+
 }

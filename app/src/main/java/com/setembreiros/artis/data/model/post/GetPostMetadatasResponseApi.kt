@@ -11,6 +11,7 @@ data class GetPostMetadataDto(
     val file_type: String,
     val title: String,
     val description: String,
+    val comments: Long,
     val size: Long,
     val created_at: String,
     val last_updated: String

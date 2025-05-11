@@ -3,6 +3,7 @@ package com.setembreiros.artis.data.repository
 import com.setembreiros.artis.data.ApiClient
 import com.setembreiros.artis.data.base.BaseApiClient
 import com.setembreiros.artis.data.mapper.todomain.GetPostLikesResponseMapperApi
+import com.setembreiros.artis.data.mapper.todomain.GetPostSuperlikesResponseMapperApi
 import com.setembreiros.artis.data.model.like.CreateLikePostRequestApi
 import com.setembreiros.artis.data.model.superlike.CreateSuperlikePostRequestApi
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
@@ -27,6 +28,12 @@ class LikeRepository @Inject constructor(private val apiClient: ApiClient, priva
 
     suspend fun createPostSuperlike(username: String, postId: String) = safeApiCall{
         apiClient.createPostSuperlike(getToken(), CreateSuperlikePostRequestApi(username, postId))
+    }
+
+    suspend fun getPostSuperlikes(postId: String, lastUsername: String) = safeApiCall(
+        GetPostSuperlikesResponseMapperApi()
+    ){
+        apiClient.getPostSuperlikes(getToken(), postId, 12, lastUsername)
     }
 
     suspend fun deletePostSuperlike(username: String, postId: String) = safeApiCall{

@@ -6,6 +6,7 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.model.Like
+import com.setembreiros.artis.domain.model.Superlike
 import com.setembreiros.artis.domain.usecase.comment.AddCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.DeleteCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.GetCommentsUseCase
@@ -16,6 +17,7 @@ import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.domain.usecase.superlike.AddSuperlikePostUseCase
 import com.setembreiros.artis.domain.usecase.superlike.DeleteSuperlikePostUseCase
+import com.setembreiros.artis.domain.usecase.superlike.GetSuperlikesUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +41,7 @@ class PostDetailsViewModel @Inject constructor(
     private val getLikesUseCase: GetLikesUseCase,
     private val deleteLikePostUseCase: DeleteLikePostUseCase,
     private val addSuperlikePostUseCase: AddSuperlikePostUseCase,
+    private val getSuperlikesUseCase: GetSuperlikesUseCase,
     private val deleteSuperlikePostUseCase: DeleteSuperlikePostUseCase,
 ): BaseViewModel() {
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
@@ -55,6 +58,8 @@ class PostDetailsViewModel @Inject constructor(
     val amountOfSuperlikesByPost: StateFlow<Map<String, Long>> = _amountOfSuperlikesByPost
     private val _superlikedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     val superlikedByUser: StateFlow<Map<String, Boolean>> = _superlikedByUser
+    private val _postSuperlikes = MutableStateFlow<List<Superlike>>(emptyList())
+    val postSuperlikes: StateFlow<List<Superlike>> = _postSuperlikes.asStateFlow()
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
@@ -63,6 +68,8 @@ class PostDetailsViewModel @Inject constructor(
     val thereAreMoreComments: StateFlow<Boolean> = _thereAreMoreComments
     private val _thereAreMoreLikes = MutableStateFlow(true)
     val thereAreMoreLikes: StateFlow<Boolean> = _thereAreMoreLikes
+    private val _thereAreMoreSuperlikes = MutableStateFlow(true)
+    val thereAreMoreSuperlikes: StateFlow<Boolean> = _thereAreMoreSuperlikes
 
     fun setAmountOfComments(postId: String, amountOfComments: Long) {
         _amountOfCommentsByPost.update { currentMap ->
@@ -248,6 +255,39 @@ class PostDetailsViewModel @Inject constructor(
                 Log.e("PostDetailsViewModel", "Error deleting like: ${e.message}")
                 _errorMessage.value = R.string.error_deleting_like
             }
+        }
+    }
+
+    fun loadInitialSuperlikes(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = getSuperlikesUseCase.invoke(postId, "")
+                _postSuperlikes.value = result.first
+                _thereAreMoreSuperlikes.value = result.second
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading superlikes: ${e.message}")
+                _errorMessage.value = R.string.error_loading_superlikes
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun loadMoreSuperlikes(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val lastUsername = _postSuperlikes.value.last().username
+                val result = getSuperlikesUseCase.invoke(postId, lastUsername)
+                _thereAreMoreLikes.value = result.second
+                _postSuperlikes.update { currentList ->
+                    currentList + result.first
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading superlikes: ${e.message}")
+                _errorMessage.value = R.string.error_loading_superlikes
+            }
+            _isLoading.value = false
         }
     }
 

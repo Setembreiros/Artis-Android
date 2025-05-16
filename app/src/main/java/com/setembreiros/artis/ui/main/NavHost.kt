@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.setembreiros.artis.ui.account.login.LoginScreen
 import com.setembreiros.artis.ui.account.register.RegisterScreen
+import com.setembreiros.artis.ui.discover.DiscoverScreen
 import com.setembreiros.artis.ui.home.HomeScreen
 import com.setembreiros.artis.ui.post.column.ColumnPostDetailsScreen
 import com.setembreiros.artis.ui.post.creation.NewPostScreen
@@ -52,6 +53,11 @@ fun NavHostApp(
         composable(Home.route) {
             stateButtonMenu(true)
             HomeScreen(onCloseSession = {navController.navigationToLogin()})
+        }
+        composable(Discover.route){
+            stateTopBar(false)
+            stateButtonMenu(true)
+            DiscoverScreen()
         }
         composable(NewPost.route){
             stateTopBar(false)

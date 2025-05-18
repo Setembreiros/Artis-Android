@@ -50,7 +50,7 @@ fun DiscoverScreen(onUserClick: (username: String) -> Unit) {
 
     Column(modifier = Modifier.padding(16.dp)) {
         SearchBar(
-            onSearchTextChanged = viewModel::searchUsers,
+            onSearchTextChanged = viewModel::onSearchQueryChanged,
             searchResults = searchResults,
             modifier = Modifier.fillMaxWidth(),
             isLoading = isLoading,
@@ -70,12 +70,12 @@ private fun <T> SearchBar(
     isLoading: Boolean,
     itemContent: @Composable (T) -> Unit
 ) {
-    val searchQuery = remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
 
     TextField(
-        value = searchQuery.value,
+        value = searchQuery,
         onValueChange = {
-            searchQuery.value = it
+            searchQuery = it
             onSearchTextChanged(it)
         },
         modifier = modifier,
@@ -92,9 +92,10 @@ private fun <T> SearchBar(
     Box(modifier = Modifier.fillMaxSize()) {
         if (isLoading) {
             CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.surface
             )
-        } else if (searchResults.isEmpty() && searchQuery.value.isNotEmpty()) {
+        } else if (searchResults.isEmpty() && searchQuery.isNotEmpty()) {
             Text(
                 text = stringResource(id = R.string.no_users_found),
                 modifier = Modifier.align(Alignment.Center),

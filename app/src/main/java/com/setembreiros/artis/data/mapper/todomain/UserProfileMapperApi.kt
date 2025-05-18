@@ -6,6 +6,6 @@ import com.setembreiros.artis.data.base.Mapper
 
 class UserProfileMapperApi: Mapper<UserProfileApi, UserProfile> {
     override fun map(model: UserProfileApi): UserProfile {
-        return UserProfile(username = model.username, name = model.name, bio = model.bio, link = model.link)
+        return UserProfile(username = model.username, name = model.name, bio = model.bio, link = model.link, postsAmount = 0, followersAmount = 0)
     }
 }

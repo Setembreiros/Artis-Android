@@ -2,6 +2,7 @@ package com.setembreiros.artis.ui.home
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.domain.usecase.session.RemoveSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
@@ -14,6 +15,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getSessionUseCase: GetSessionUseCase,
     private val removeSessionUseCase: RemoveSessionUseCase,
+    private val profileRepository: ProfileRepository
     ): BaseViewModel() {
 
    fun getSession(){
@@ -25,6 +27,7 @@ class HomeViewModel @Inject constructor(
 
     fun closeSession(){
         viewModelScope.launch(Dispatchers.IO) {
+            profileRepository.removeAllPosts()
             removeSessionUseCase.invoke()
         }
     }

@@ -1,6 +1,7 @@
 package com.setembreiros.artis.ui.discover
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun DiscoverScreen() {
+fun DiscoverScreen(onUserClick: (username: String) -> Unit) {
     val context = LocalContext.current
     val viewModel: DiscoverViewModel = hiltViewModel()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -54,7 +55,9 @@ fun DiscoverScreen() {
             modifier = Modifier.fillMaxWidth(),
             isLoading = isLoading,
         ) { user ->
-            UserItem(user)
+            UserItem(
+                user =  user,
+                onUserClick = onUserClick)
         }
     }
 }
@@ -108,12 +111,15 @@ private fun <T> SearchBar(
 }
 
 @Composable
-fun UserItem(user: UserProfileSnippet) {
+fun UserItem(
+    user: UserProfileSnippet,
+    onUserClick: (String) -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .clickable { onUserClick(user.username) },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

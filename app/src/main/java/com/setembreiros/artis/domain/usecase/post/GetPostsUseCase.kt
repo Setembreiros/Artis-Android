@@ -32,7 +32,6 @@ class GetPostsUseCase @Inject constructor(private val postRepository: PostReposi
             }
             val post = Post(postMetadata, matchingContent)
             posts.add(post)
-            profileRepository.savePost(post)
         }
 
         Pair(posts.toTypedArray(), postMetadatas.second)

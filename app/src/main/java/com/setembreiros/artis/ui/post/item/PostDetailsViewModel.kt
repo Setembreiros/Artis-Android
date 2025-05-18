@@ -74,9 +74,7 @@ class PostDetailsViewModel @Inject constructor(
     fun setAmountOfComments(postId: String, amountOfComments: Long) {
         _amountOfCommentsByPost.update { currentMap ->
             currentMap.toMutableMap().apply {
-                if(!this.containsKey(postId)) {
-                    this[postId] = amountOfComments
-                }
+                this[postId] = amountOfComments
             }
         }
     }

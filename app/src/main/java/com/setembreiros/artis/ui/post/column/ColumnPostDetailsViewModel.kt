@@ -33,7 +33,7 @@ class ColumnPostDetailsViewModel @Inject constructor(
     }
 
     private fun getPosts() {
-        _posts.value = profileRepository.getPosts()
+        _posts.value = profileRepository.getVisitPosts()
     }
 
     fun loadMorePosts() {
@@ -43,6 +43,7 @@ class ColumnPostDetailsViewModel @Inject constructor(
                 val lastPost = _posts.value.last()
                 val result = getPostsUseCase.invoke(username, username, lastPost.metadata.postId, lastPost.metadata.createdAt)
                 val newPosts = result.first.sortedBy { it.metadata.createdAt }
+                newPosts.forEach { post ->  profileRepository.saveVisitPost(post) }
                 _thereAreMorePosts.value = result.second
                 _posts.value += newPosts
                 _isLoading.value = false
@@ -52,7 +53,7 @@ class ColumnPostDetailsViewModel @Inject constructor(
 
     fun updatePosts() {
         viewModelScope.launch(Dispatchers.IO) {
-            _posts.value = profileRepository.getPosts()
+            _posts.value = profileRepository.getVisitPosts()
         }
     }
 }

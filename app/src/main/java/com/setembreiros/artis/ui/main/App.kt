@@ -82,7 +82,7 @@ fun App(activity: Activity = Activity()){
 }
 
 fun NavHostController.navigateSingleTopTo(route: String) =
-    this.navigate(route) {
+    this.navigate(route) /* {
         popUpTo(
             this@navigateSingleTopTo.graph.findStartDestination().id
         ) {
@@ -91,7 +91,7 @@ fun NavHostController.navigateSingleTopTo(route: String) =
 
         launchSingleTop = true
         restoreState = true
-    }
+    }*/
 
 
 @Composable

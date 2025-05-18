@@ -76,7 +76,7 @@ fun BottomMenu(
                     text = screen.route,
                     icon = painterResource(id = screen.icon),
                     onSelected = { onTabSelected(screen) },
-                    selected = currentScreen.base == screen.base
+                    selected = currentScreen.originTab == screen.originTab
                 )
             }
         }
@@ -114,11 +114,7 @@ fun Tab(
                 onClick = onSelected,
                 role = Role.Tab,
                 interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(
-                    bounded = false,
-                    radius = Dp.Unspecified,
-                    color = Color.Unspecified
-                )
+                indication = null
             )
             .clearAndSetSemantics { contentDescription = text }
     ) {

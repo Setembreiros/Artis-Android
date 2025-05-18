@@ -3,6 +3,7 @@ package com.setembreiros.artis.data.repository
 import com.setembreiros.artis.data.ApiClient
 import com.setembreiros.artis.data.base.BaseApiClient
 import com.setembreiros.artis.data.mapper.todomain.UserProfileMapperApi
+import com.setembreiros.artis.data.mapper.todomain.UserProfileSnippetsMapperApi
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(private val apiClient: ApiClient, private val sessionRepository: SessionRepository): BaseApiClient() {
@@ -11,5 +12,9 @@ class UserRepository @Inject constructor(private val apiClient: ApiClient, priva
 
     suspend fun getUserProfile(username: String) = safeApiCall(UserProfileMapperApi()){
         apiClient.getProfile(getToken(), username)
+    }
+
+    suspend fun searchUser(query: String) = safeApiCall(UserProfileSnippetsMapperApi()){
+        apiClient.searchUser(getToken(), query)
     }
 }

@@ -1,5 +1,6 @@
 package com.setembreiros.artis.ui.discover
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,16 +19,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.setembreiros.artis.R
+import com.setembreiros.artis.domain.model.UserProfileSnippet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun DiscoverScreen() {
+    val context = LocalContext.current
     val viewModel: DiscoverViewModel = hiltViewModel()
     val searchResults by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val errorCode by viewModel.errorCode.collectAsState()
+
+    // Mostrar Toast cando haxa un erro
+    LaunchedEffect(errorCode) {
+        errorCode?.let { code ->
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, context.getString(code), Toast.LENGTH_SHORT).show()
+            }
+            viewModel.clearErrorMessage()
+        }
+    }
 
     Column(modifier = Modifier.padding(16.dp)) {
         SearchBar(
@@ -59,7 +77,7 @@ private fun <T> SearchBar(
         },
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        placeholder = { Text("Buscar usuarios...") },
+        placeholder = { Text(stringResource(id = R.string.search_users)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon") },
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.White,
@@ -75,7 +93,7 @@ private fun <T> SearchBar(
             )
         } else if (searchResults.isEmpty() && searchQuery.value.isNotEmpty()) {
             Text(
-                text = "No users found",
+                text = stringResource(id = R.string.no_users_found),
                 modifier = Modifier.align(Alignment.Center),
                 color = Color.Gray
             )
@@ -90,7 +108,7 @@ private fun <T> SearchBar(
 }
 
 @Composable
-fun UserItem(user: User) {
+fun UserItem(user: UserProfileSnippet) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
@@ -107,33 +125,16 @@ fun UserItem(user: User) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = user.name,
+                    text = user.username,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = user.username,
+                    text = user.name,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
-                if (user.bio.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = user.bio,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Button(
-                onClick = { /* Follow user */ },
-                modifier = Modifier.padding(start = 8.dp),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(text = "Follow")
             }
         }
     }

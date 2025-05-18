@@ -60,4 +60,7 @@
     <string name="error_deleting_superlike">Erro ao eliminar o superlike</string>
     <string name="error_loading_superlikes">Erro ao cargar superlikes</string>
     <string name="superlike_section">Superlikes</string>
+    <string name="error_loading_users">Erro ao cargar os usuarios</string>
+    <string name="no_users_found">Non se atoparon usuarios</string>
+    <string name="search_users">Pesquisar usuarios...</string>
 </resources>

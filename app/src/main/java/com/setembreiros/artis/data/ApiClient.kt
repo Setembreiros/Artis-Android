@@ -1,7 +1,7 @@
 package com.setembreiros.artis.data
 
 import com.setembreiros.artis.data.model.EmptyResponse
-import com.setembreiros.artis.data.model.UserProfileApi
+import com.setembreiros.artis.data.model.userprofile.UserProfileApi
 import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.comment.CreateCommentRequestApi
 import com.setembreiros.artis.data.model.comment.GetCommentsResponseApi
@@ -14,6 +14,7 @@ import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
 import com.setembreiros.artis.data.model.superlike.CreateSuperlikePostRequestApi
 import com.setembreiros.artis.data.model.superlike.GetPostSuperlikesResponseApi
+import com.setembreiros.artis.data.model.userprofile.SearchUserResponseApi
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -94,4 +95,7 @@ interface ApiClient {
     suspend fun deletePostSuperlike(@Header("Authorization") token: String,
                                @Path("postId") postId: String,
                                @Path("username") username: String,) : WrapperApi<EmptyResponse?>
+
+    @GET("userservice/userprofile-snippets")
+    suspend fun searchUser(@Header("Authorization") token: String, @Query("query") query: String) : WrapperApi<SearchUserResponseApi>
 }

@@ -6,7 +6,7 @@ import com.setembreiros.artis.domain.base.Resource
 import com.setembreiros.artis.domain.model.UserProfile
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.usecase.post.GetPostsUseCase
-import com.setembreiros.artis.domain.usecase.GetUserProfileUseCase
+import com.setembreiros.artis.domain.usecase.userprofile.GetUserProfileUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -67,7 +67,7 @@ fun NavHostApp(
         composable(OtherUserProfile.route){ backStackEntry ->
             stateButtonMenu(true)
             val username = backStackEntry.arguments?.getString("username") ?: ""
-            OtherUserProfileScreen(username, onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId, OtherUserProfile.originTab) })
+            OtherUserProfileScreen(username, onImageClick = { postId -> navController.navigationToPostDetailsProfile(username, postId, OtherUserProfile.originTab) })
         }
         composable(NewPost.route){
             stateTopBar(false)
@@ -83,13 +83,14 @@ fun NavHostApp(
         composable(Profile.route){
             stateButtonMenu(true)
             OwnProfileScreen(
-                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId, Profile.originTab) }
+                onImageClick = { postId -> navController.navigationToPostDetailsProfile("ownProfile", postId, Profile.originTab) }
             )
         }
         composable(PostDetailsProfile.route){ backStackEntry ->
             stateButtonMenu(true)
+            val username = backStackEntry.arguments?.getString("username") ?: ""
             val postId = backStackEntry.arguments?.getString("postId") ?: ""
-            ColumnPostDetailsScreen(postId)
+            ColumnPostDetailsScreen(username, postId)
         }
     }
 }
@@ -105,9 +106,9 @@ fun NavHostController.navigationToHome(){
     this.navigate(Home.route)
 }
 
-fun NavHostController.navigationToPostDetailsProfile(postId: String, originTab: String){
+fun NavHostController.navigationToPostDetailsProfile(username: String, postId: String, originTab: String){
     PostDetailsProfile.originTab = originTab
-    this.navigate("post_details_profile/$postId")
+    this.navigate("post_details_profile/$username/$postId")
 }
 
 fun NavHostController.navigationToPublishPost(){

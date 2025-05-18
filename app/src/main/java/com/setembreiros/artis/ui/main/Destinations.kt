@@ -112,7 +112,7 @@ object PostDetailsProfile : Destinations{
     override val icon: Int
         get() = 0
     override val route: String
-        get() = "post_details_profile/{postId}"
+        get() = "post_details_profile/{username}/{postId}"
     override var originTab: String
         get() = _originTab
         set(value) {

@@ -9,11 +9,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.setembreiros.artis.ui.account.login.LoginScreen
 import com.setembreiros.artis.ui.account.register.RegisterScreen
+import com.setembreiros.artis.ui.discover.DiscoverScreen
 import com.setembreiros.artis.ui.home.HomeScreen
 import com.setembreiros.artis.ui.post.column.ColumnPostDetailsScreen
 import com.setembreiros.artis.ui.post.creation.NewPostScreen
 import com.setembreiros.artis.ui.post.creation.PublishPostScreen
-import com.setembreiros.artis.ui.profile.ProfileScreen
+import com.setembreiros.artis.ui.profile.OtherUserProfileScreen
+import com.setembreiros.artis.ui.profile.OwnProfileScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -53,6 +55,20 @@ fun NavHostApp(
             stateButtonMenu(true)
             HomeScreen(onCloseSession = {navController.navigationToLogin()})
         }
+        composable(Discover.route){
+            stateTopBar(false)
+            stateButtonMenu(true)
+            DiscoverScreen(
+                onUserClick = { username ->
+                    navController.navigationTOtherUserProfile(username, Discover.originTab)
+                }
+            )
+        }
+        composable(OtherUserProfile.route){ backStackEntry ->
+            stateButtonMenu(true)
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            OtherUserProfileScreen(username, onImageClick = { postId -> navController.navigationToPostDetailsProfile(username, postId, OtherUserProfile.originTab) })
+        }
         composable(NewPost.route){
             stateTopBar(false)
             stateButtonMenu(true)
@@ -66,14 +82,15 @@ fun NavHostApp(
         }
         composable(Profile.route){
             stateButtonMenu(true)
-            ProfileScreen(
-                onImageClick = { postId -> navController.navigationToPostDetailsProfile(postId) }
+            OwnProfileScreen(
+                onImageClick = { postId -> navController.navigationToPostDetailsProfile("ownProfile", postId, Profile.originTab) }
             )
         }
         composable(PostDetailsProfile.route){ backStackEntry ->
             stateButtonMenu(true)
+            val username = backStackEntry.arguments?.getString("username") ?: ""
             val postId = backStackEntry.arguments?.getString("postId") ?: ""
-            ColumnPostDetailsScreen(postId)
+            ColumnPostDetailsScreen(username, postId)
         }
     }
 }
@@ -89,10 +106,16 @@ fun NavHostController.navigationToHome(){
     this.navigate(Home.route)
 }
 
-fun NavHostController.navigationToPostDetailsProfile(postId: String){
-    this.navigate("post_details_profile/$postId")
+fun NavHostController.navigationToPostDetailsProfile(username: String, postId: String, originTab: String){
+    PostDetailsProfile.originTab = originTab
+    this.navigate("post_details_profile/$username/$postId")
 }
 
 fun NavHostController.navigationToPublishPost(){
     this.navigate(PublishPost.route)
+}
+
+fun NavHostController.navigationTOtherUserProfile(username: String, originTab: String){
+    OtherUserProfile.originTab = originTab
+    this.navigate("other_user_Profile/$username")
 }

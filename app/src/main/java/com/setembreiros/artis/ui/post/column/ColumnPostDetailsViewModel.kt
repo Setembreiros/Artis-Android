@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,26 +34,37 @@ class ColumnPostDetailsViewModel @Inject constructor(
     }
 
     private fun getPosts() {
-        _posts.value = profileRepository.getPosts()
+        _posts.value = profileRepository.getVisitPosts()
     }
 
-    fun loadMorePosts() {
+    fun loadMorePosts(username: String) {
         _isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            getSessionUseCase.invoke()?.username?.let { username ->
-                val lastPost = _posts.value.last()
-                val result = getPostsUseCase.invoke(username, username, lastPost.metadata.postId, lastPost.metadata.createdAt)
-                val newPosts = result.first.sortedBy { it.metadata.createdAt }
-                _thereAreMorePosts.value = result.second
-                _posts.value += newPosts
-                _isLoading.value = false
+            if(username == "ownProfile") {
+                getSessionUseCase.invoke()?.username?.let { username ->
+                    loadPosts(username)
+                }
+            } else {
+                loadPosts(username)
             }
+            _isLoading.value = false
+        }
+    }
+
+    private suspend fun loadPosts(username: String) {
+        return withContext(Dispatchers.IO) {
+            val lastPost = _posts.value.last()
+            val result = getPostsUseCase.invoke(username, username, lastPost.metadata.postId, lastPost.metadata.createdAt)
+            val newPosts = result.first.sortedBy { it.metadata.createdAt }
+            newPosts.forEach { post ->  profileRepository.saveVisitPost(post) }
+            _thereAreMorePosts.value = result.second
+            _posts.value += newPosts
         }
     }
 
     fun updatePosts() {
         viewModelScope.launch(Dispatchers.IO) {
-            _posts.value = profileRepository.getPosts()
+            _posts.value = profileRepository.getVisitPosts()
         }
     }
 }

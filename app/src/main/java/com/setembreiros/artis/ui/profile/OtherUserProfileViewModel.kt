@@ -11,24 +11,22 @@ import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
+class OtherUserProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getPostsUseCase: GetPostsUseCase,
-    private val getSessionUseCase: GetSessionUseCase
+    private val getSessionUseCase: GetSessionUseCase,
 ): BaseViewModel() {
     private val _profile = MutableStateFlow<UserProfile?>(null)
-    private val _posts = MutableStateFlow<List<Post>>(emptyList())
-
     val profile = _profile
+
+    private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> get() = _posts
 
     private val _isLoading = MutableStateFlow(false)
@@ -37,41 +35,27 @@ class ProfileViewModel @Inject constructor(
     private val _thereAreMorePosts = MutableStateFlow(true)
     val thereAreMorePosts: StateFlow<Boolean> = _thereAreMorePosts
 
-    private var periodicJob: Job? = null
-
-    init {
-        loadProfile()
-        loadInitialPosts()
-        rechargePostsPeriodically()
-    }
-
-    private fun loadProfile(){
+    fun loadProfile(username: String){
         viewModelScope.launch(Dispatchers.IO) {
-            getSessionUseCase.invoke()?.username?.let { username->
-                when(val response = getUserProfileUseCase.invoke(username)){
-                    is Resource.Success -> {
-                        _profile.value = response.value
-                    }
-                    else -> {
-
-                    }
+            when(val response = getUserProfileUseCase.invoke(username)){
+                is Resource.Success -> {
+                    _profile.value = response.value
+                }
+                else -> {
                 }
             }
         }
     }
 
-    private fun loadInitialPosts() {
+    fun loadInitialPosts(username: String) {
         _isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            getSessionUseCase.invoke()?.username?.let { username ->
+            getSessionUseCase.invoke()?.username?.let { currentUsername ->
                 if (_posts.value.isEmpty()) {
                     profileRepository.removeAllVisitPosts()
-                    val result = getPostsUseCase.invoke(username, username, "", "")
+                    val result = getPostsUseCase.invoke(username, currentUsername, "", "")
                     _posts.value = result.first.sortedBy { it.metadata.createdAt }
-                    _posts.value.forEach { post ->
-                        profileRepository.saveOwnPost(post)
-                        profileRepository.saveVisitPost(post)
-                    }
+                    _posts.value.forEach { post ->  profileRepository.saveVisitPost(post) }
                     _thereAreMorePosts.value = result.second
                 }
                 _isLoading.value = false
@@ -79,30 +63,17 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun loadMorePosts() {
+    fun loadMorePosts(username: String) {
         _isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            getSessionUseCase.invoke()?.username?.let { username ->
+            getSessionUseCase.invoke()?.username?.let { currentUsername ->
                 val lastPost = _posts.value.last()
-                val result = getPostsUseCase.invoke(username,username, lastPost.metadata.postId, lastPost.metadata.createdAt)
+                val result = getPostsUseCase.invoke(username, currentUsername, lastPost.metadata.postId, lastPost.metadata.createdAt)
                 val newPosts = result.first.sortedBy { it.metadata.createdAt }
-                newPosts.forEach { post ->
-                    profileRepository.saveOwnPost(post)
-                    profileRepository.saveVisitPost(post)
-                }
+                newPosts.forEach { post ->  profileRepository.saveVisitPost(post) }
                 _thereAreMorePosts.value = result.second
                 _posts.value += newPosts
                 _isLoading.value = false
-            }
-        }
-    }
-
-    private fun rechargePostsPeriodically() {
-        periodicJob?.cancel() // Cancelar calquera operación previa
-        periodicJob = viewModelScope.launch(Dispatchers.IO) {
-            while (true) {
-                _posts.value = profileRepository.getOwnPosts()
-                delay(5000L)
             }
         }
     }

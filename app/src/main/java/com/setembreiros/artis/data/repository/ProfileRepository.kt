@@ -6,22 +6,43 @@ import javax.inject.Singleton
 
 @Singleton
 class ProfileRepository @Inject constructor() {
-    private var posts: MutableMap<String, Post> = mutableMapOf()
+    private var ownPosts: MutableMap<String, Post> = mutableMapOf()
+    private var visitPosts: MutableMap<String, Post> = mutableMapOf()
 
-    fun savePost(post: Post) {
-        posts[post.metadata.postId] = post
+    fun saveOwnPost(post: Post) {
+        ownPosts[post.metadata.postId] = post
     }
 
-    fun getPost(postId: String): Post {
-        return posts[postId]!!
+    fun saveVisitPost(post: Post) {
+        visitPosts[post.metadata.postId] = post
     }
 
-    fun getPosts(): List<Post> {
-        return posts.values.sortedBy { it.metadata.createdAt }
+    fun getOwnPosts(): List<Post> {
+        return ownPosts.values.sortedBy { it.metadata.createdAt }
+    }
+
+    fun getVisitPosts(): List<Post> {
+        return visitPosts.values.sortedBy { it.metadata.createdAt }
+    }
+
+    fun getVisitPost(postId: String): Post {
+            return visitPosts[postId]!!
     }
 
     fun removePost(postId: String) {
-        if(posts.containsKey(postId))
-            posts.remove(postId)
+        if(ownPosts.containsKey(postId))
+            ownPosts.remove(postId)
+
+        if(visitPosts.containsKey(postId))
+            visitPosts.remove(postId)
+    }
+
+    fun removeAllVisitPosts() {
+        visitPosts = mutableMapOf()
+    }
+
+    fun removeAllPosts() {
+        ownPosts = mutableMapOf()
+        visitPosts = mutableMapOf()
     }
 }

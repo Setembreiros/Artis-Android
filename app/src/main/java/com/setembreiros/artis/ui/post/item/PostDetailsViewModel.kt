@@ -71,22 +71,32 @@ class PostDetailsViewModel @Inject constructor(
     private val _thereAreMoreSuperlikes = MutableStateFlow(true)
     val thereAreMoreSuperlikes: StateFlow<Boolean> = _thereAreMoreSuperlikes
 
-    fun setAmountOfComments(postId: String, amountOfComments: Long) {
+    fun initializeComments(postId: String) {
         _amountOfCommentsByPost.update { currentMap ->
             currentMap.toMutableMap().apply {
-                this[postId] = amountOfComments
+                if(!this.containsKey(postId)) {
+                    this[postId] = profileRepository.getVisitPost(postId).metadata.comments
+                }
             }
         }
     }
 
-    fun initializeLikes(postId: String, likes: Long, isLikedByCurrentUser: Boolean) {
-        _amountOfLikesByPost.update { it + (postId to likes) }
-        _likedByUser.update { it + (postId to isLikedByCurrentUser) }
+    fun setAmountOfComments(postId: String) {
+        _amountOfCommentsByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = profileRepository.getVisitPost(postId).metadata.comments
+            }
+        }
     }
 
-    fun initializeSuperlikes(postId: String, superlikes: Long, isSuperlikedByCurrentUser: Boolean) {
-        _amountOfSuperlikesByPost.update { it + (postId to superlikes) }
-        _superlikedByUser.update { it + (postId to isSuperlikedByCurrentUser) }
+    fun initializeLikes(postId: String) {
+        _amountOfLikesByPost.update { it + (postId to profileRepository.getVisitPost(postId).metadata.likes) }
+        _likedByUser.update { it + (postId to profileRepository.getVisitPost(postId).metadata.isLikedByCurrentUser) }
+    }
+
+    fun initializeSuperlikes(postId: String) {
+        _amountOfSuperlikesByPost.update { it + (postId to profileRepository.getVisitPost(postId).metadata.superlikes) }
+        _superlikedByUser.update { it + (postId to profileRepository.getVisitPost(postId).metadata.isSuperlikedByCurrentUser) }
     }
 
     fun deletePost(postId: String, onSuccess: () -> Unit = {}) {
@@ -145,7 +155,7 @@ class PostDetailsViewModel @Inject constructor(
                     _postComments.update { currentList ->
                         listOf(comment) + currentList // Engade ao comezo
                     }
-                    increaseAmountOfCommentsByOne(postId)
+                    setAmountOfComments(postId)
                 } ?: run {
                     _errorMessage.value = R.string.comment_failed
                 }
@@ -166,7 +176,7 @@ class PostDetailsViewModel @Inject constructor(
                     _postComments.update { currentList ->
                         currentList.filterNot { it.commentId == commentId }// Eliminao da lista
                     }
-                    decreaseAmountOfCommentsByOne(postId)
+                    setAmountOfComments(postId)
                 }
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
@@ -231,7 +241,7 @@ class PostDetailsViewModel @Inject constructor(
                 if (!result) {
                     _errorMessage.value = R.string.error_adding_like
                 } else {
-                    increaseAmountOfLikesByOne(postId)
+                    initializeLikes(postId)
                 }
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error adding like: ${e.message}")
@@ -247,7 +257,7 @@ class PostDetailsViewModel @Inject constructor(
                 if (!result) {
                     _errorMessage.value = R.string.error_deleting_like
                 } else {
-                    decreaseAmountOfLikesByOne(postId)
+                    initializeLikes(postId)
                 }
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error deleting like: ${e.message}")
@@ -312,7 +322,7 @@ class PostDetailsViewModel @Inject constructor(
                 if (!result) {
                     _errorMessage.value = R.string.error_adding_superlike
                 } else {
-                    increaseAmountOfSuperlikesByOne(postId)
+                    initializeSuperlikes(postId)
                 }
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error adding superlike: ${e.message}")
@@ -328,7 +338,7 @@ class PostDetailsViewModel @Inject constructor(
                 if (!result) {
                     _errorMessage.value = R.string.error_deleting_superlike
                 } else {
-                    decreaseAmountOfSuperlikesByOne(postId)
+                    initializeSuperlikes(postId)
                 }
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error deleting superlike: ${e.message}")
@@ -364,22 +374,6 @@ class PostDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun increaseAmountOfCommentsByOne(postId: String) {
-        _amountOfCommentsByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) + 1
-            }
-        }
-    }
-
-    private fun decreaseAmountOfCommentsByOne(postId: String) {
-        _amountOfCommentsByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) - 1
-            }
-        }
-    }
-
     private suspend fun addLike(postId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -410,22 +404,6 @@ class PostDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun increaseAmountOfLikesByOne(postId: String) {
-        _amountOfLikesByPost.update { currentLikes ->
-            currentLikes.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) + 1
-            }
-        }
-    }
-
-    private fun decreaseAmountOfLikesByOne(postId: String) {
-        _amountOfLikesByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) - 1
-            }
-        }
-    }
-
     private suspend fun addSuperlike(postId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -452,22 +430,6 @@ class PostDetailsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error deleting superlike: ${e.message}")
                 false
-            }
-        }
-    }
-
-    private fun increaseAmountOfSuperlikesByOne(postId: String) {
-        _amountOfSuperlikesByPost.update { currentSuperlikes ->
-            currentSuperlikes.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) + 1
-            }
-        }
-    }
-
-    private fun decreaseAmountOfSuperlikesByOne(postId: String) {
-        _amountOfSuperlikesByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                this[postId] = (this[postId] ?: 0) - 1
             }
         }
     }

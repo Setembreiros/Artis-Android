@@ -98,9 +98,9 @@ import kotlinx.coroutines.withContext
 fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
     LaunchedEffect(post.metadata.postId) {
-        viewModel.setAmountOfComments(post.metadata.postId, post.metadata.comments)
-        viewModel.initializeLikes(post.metadata.postId, post.metadata.likes, post.metadata.isLikedByCurrentUser)
-        viewModel.initializeSuperlikes(post.metadata.postId, post.metadata.superlikes, post.metadata.isSuperlikedByCurrentUser)
+        viewModel.initializeComments(post.metadata.postId)
+        viewModel.initializeLikes(post.metadata.postId)
+        viewModel.initializeSuperlikes(post.metadata.postId)
     }
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
     val commentCount by remember {

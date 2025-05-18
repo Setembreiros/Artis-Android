@@ -12,13 +12,13 @@ data class PostMetadata(
     val title: String,
     val description: String,
     val size: Long,
-    val comments: Long,
+    var comments: Long,
     val createdAt: String,
     val lastUpdated: String,
-    val likes: Long = 0,
-    val superlikes: Long = 0,
-    val isLikedByCurrentUser: Boolean = false,
-    val isSuperlikedByCurrentUser: Boolean = false,
+    var likes: Long = 0,
+    var superlikes: Long = 0,
+    var isLikedByCurrentUser: Boolean = false,
+    var isSuperlikedByCurrentUser: Boolean = false,
 )
 
 data class PostContent(

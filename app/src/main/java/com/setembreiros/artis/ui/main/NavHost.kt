@@ -48,7 +48,9 @@ fun NavHostApp(
             stateButtonMenu(false)
             RegisterScreen(
                 onNavigateToLogin = {navController.navigationToLogin()},
-                onNavigateToHome = {navController.navigationToHome()}
+                onNavigateToHome = {
+                    navController.navigationToHome()
+                }
             )
         }
         composable(Home.route) {
@@ -58,9 +60,14 @@ fun NavHostApp(
         composable(Discover.route){
             stateTopBar(false)
             stateButtonMenu(true)
+            viewModel.setCurrentUsername()
             DiscoverScreen(
                 onUserClick = { username ->
-                    navController.navigationTOtherUserProfile(username, Discover.originTab)
+                    if(!viewModel.currentUsername.value.equals(username)) {
+                        navController.navigationToOtherUserProfile(username, Discover.originTab)
+                    } else {
+                        navController.navigationToOwnUserProfile()
+                    }
                 }
             )
         }
@@ -115,7 +122,11 @@ fun NavHostController.navigationToPublishPost(){
     this.navigate(PublishPost.route)
 }
 
-fun NavHostController.navigationTOtherUserProfile(username: String, originTab: String){
+fun NavHostController.navigationToOtherUserProfile(username: String, originTab: String){
     OtherUserProfile.originTab = originTab
     this.navigate("other_user_Profile/$username")
+}
+
+fun NavHostController.navigationToOwnUserProfile(){
+    this.navigate(Profile.route)
 }

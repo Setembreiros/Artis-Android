@@ -7,8 +7,8 @@ import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 
 class DeletePostsUseCase @Inject constructor(private val postRepository: PostRepository, private val profileRepository: ProfileRepository)  {
-    suspend fun invoke(postId: String) : Boolean = coroutineScope {
-        return@coroutineScope when(postRepository.deletePost(postId)){
+    suspend fun invoke(username: String, postId: String) : Boolean = coroutineScope {
+        return@coroutineScope when(postRepository.deletePost(username, postId)){
             is Resource.Success -> {
                 profileRepository.removePost(postId)
                 true

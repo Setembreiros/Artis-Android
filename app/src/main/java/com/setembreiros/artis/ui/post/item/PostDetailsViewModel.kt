@@ -103,8 +103,10 @@ class PostDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    deletePostsUseCase.invoke(postId)
-                    profileRepository.removePost(postId)
+                    getSessionUseCase.invoke()?.username?.let { username ->
+                        deletePostsUseCase.invoke(username, postId)
+                        profileRepository.removePost(postId)
+                    }
                 }
                 onSuccess() // Chamar só despois de completar
             } catch (e: Exception) {

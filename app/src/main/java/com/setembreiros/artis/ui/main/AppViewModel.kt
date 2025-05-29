@@ -14,6 +14,8 @@ class AppViewModel @Inject constructor(
      private val getSessionUseCase: GetSessionUseCase,
      private val refreshSessionUseCase: RefreshSessionUseCase
 ) : BaseViewModel() {
+    private val _currentUsername = MutableStateFlow<String?>(null)
+    val currentUsername = _currentUsername
 
     private val _session = MutableStateFlow<Session?>(null)
     val session = _session
@@ -21,6 +23,10 @@ class AppViewModel @Inject constructor(
     init {
         updateSession()
         Log.d("DOG", _session.value.toString())
+    }
+
+    fun setCurrentUsername(){
+        _currentUsername.value = getSessionUseCase.invoke()?.username
     }
 
     fun updateSession(){

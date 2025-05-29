@@ -2,6 +2,7 @@ package com.setembreiros.artis.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -50,56 +53,62 @@ import com.setembreiros.artis.ui.theme.yellowBackground
 @Composable
 fun Profile(
     isOwnProfile: Boolean,
-    userProfile: UserProfile?,
+    userProfile: UserProfile,
     posts: List<Post>,
     onImageClick: (postId: String) -> Unit,
     onLoadMore: () -> Unit,
     isLoading: Boolean,
-    isThereMorePosts: Boolean
+    isThereMorePosts: Boolean,
+    onFollowClick: () -> Unit       // Novo parámetro
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(top = 32.dp)
-    ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            if (isOwnProfile) {
-                HelloHeader(userProfile?.username ?: "")
-            } else {
-                OtherUserHeader(userProfile?.username ?: "")
-            }
-            BioSection(userProfile?.bio ?: "", isOwnProfile)
-            HorizontalDivider(
-                color = Color.Black,
-                thickness = 2.dp,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            EventSection(isOwnProfile)
-        }
-
-        Box(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(top = 16.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(top = 32.dp)
         ) {
-            PostsSection(
-                posts,
-                onLoadMore,
-                onImageClick,
-                isLoading,
-                isThereMorePosts
-            )
-            UserInfoHeader(
-                Modifier.align(Alignment.TopCenter),
-                userProfile
-            )
+
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                if (isOwnProfile) {
+                    HelloHeader(userProfile.username)
+                } else {
+                    OtherUserHeader(
+                        userProfile.username,
+                        isFollowing = userProfile.isFollowedByCurrentUser,
+                        onFollowClick = onFollowClick
+                    )
+                }
+                BioSection(userProfile.bio, isOwnProfile)
+                HorizontalDivider(
+                    color = Color.Black,
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+                EventSection(isOwnProfile)
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(top = 16.dp)
+            ) {
+                PostsSection(
+                    posts,
+                    onLoadMore,
+                    onImageClick,
+                    isLoading,
+                    isThereMorePosts
+                )
+                UserInfoHeader(
+                    Modifier.align(Alignment.TopCenter),
+                    userProfile = userProfile
+                )
+            }
         }
-    }
 }
 
 @Composable
@@ -114,12 +123,14 @@ fun HelloHeader(username: String) {
 }
 
 @Composable
-fun OtherUserHeader(username: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = username,
-            modifier = Modifier.weight(2f),
-            color = Color.Black
+fun OtherUserHeader(username: String,
+                    isFollowing: Boolean,
+                    onFollowClick: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {// Mostrar o botón só se non é o propio perfil
+        FollowButton(
+            username = username,
+            isFollowing = isFollowing,
+            onFollowClick = onFollowClick,
         )
     }
 }
@@ -258,7 +269,10 @@ fun EventBox(isOwner: Boolean) {
 }
 
 @Composable
-fun UserInfoHeader(modifier: Modifier, userProfile: UserProfile?) {
+fun UserInfoHeader(
+    modifier: Modifier,
+    userProfile: UserProfile?
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -269,6 +283,48 @@ fun UserInfoHeader(modifier: Modifier, userProfile: UserProfile?) {
         PostAmountBox(userProfile?.postsAmount ?: 0)
         ImageProfile()
         FollowAmountBox(userProfile?.followersAmount ?: 0)
+    }
+}
+
+@Composable
+fun FollowButton(
+    username: String,
+    modifier: Modifier = Modifier,
+    isFollowing: Boolean = false, // You can manage this state
+    onFollowClick: () -> Unit = {} // Add your follow logic here
+) {
+    val buttonText = (if (isFollowing) stringResource(R.string.following) else stringResource(R.string.follow)) + " " + username
+    val gradientColors = if (isFollowing) {
+        listOf(Color.LightGray, Color.Gray) // Subtle gradient for "Following" state
+    } else {
+        listOf(
+            Color(0xFFB2F2BB),
+            Color(0xFFFFEC99)
+        )
+    }
+
+    val gradientBrush = Brush.horizontalGradient(
+        colors = gradientColors,
+        startX = 0f,
+        endX = Float.POSITIVE_INFINITY
+    )
+
+    val textColor = if (isFollowing) Color.DarkGray else Color(0xFF1E1E1E)
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(gradientBrush)
+            .border(2.dp, Color.Black, RoundedCornerShape(20.dp))
+            .clickable { onFollowClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = buttonText,
+            color = textColor,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }
 

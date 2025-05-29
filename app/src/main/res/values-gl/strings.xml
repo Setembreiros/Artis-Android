@@ -62,5 +62,10 @@
     <string name="superlike_section">Superlikes</string>
     <string name="error_loading_users">Erro ao cargar os usuarios</string>
     <string name="no_users_found">Non se atoparon usuarios</string>
-    <string name="search_users">Pesquisar usuarios...</string>
+    <string name="search_users">Pesquisar usuarios…</string>
+    <string name="error_following_user">Erro seguir usuario</string>
+    <string name="error_unfollowing_user">Erro o deixar de seguir usuario</string>
+    <string name="follow">Follow</string>
+    <string name="following">Following</string>
+    <string name="error_loading_user_profile">Erro ao cargar o perfil do usuario</string>
 </resources>

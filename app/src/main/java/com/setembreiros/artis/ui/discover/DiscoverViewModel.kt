@@ -60,7 +60,11 @@ class DiscoverViewModel @Inject constructor(private val searchUserUseCase: Searc
                 } else {
                     _searchResults.value = searchUserUseCase.invoke(query)
                 }
-            } catch (e: Exception) {
+            }
+            catch (e: kotlinx.coroutines.CancellationException) {
+                // Don't do anything
+            }
+            catch (e: Exception) {
                 Log.e("DiscoverViewModel", "Error loading users: ${e.message}")
                 _searchResults.value = emptyList()
                 _errorMessage.value = R.string.error_loading_users

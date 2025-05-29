@@ -32,7 +32,7 @@ class PostRepository @Inject constructor(private val apiClient: ApiClient, priva
         apiClient.getPostMetadatas(getToken(), username, currentUsername, 9, lastPostId, lastPostCreatedAt)
     }
 
-    suspend fun deletePost(postId: String) = safeApiCall{
-        apiClient.deletePost(getToken(), postId)
+    suspend fun deletePost(username: String, postId: String) = safeApiCall{
+        apiClient.deletePost(getToken(), username, postId)
     }
 }

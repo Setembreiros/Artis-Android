@@ -1,10 +1,11 @@
 package com.setembreiros.artis.data
 
 import com.setembreiros.artis.data.model.EmptyResponse
-import com.setembreiros.artis.data.model.userprofile.UserProfileApi
+import com.setembreiros.artis.data.model.userprofile.OwnUserProfileApi
 import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.comment.CreateCommentRequestApi
 import com.setembreiros.artis.data.model.comment.GetCommentsResponseApi
+import com.setembreiros.artis.data.model.follow.AddFollowerRequestApi
 import com.setembreiros.artis.data.model.like.CreateLikePostRequestApi
 import com.setembreiros.artis.data.model.like.GetPostLikesResponseApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
@@ -14,6 +15,7 @@ import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
 import com.setembreiros.artis.data.model.superlike.CreateSuperlikePostRequestApi
 import com.setembreiros.artis.data.model.superlike.GetPostSuperlikesResponseApi
+import com.setembreiros.artis.data.model.userprofile.OtherUserProfileResponseApi
 import com.setembreiros.artis.data.model.userprofile.SearchUserResponseApi
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -27,7 +29,10 @@ import retrofit2.http.Query
 interface ApiClient {
 
     @GET("readmodels/userprofile/{username}")
-    suspend fun getProfile(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<UserProfileApi>
+    suspend fun getProfile(@Header("Authorization") token: String, @Path("username") username : String) : WrapperApi<OwnUserProfileApi>
+
+    @GET("aggregationframework/userprofile/{username}")
+    suspend fun getProfile(@Header("Authorization") token: String, @Path("username") username : String, @Query("currentUsername") currentUsername: String) : WrapperApi<OtherUserProfileResponseApi>
 
     @POST("postservice/post")
     suspend fun createPost(@Header("Authorization") token: String, @Body postApi: CreatePostRequestApi) : WrapperApi<CreatePostResponseApi>
@@ -50,9 +55,10 @@ interface ApiClient {
                                  @Query("lastPostId") lastPostId: String,
                                  @Query("lastPostCreatedAt") lastPostCreatedAt: String) : WrapperApi<GetPostMetadatasResponseApi>
 
-    @DELETE("postservice/posts")
+    @DELETE("postservice/posts/{username}")
     suspend fun deletePost(@Header("Authorization") token: String,
-                                 @Query("postId") postId: String) : WrapperApi<EmptyResponse?>
+                           @Path("username") username: String,
+                           @Query("postId") postId: String) : WrapperApi<EmptyResponse?>
 
     @POST("commentservice/comment")
     suspend fun createComment(@Header("Authorization") token: String, @Body commentApi: CreateCommentRequestApi) : WrapperApi<EmptyResponse?>
@@ -98,4 +104,12 @@ interface ApiClient {
 
     @GET("userservice/userprofile-snippets")
     suspend fun searchUser(@Header("Authorization") token: String, @Query("query") query: String) : WrapperApi<SearchUserResponseApi>
+
+    @POST("followservice/follow")
+    suspend fun addFollower(@Header("Authorization") token: String, @Body createFollowerApi: AddFollowerRequestApi) : WrapperApi<EmptyResponse?>
+
+    @DELETE("followservice/follow")
+    suspend fun removeFollower(@Header("Authorization") token: String,
+                               @Query("followerId") followerId: String,
+                               @Query("followeeId") followeeId: String,) : WrapperApi<EmptyResponse?>
 }

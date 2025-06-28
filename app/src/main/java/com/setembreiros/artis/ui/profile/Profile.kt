@@ -3,6 +3,7 @@ package com.setembreiros.artis.ui.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,13 +23,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,7 +60,8 @@ fun Profile(
     onLoadMore: () -> Unit,
     isLoading: Boolean,
     isThereMorePosts: Boolean,
-    onFollowClick: () -> Unit       // Novo parámetro
+    onFollowClick: () -> Unit,
+    onShowFollows: () -> Unit
 ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -105,7 +107,8 @@ fun Profile(
                 )
                 UserInfoHeader(
                     Modifier.align(Alignment.TopCenter),
-                    userProfile = userProfile
+                    userProfile = userProfile,
+                    onShowFollows
                 )
             }
         }
@@ -271,7 +274,8 @@ fun EventBox(isOwner: Boolean) {
 @Composable
 fun UserInfoHeader(
     modifier: Modifier,
-    userProfile: UserProfile?
+    userProfile: UserProfile?,
+    onShowFollows: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -282,7 +286,7 @@ fun UserInfoHeader(
     ) {
         PostAmountBox(userProfile?.postsAmount ?: 0)
         ImageProfile()
-        FollowAmountBox(userProfile?.followersAmount ?: 0)
+        FollowAmountBox(userProfile?.followersAmount ?: 0, onShowFollows)
     }
 }
 
@@ -331,7 +335,7 @@ fun FollowButton(
 @Composable
 fun PostAmountBox(postAmount: Int) {
     Text(
-        text = "${postAmount}\n Posts",
+        text = "${postAmount}\nPosts",
         textAlign = TextAlign.Center,
         modifier = Modifier
             .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
@@ -339,8 +343,8 @@ fun PostAmountBox(postAmount: Int) {
             .background(
                 color = greenBackground
             )
-            .height(64.dp)
-            .width(64.dp)
+            .height(68.dp)
+            .width(68.dp)
             .wrapContentHeight(),
         color = Color.Black
     )
@@ -361,9 +365,9 @@ fun ImageProfile() {
 }
 
 @Composable
-fun FollowAmountBox(followAmount: Int) {
+fun FollowAmountBox(followAmount: Int, onShow: () -> Unit) {
     Text(
-        text = "${followAmount}\n Follow",
+        text = "${followAmount}\nFollows",
         textAlign = TextAlign.Center,
         modifier = Modifier
             .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
@@ -371,9 +375,15 @@ fun FollowAmountBox(followAmount: Int) {
             .background(
                 color = greenBackground
             )
-            .height(64.dp)
-            .width(64.dp)
-            .wrapContentHeight(),
+            .height(68.dp)
+            .width(68.dp)
+            .wrapContentHeight()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null // elimina o efecto visual ao premer
+            ) {
+                onShow()
+            },
         color = Color.Black
     )
 }

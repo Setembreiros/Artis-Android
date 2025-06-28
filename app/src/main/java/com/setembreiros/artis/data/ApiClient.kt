@@ -6,6 +6,7 @@ import com.setembreiros.artis.data.model.WrapperApi
 import com.setembreiros.artis.data.model.comment.CreateCommentRequestApi
 import com.setembreiros.artis.data.model.comment.GetCommentsResponseApi
 import com.setembreiros.artis.data.model.follow.AddFollowerRequestApi
+import com.setembreiros.artis.data.model.follow.GetFollowersResponseApi
 import com.setembreiros.artis.data.model.like.CreateLikePostRequestApi
 import com.setembreiros.artis.data.model.like.GetPostLikesResponseApi
 import com.setembreiros.artis.data.model.post.ConfirmPostRequestApi
@@ -112,4 +113,10 @@ interface ApiClient {
     suspend fun removeFollower(@Header("Authorization") token: String,
                                @Query("followerId") followerId: String,
                                @Query("followeeId") followeeId: String,) : WrapperApi<EmptyResponse?>
+
+    @GET("aggregationframework/followers/{username}")
+    suspend fun getFollowers(@Header("Authorization") token: String,
+                             @Path("username") username: String,
+                             @Query("limit") limit: Int = 12,
+                             @Query("lastUsername") lastUsername: String) : WrapperApi<GetFollowersResponseApi>
 }

@@ -496,7 +496,6 @@ fun LikeSection(
 
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
-                // Lista de comentarios
                 DynamicColumn(
                     items = likes,
                     itemView = { like ->

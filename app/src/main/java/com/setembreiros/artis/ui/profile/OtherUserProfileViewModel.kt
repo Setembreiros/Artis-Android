@@ -6,8 +6,10 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.base.Resource
 import com.setembreiros.artis.domain.model.UserProfile
+import com.setembreiros.artis.domain.model.UserProfileSnippet
 import com.setembreiros.artis.domain.model.post.Post
 import com.setembreiros.artis.domain.usecase.follow.FollowUserUseCase
+import com.setembreiros.artis.domain.usecase.follow.GetFollowersUseCase
 import com.setembreiros.artis.domain.usecase.follow.UnfollowUserUseCase
 import com.setembreiros.artis.domain.usecase.post.GetPostsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
@@ -18,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -30,6 +33,7 @@ class OtherUserProfileViewModel @Inject constructor(
     private val getSessionUseCase: GetSessionUseCase,
     private val followUserUseCase: FollowUserUseCase,
     private val unfollowUserUseCase: UnfollowUserUseCase,
+    private val getFollowersUseCase: GetFollowersUseCase,
 ): BaseViewModel() {
     private val _errorMessage = MutableStateFlow<Int?>(null)
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
@@ -37,14 +41,23 @@ class OtherUserProfileViewModel @Inject constructor(
     private val _profile = MutableStateFlow<UserProfile?>(null)
     val profile = _profile
 
-    private val _posts = MutableStateFlow<List<Post>>(emptyList())
-    val posts: StateFlow<List<Post>> get() = _posts
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _posts = MutableStateFlow<List<Post>>(emptyList())
+    val posts: StateFlow<List<Post>> get() = _posts
+
     private val _thereAreMorePosts = MutableStateFlow(true)
     val thereAreMorePosts: StateFlow<Boolean> = _thereAreMorePosts
+
+    private val _isSecondLoading = MutableStateFlow(false)
+    val isSecondLoading: StateFlow<Boolean> = _isSecondLoading
+
+    private val _followers = MutableStateFlow<List<UserProfileSnippet>>(emptyList())
+    val followers: StateFlow<List<UserProfileSnippet>> = _followers.asStateFlow()
+
+    private val _thereAreMoreFollowers = MutableStateFlow(true)
+    val thereAreMoreFollowers: StateFlow<Boolean> = _thereAreMoreFollowers
 
     fun clearErrorMessage() {
         _errorMessage.value = null
@@ -114,6 +127,39 @@ class OtherUserProfileViewModel @Inject constructor(
                 }
                 _profile.value = updatedProfile
             }
+        }
+    }
+
+    fun loadInitialFollows(username: String) {
+        _isSecondLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = getFollowersUseCase.invoke(username, "")
+                _followers.value = result.first
+                _thereAreMoreFollowers.value = result.second
+            } catch (e: Exception) {
+                Log.e("OtherUserProfileViewModel", "Error loading followers: ${e.message}")
+                _errorMessage.value = R.string.error_loading_followers
+            }
+            _isSecondLoading.value = false
+        }
+    }
+
+    fun loadMoreFollows(username: String) {
+        _isSecondLoading.value = true
+        viewModelScope.launch {
+            try {
+                val lastUsername = followers.value.last().username
+                val result = getFollowersUseCase.invoke(username, lastUsername)
+                _thereAreMoreFollowers.value = result.second
+                _followers.update { currentList ->
+                    currentList + result.first
+                }
+            } catch (e: Exception) {
+                Log.e("OtherUserProfileViewModel", "Error loading followers: ${e.message}")
+                _errorMessage.value = R.string.error_loading_followers
+            }
+            _isSecondLoading.value = false
         }
     }
 

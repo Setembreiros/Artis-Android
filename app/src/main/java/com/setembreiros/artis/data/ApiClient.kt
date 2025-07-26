@@ -14,6 +14,8 @@ import com.setembreiros.artis.data.model.post.CreatePostRequestApi
 import com.setembreiros.artis.data.model.post.CreatePostResponseApi
 import com.setembreiros.artis.data.model.post.GetPostMetadatasResponseApi
 import com.setembreiros.artis.data.model.post.GetUrlPostsResponseApi
+import com.setembreiros.artis.data.model.review.CreateReviewRequestApi
+import com.setembreiros.artis.data.model.review.GetReviewsResponseApi
 import com.setembreiros.artis.data.model.superlike.CreateSuperlikePostRequestApi
 import com.setembreiros.artis.data.model.superlike.GetPostSuperlikesResponseApi
 import com.setembreiros.artis.data.model.userprofile.OtherUserProfileResponseApi
@@ -60,6 +62,20 @@ interface ApiClient {
     suspend fun deletePost(@Header("Authorization") token: String,
                            @Path("username") username: String,
                            @Query("postId") postId: String) : WrapperApi<EmptyResponse?>
+
+    @POST("reactionservice/review")
+    suspend fun createReview(@Header("Authorization") token: String, @Body reviewApi: CreateReviewRequestApi) : WrapperApi<EmptyResponse?>
+
+    @GET("readmodels/reviews/{postId}")
+    suspend fun getReviews(@Header("Authorization") token: String,
+                            @Path("postId") postId: String,
+                            @Query("limit") limit: Int = 12,
+                            @Query("lastReviewId") lastReviewId: Long) : WrapperApi<GetReviewsResponseApi>
+
+    @DELETE("reactionservice/review/{postId}/{reviewId}")
+    suspend fun deleteReview(@Header("Authorization") token: String,
+                              @Path("postId") postId: String,
+                              @Path("reviewId") reviewId: Long,) : WrapperApi<EmptyResponse?>
 
     @POST("commentservice/comment")
     suspend fun createComment(@Header("Authorization") token: String, @Body commentApi: CreateCommentRequestApi) : WrapperApi<EmptyResponse?>

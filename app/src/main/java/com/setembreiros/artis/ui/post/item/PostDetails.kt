@@ -3,7 +3,6 @@ package com.setembreiros.artis.ui.post.item
 import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -67,6 +66,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -85,22 +85,28 @@ import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.model.Like
 import com.setembreiros.artis.domain.model.Superlike
 import com.setembreiros.artis.ui.commponents.DynamicColumn
+import com.setembreiros.artis.ui.commponents.ShowErrorToast
 import com.setembreiros.artis.ui.commponents.button.like.LikeButton
 import com.setembreiros.artis.ui.commponents.button.like.LikeItem
 import com.setembreiros.artis.ui.commponents.button.like.SuperlikeButton
 import com.setembreiros.artis.ui.commponents.button.like.SuperlikeItem
 import com.setembreiros.artis.ui.commponents.comment.CommentAction
 import com.setembreiros.artis.ui.commponents.comment.CommentItem
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
     LaunchedEffect(post.metadata.postId) {
+        viewModel.initializeReviews(post.metadata.postId)
         viewModel.initializeComments(post.metadata.postId)
         viewModel.initializeLikes(post.metadata.postId)
         viewModel.initializeSuperlikes(post.metadata.postId)
+    }
+    val amountOfReviewsByPost by viewModel.amountOfReviewsByPost.collectAsState()
+    val reviewCount by remember {
+        derivedStateOf {
+            amountOfReviewsByPost[post.metadata.postId] ?: post.metadata.reviews
+        }
     }
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
     val commentCount by remember {
@@ -117,6 +123,9 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val superlikesCount = superlikesByPost[post.metadata.postId] ?: post.metadata.superlikes
     val isSuperliked = superlikedByUser[post.metadata.postId] ?: post.metadata.isSuperlikedByCurrentUser
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val postReviews by viewModel.postReviews.collectAsState()
+    val thereAreMoreReviews by viewModel.thereAreMoreReviews.collectAsStateWithLifecycle()
+    var showReviews by remember { mutableStateOf(false) }
     val postComments by viewModel.postComments.collectAsState()
     val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()
     var showComments by remember { mutableStateOf(false) }
@@ -129,14 +138,11 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val errorCode by viewModel.errorCode.collectAsState()
 
     // Mostrar Toast cando haxa un erro
-    LaunchedEffect(errorCode) {
-        errorCode?.let { code ->
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, context.getString(code), Toast.LENGTH_SHORT).show()
-            }
-            viewModel.clearErrorMessage()
-        }
-    }
+    ShowErrorToast(
+        errorCode = errorCode,
+        context = context,
+        clearError = { viewModel.clearErrorMessage() }
+    )
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog) {
@@ -154,112 +160,39 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         )
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = "https://img.freepik.com/premium-vector/business-office-african-american-manager-usinessman-avatar-icon-head-portrait-occupation_805465-135.jpg",
-                placeholder = painterResource(id = R.drawable.male_avatar_placeholder),
-                contentDescription = stringResource(R.string.avatar_description),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = post.metadata.username,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-        val profileOptions = listOf(
-            MenuOption(
-                text = "Delete",
-                color = Color.Red,
-                icon = Icons.Default.Delete,
-                onClick = { showDeleteDialog = true }
-            ),
-        )
-        ThreeDotsMenuButton(profileOptions)
-    }
-    Text(
-        text = post.metadata.title,
-        fontSize = 42.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top =16.dp),
-        textAlign = TextAlign.Center
+    PostHeader(
+        username = post.metadata.username,
+        onDeleteClick = { showDeleteDialog = true }
     )
-    Spacer(modifier = Modifier.height(10.dp))
-    if(post.content?.content != null && post.content?.content!!.isNotEmpty()) {
-        post.content!!.uriContent = createUriTempFile(context, post.metadata.postId, post.content?.content)
-        post.content!!.content = null
-    }
-    when (post.metadata.type) {
-        Constants.ContentType.TEXT -> TextPost(post.content!!.uriContent)
-        Constants.ContentType.IMAGE -> ImagePost(post.content!!.uriContent)
-        Constants.ContentType.AUDIO -> AVPost(post.content!!.uriContent)
-        Constants.ContentType.VIDEO -> AVPost(post.content!!.uriContent)
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
-                    viewModel.loadInitialComments(post.metadata.postId)
-                    showComments = true
-                }
-                .padding(end = 16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Comment,
-                contentDescription = "Comments",
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "$commentCount",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
+    PostTitle(title = post.metadata.title)
+    RenderPostContent(post = post, context = context)
+    PostActionsRow(
+        reviewCount = reviewCount,
+        commentCount = commentCount,
+        isLiked = isLiked,
+        likesCount = likesCount,
+        isSuperliked = isSuperliked,
+        superlikesCount = superlikesCount,
+        onReviewClick = {
+            viewModel.loadInitialReviews(post.metadata.postId)
+            showReviews = true
+        },
+        onCommentClick = {
+            viewModel.loadInitialComments(post.metadata.postId)
+            showComments = true
+        },
+        onLike = { viewModel.toggleLikePost(post.metadata.postId) },
+        onShowLikes = {
+            viewModel.loadInitialLikes(post.metadata.postId)
+            showLikes = true
+        },
+        onSuperlike = { viewModel.toggleSuperlikePost(post.metadata.postId) },
+        onShowSuperlikes = {
+            viewModel.loadInitialSuperlikes(post.metadata.postId)
+            showSuperlikes = true
         }
-        LikeButton(
-            isLiked = isLiked,
-            likesCount = likesCount,
-            onLike = { viewModel.toggleLikePost(post.metadata.postId) },
-            onShow = {
-                viewModel.loadInitialLikes(post.metadata.postId)
-                showLikes = true
-            }
-        )
-        SuperlikeButton(
-            isSuperliked = isSuperliked,
-            superlikesCount = superlikesCount,
-            onSuperlike = { viewModel.toggleSuperlikePost(post.metadata.postId) },
-            onShow = {
-                viewModel.loadInitialSuperlikes(post.metadata.postId)
-                showSuperlikes = true
-            }
-        )
-    }
-    Spacer(modifier = Modifier.height(10.dp))
-    Text(
-        text = post.metadata.description,
-        fontSize = 18.sp,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
     )
+    PostDescription(description = post.metadata.description)
 
     if (showComments) {
         CommentsSection(
@@ -304,6 +237,197 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             isLoading,
             thereAreMoreSuperlikes,
             onDismiss = { showSuperlikes = false }
+        )
+    }
+}
+
+@Composable
+fun PostHeader(
+    username: String,
+    onDeleteClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AsyncImage(
+                model = "https://img.freepik.com/premium-vector/business-office-african-american-manager-usinessman-avatar-icon-head-portrait-occupation_805465-135.jpg",
+                placeholder = painterResource(id = R.drawable.male_avatar_placeholder),
+                contentDescription = stringResource(R.string.avatar_description),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = username,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        val profileOptions = listOf(
+            MenuOption(
+                text = "Delete",
+                color = Color.Red,
+                icon = Icons.Default.Delete,
+                onClick = onDeleteClick
+            )
+        )
+
+        ThreeDotsMenuButton(profileOptions)
+    }
+}
+
+@Composable
+fun PostTitle(title: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            fontSize = 42.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@Composable
+fun RenderPostContent(
+    post: Post,
+    context: Context
+) {
+    // Convertir contido en URI temporal se é necesario
+    if(post.content?.content != null && post.content?.content!!.isNotEmpty()) {
+        post.content!!.uriContent = createUriTempFile(
+            context = context,
+            postId = post.metadata.postId,
+            content = post.content?.content
+        )
+        post.content?.content = null
+    }
+
+    // Mostrar contido segudo o tipo
+    when (post.metadata.type) {
+        Constants.ContentType.TEXT -> TextPost(post.content!!.uriContent)
+        Constants.ContentType.IMAGE -> ImagePost(post.content!!.uriContent)
+        Constants.ContentType.AUDIO,
+        Constants.ContentType.VIDEO -> AVPost(post.content!!.uriContent)
+    }
+}
+
+@Composable
+fun PostActionsRow(
+    reviewCount: Long,
+    commentCount: Long,
+    isLiked: Boolean,
+    likesCount: Long,
+    isSuperliked: Boolean,
+    superlikesCount: Long,
+    onReviewClick: () -> Unit,
+    onCommentClick: () -> Unit,
+    onLike: () -> Unit,
+    onShowLikes: () -> Unit,
+    onSuperlike: () -> Unit,
+    onShowSuperlikes: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ReviewsButton(
+            reviewCount = reviewCount,
+            onClick = onReviewClick
+        )
+        CommentsButton(
+            commentCount = commentCount,
+            onClick = onCommentClick
+        )
+        LikeButton(
+            isLiked = isLiked,
+            likesCount = likesCount,
+            onLike = onLike,
+            onShow = onShowLikes
+        )
+        SuperlikeButton(
+            isSuperliked = isSuperliked,
+            superlikesCount = superlikesCount,
+            onSuperlike = onSuperlike,
+            onShow = onShowSuperlikes
+        )
+    }
+}
+
+@Composable
+fun PostDescription(description: String) {
+    Spacer(modifier = Modifier.height(10.dp))
+    Text(
+        text = description,
+        fontSize = 18.sp,
+        color = Color.Gray,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun ReviewsButton(
+    reviewCount: Long,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(end = 16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.RateReview,
+            contentDescription = "Reviews",
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "$reviewCount",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun CommentsButton(
+    commentCount: Long,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(end = 16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Comment,
+            contentDescription = "Comments",
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "$commentCount",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -641,7 +765,7 @@ fun ImagePostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 5, 0, "", ""
+            description = "This is a sample description for the post.", 5, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -666,7 +790,7 @@ fun Image2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0,"", ""
+            description = "This is a sample description for the post.", 0, 0,0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -691,7 +815,7 @@ fun Video1PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -716,7 +840,7 @@ fun Video2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -752,7 +876,7 @@ fun PdfPostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.TEXT,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,

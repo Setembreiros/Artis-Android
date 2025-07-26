@@ -12,6 +12,7 @@ data class PostMetadata(
     val title: String,
     val description: String,
     val size: Long,
+    var reviews: Long,
     var comments: Long,
     val createdAt: String,
     val lastUpdated: String,

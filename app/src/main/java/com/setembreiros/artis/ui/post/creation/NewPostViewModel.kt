@@ -51,6 +51,7 @@ class NewPostViewModel @Inject constructor(
                     title = _title.value,
                     description = _description.value,
                     type = _type.value,
+                    reviews = 0,
                     comments = 0,
                     size = size,
                     createdAt = "",

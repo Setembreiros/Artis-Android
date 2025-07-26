@@ -16,6 +16,7 @@ class GetReviewsResponseMapperApi @Inject constructor(private val getSessionUseC
                         reviewId = dto.reviewId,
                         username = dto.username,
                         postId = dto.postId,
+                        title = dto.title,
                         content = dto.content,
                         rating = dto.rating,
                         isOwner = dto.username == currentUser

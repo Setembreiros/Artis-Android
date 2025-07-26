@@ -66,7 +66,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.RateReview
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -83,6 +86,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.model.Like
+import com.setembreiros.artis.domain.model.Review
 import com.setembreiros.artis.domain.model.Superlike
 import com.setembreiros.artis.ui.commponents.DynamicColumn
 import com.setembreiros.artis.ui.commponents.ShowErrorToast
@@ -92,6 +96,9 @@ import com.setembreiros.artis.ui.commponents.button.like.SuperlikeButton
 import com.setembreiros.artis.ui.commponents.button.like.SuperlikeItem
 import com.setembreiros.artis.ui.commponents.comment.CommentAction
 import com.setembreiros.artis.ui.commponents.comment.CommentItem
+import com.setembreiros.artis.ui.commponents.review.ReviewAction
+import com.setembreiros.artis.ui.commponents.review.ReviewCard
+import com.setembreiros.artis.ui.commponents.review.ReviewItem
 
 @Composable
 fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
@@ -193,6 +200,28 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         }
     )
     PostDescription(description = post.metadata.description)
+
+    if (showReviews) {
+        ReviewsSection(
+            postReviews,
+            onLoadMore = {
+                viewModel.loadMoreReviews(post.metadata.postId)
+            },
+            isLoading,
+            thereAreMoreReviews,
+            onSend = {
+                viewModel.addReviewAndUpdate(post.metadata.postId, it.title, it.content, it.rating)
+            },
+            onDismiss = { showReviews = false },
+            onReviewAction = { action ->
+                when (action) {
+                    is ReviewAction.Delete -> {
+                        viewModel.deleteReviewAndUpdate(post.metadata.postId, action.review.reviewId)
+                    }
+                }
+            }
+        )
+    }
 
     if (showComments) {
         CommentsSection(
@@ -407,6 +436,123 @@ fun ReviewsButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun ReviewsSection(
+    reviews: List<Review>,
+    onLoadMore: () -> Unit,
+    isLoading: Boolean,
+    thereAreMoreReviews: Boolean,
+    onSend: (ReviewContent) -> Unit,
+    onDismiss: () -> Unit,
+    onReviewAction: (ReviewAction) -> Unit,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var newReview by remember { mutableStateOf(ReviewContent("", "", 0)) }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            keyboardController?.hide()
+            onDismiss()
+        },
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(2.dp)
+                    )
+            )
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.95f)
+                .imeNestedScroll() // Importante para o comportamento correcto
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 80.dp) // Espazo para o campo fixo
+            ) {
+                // Cabeceira
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.review_section),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    AddReviewButton(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp),
+                        onClick = { }
+                    )
+                }
+
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+
+                // Lista de reviews
+                DynamicColumn(
+                    items = reviews,
+                    itemView = { review ->
+                        ReviewCard(
+                            review = review,
+                            onAction = onReviewAction
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                    },
+                    onLoadMore = onLoadMore,
+                    isLoading = isLoading,
+                    thereAreMoreItems = thereAreMoreReviews,
+                    modifier = Modifier.padding(8.dp),
+                    contentPadding = PaddingValues(bottom = 56.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AddReviewButton(
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Button(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = "Add review",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(id = R.string.add_review))
+        }
+    }
+}
+
 @Composable
 fun CommentsButton(
     commentCount: Long,
@@ -516,7 +662,14 @@ fun CommentsSection(
             // Campo de comentario
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 8.dp,
+                            topEnd = 8.dp,
+                            bottomStart = 8.dp,
+                            bottomEnd = 8.dp
+                        )
+                    )
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 8.dp)
                     .navigationBarsPadding()
@@ -753,6 +906,8 @@ private fun createTempFile(context: Context, postId: String, content: ByteArray?
 
     return null
 }
+
+data class ReviewContent(val title: String, val content: String, val rating: Int)
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

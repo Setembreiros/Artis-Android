@@ -6,6 +6,7 @@ data class GetReviewsDto(
     val reviewId: Long,
     val postId: String,
     val username: String,
+    val title: String,
     val content: String,
     val rating: Int,
     val createdAt: String,

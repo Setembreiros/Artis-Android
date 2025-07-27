@@ -104,22 +104,20 @@ fun Content(
 
         ) {
         TextFieldPost(
-            hint = stringResource(id = R.string.title),
-            onChangeValue = { onTitle(it) },
-
             modifier = Modifier
-                .wrapContentHeight()
-
+                .wrapContentHeight(),
+            placeholder = stringResource(id = R.string.title),
+            onChangeValue = { onTitle(it) }
         )
         Spacer(modifier = Modifier.size(16.dp))
         ImagePickerScreen(onResource, onType)
         Spacer(modifier = Modifier.size(16.dp))
         TextFieldPost(
-            hint = stringResource(id = R.string.caption),
-            onChangeValue = {onDescription(it)},
             modifier = Modifier
                 .wrapContentHeight()
-                .heightIn(min = 100.dp)
+                .heightIn(min = 100.dp),
+            placeholder = stringResource(id = R.string.caption),
+            onChangeValue = {onDescription(it)}
         )
         Spacer(modifier = Modifier.weight(1f))
         StandardButton(

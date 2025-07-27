@@ -3,7 +3,6 @@ package com.setembreiros.artis.ui.post.item
 import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -67,6 +66,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.RateReview
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -83,25 +86,39 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.model.Like
+import com.setembreiros.artis.domain.model.Review
 import com.setembreiros.artis.domain.model.Superlike
 import com.setembreiros.artis.ui.commponents.DynamicColumn
+import com.setembreiros.artis.ui.commponents.ShowErrorToast
 import com.setembreiros.artis.ui.commponents.button.like.LikeButton
 import com.setembreiros.artis.ui.commponents.button.like.LikeItem
 import com.setembreiros.artis.ui.commponents.button.like.SuperlikeButton
 import com.setembreiros.artis.ui.commponents.button.like.SuperlikeItem
 import com.setembreiros.artis.ui.commponents.comment.CommentAction
 import com.setembreiros.artis.ui.commponents.comment.CommentItem
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.setembreiros.artis.ui.commponents.review.ReviewAction
+import com.setembreiros.artis.ui.commponents.review.ReviewCard
+import com.setembreiros.artis.ui.commponents.review.ReviewItem
 
 @Composable
-fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
+fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit, onAddReview: (postId: String) -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
     LaunchedEffect(post.metadata.postId) {
+        viewModel.initializeReviews(post.metadata.postId)
         viewModel.initializeComments(post.metadata.postId)
         viewModel.initializeLikes(post.metadata.postId)
         viewModel.initializeSuperlikes(post.metadata.postId)
     }
+    val currentUsername by viewModel.currentUsername.collectAsState()
+    val isOwnPost = currentUsername == post.metadata.username
+    val amountOfReviewsByPost by viewModel.amountOfReviewsByPost.collectAsState()
+    val reviewCount by remember {
+        derivedStateOf {
+            amountOfReviewsByPost[post.metadata.postId] ?: post.metadata.reviews
+        }
+    }
+    val reviewedByUser by viewModel.reviewedByUser.collectAsState()
+    val isReviewed = reviewedByUser[post.metadata.postId] ?: post.metadata.isReviewedByCurrentUser
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
     val commentCount by remember {
         derivedStateOf {
@@ -117,6 +134,9 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val superlikesCount = superlikesByPost[post.metadata.postId] ?: post.metadata.superlikes
     val isSuperliked = superlikedByUser[post.metadata.postId] ?: post.metadata.isSuperlikedByCurrentUser
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val postReviews by viewModel.postReviews.collectAsState()
+    val thereAreMoreReviews by viewModel.thereAreMoreReviews.collectAsStateWithLifecycle()
+    var showReviews by remember { mutableStateOf(false) }
     val postComments by viewModel.postComments.collectAsState()
     val thereAreMoreComments by viewModel.thereAreMoreComments.collectAsStateWithLifecycle()
     var showComments by remember { mutableStateOf(false) }
@@ -129,14 +149,11 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
     val errorCode by viewModel.errorCode.collectAsState()
 
     // Mostrar Toast cando haxa un erro
-    LaunchedEffect(errorCode) {
-        errorCode?.let { code ->
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, context.getString(code), Toast.LENGTH_SHORT).show()
-            }
-            viewModel.clearErrorMessage()
-        }
-    }
+    ShowErrorToast(
+        errorCode = errorCode,
+        context = context,
+        clearError = { viewModel.clearErrorMessage() }
+    )
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog) {
@@ -154,112 +171,60 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         )
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = "https://img.freepik.com/premium-vector/business-office-african-american-manager-usinessman-avatar-icon-head-portrait-occupation_805465-135.jpg",
-                placeholder = painterResource(id = R.drawable.male_avatar_placeholder),
-                contentDescription = stringResource(R.string.avatar_description),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = post.metadata.username,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-        val profileOptions = listOf(
-            MenuOption(
-                text = "Delete",
-                color = Color.Red,
-                icon = Icons.Default.Delete,
-                onClick = { showDeleteDialog = true }
-            ),
-        )
-        ThreeDotsMenuButton(profileOptions)
-    }
-    Text(
-        text = post.metadata.title,
-        fontSize = 42.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top =16.dp),
-        textAlign = TextAlign.Center
+    PostHeader(
+        username = post.metadata.username,
+        onDeleteClick = { showDeleteDialog = true }
     )
-    Spacer(modifier = Modifier.height(10.dp))
-    if(post.content?.content != null && post.content?.content!!.isNotEmpty()) {
-        post.content!!.uriContent = createUriTempFile(context, post.metadata.postId, post.content?.content)
-        post.content!!.content = null
-    }
-    when (post.metadata.type) {
-        Constants.ContentType.TEXT -> TextPost(post.content!!.uriContent)
-        Constants.ContentType.IMAGE -> ImagePost(post.content!!.uriContent)
-        Constants.ContentType.AUDIO -> AVPost(post.content!!.uriContent)
-        Constants.ContentType.VIDEO -> AVPost(post.content!!.uriContent)
-    }
+    PostTitle(title = post.metadata.title)
+    RenderPostContent(post = post, context = context)
+    PostActionsRow(
+        reviewCount = reviewCount,
+        commentCount = commentCount,
+        isLiked = isLiked,
+        likesCount = likesCount,
+        isSuperliked = isSuperliked,
+        superlikesCount = superlikesCount,
+        onReviewClick = {
+            viewModel.loadInitialReviews(post.metadata.postId)
+            showReviews = true
+        },
+        onCommentClick = {
+            viewModel.loadInitialComments(post.metadata.postId)
+            showComments = true
+        },
+        onLike = { viewModel.toggleLikePost(post.metadata.postId) },
+        onShowLikes = {
+            viewModel.loadInitialLikes(post.metadata.postId)
+            showLikes = true
+        },
+        onSuperlike = { viewModel.toggleSuperlikePost(post.metadata.postId) },
+        onShowSuperlikes = {
+            viewModel.loadInitialSuperlikes(post.metadata.postId)
+            showSuperlikes = true
+        }
+    )
+    PostDescription(description = post.metadata.description)
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
-                    viewModel.loadInitialComments(post.metadata.postId)
-                    showComments = true
+    if (showReviews) {
+        ReviewsSection(
+            postReviews,
+            onLoadMore = {
+                viewModel.loadMoreReviews(post.metadata.postId)
+            },
+            isLoading,
+            thereAreMoreReviews,
+            canReview = !isOwnPost && !isReviewed,
+            onAddReview = { onAddReview(post.metadata.postId) },
+            onDismiss = { showReviews = false },
+            onReviewAction = { action ->
+                when (action) {
+                    is ReviewAction.Delete -> {
+                        viewModel.deleteReviewAndUpdate(post.metadata.postId, action.review.reviewId)
+                    }
                 }
-                .padding(end = 16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Comment,
-                contentDescription = "Comments",
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "$commentCount",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        LikeButton(
-            isLiked = isLiked,
-            likesCount = likesCount,
-            onLike = { viewModel.toggleLikePost(post.metadata.postId) },
-            onShow = {
-                viewModel.loadInitialLikes(post.metadata.postId)
-                showLikes = true
-            }
-        )
-        SuperlikeButton(
-            isSuperliked = isSuperliked,
-            superlikesCount = superlikesCount,
-            onSuperlike = { viewModel.toggleSuperlikePost(post.metadata.postId) },
-            onShow = {
-                viewModel.loadInitialSuperlikes(post.metadata.postId)
-                showSuperlikes = true
             }
         )
     }
-    Spacer(modifier = Modifier.height(10.dp))
-    Text(
-        text = post.metadata.description,
-        fontSize = 18.sp,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
-    )
 
     if (showComments) {
         CommentsSection(
@@ -304,6 +269,324 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             isLoading,
             thereAreMoreSuperlikes,
             onDismiss = { showSuperlikes = false }
+        )
+    }
+}
+
+@Composable
+fun PostHeader(
+    username: String,
+    onDeleteClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AsyncImage(
+                model = "https://img.freepik.com/premium-vector/business-office-african-american-manager-usinessman-avatar-icon-head-portrait-occupation_805465-135.jpg",
+                placeholder = painterResource(id = R.drawable.male_avatar_placeholder),
+                contentDescription = stringResource(R.string.avatar_description),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = username,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        val profileOptions = listOf(
+            MenuOption(
+                text = "Delete",
+                color = Color.Red,
+                icon = Icons.Default.Delete,
+                onClick = onDeleteClick
+            )
+        )
+
+        ThreeDotsMenuButton(profileOptions)
+    }
+}
+
+@Composable
+fun PostTitle(title: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            fontSize = 42.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@Composable
+fun RenderPostContent(
+    post: Post,
+    context: Context
+) {
+    // Convertir contido en URI temporal se é necesario
+    if(post.content?.content != null && post.content?.content!!.isNotEmpty()) {
+        post.content!!.uriContent = createUriTempFile(
+            context = context,
+            postId = post.metadata.postId,
+            content = post.content?.content
+        )
+        post.content?.content = null
+    }
+
+    // Mostrar contido segudo o tipo
+    when (post.metadata.type) {
+        Constants.ContentType.TEXT -> TextPost(post.content!!.uriContent)
+        Constants.ContentType.IMAGE -> ImagePost(post.content!!.uriContent)
+        Constants.ContentType.AUDIO,
+        Constants.ContentType.VIDEO -> AVPost(post.content!!.uriContent)
+    }
+}
+
+@Composable
+fun PostActionsRow(
+    reviewCount: Long,
+    commentCount: Long,
+    isLiked: Boolean,
+    likesCount: Long,
+    isSuperliked: Boolean,
+    superlikesCount: Long,
+    onReviewClick: () -> Unit,
+    onCommentClick: () -> Unit,
+    onLike: () -> Unit,
+    onShowLikes: () -> Unit,
+    onSuperlike: () -> Unit,
+    onShowSuperlikes: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ReviewsButton(
+            reviewCount = reviewCount,
+            onClick = onReviewClick
+        )
+        CommentsButton(
+            commentCount = commentCount,
+            onClick = onCommentClick
+        )
+        LikeButton(
+            isLiked = isLiked,
+            likesCount = likesCount,
+            onLike = onLike,
+            onShow = onShowLikes
+        )
+        SuperlikeButton(
+            isSuperliked = isSuperliked,
+            superlikesCount = superlikesCount,
+            onSuperlike = onSuperlike,
+            onShow = onShowSuperlikes
+        )
+    }
+}
+
+@Composable
+fun PostDescription(description: String) {
+    Spacer(modifier = Modifier.height(10.dp))
+    Text(
+        text = description,
+        fontSize = 18.sp,
+        color = Color.Gray,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun ReviewsButton(
+    reviewCount: Long,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(end = 16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.RateReview,
+            contentDescription = "Reviews",
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "$reviewCount",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun ReviewsSection(
+    reviews: List<Review>,
+    onLoadMore: () -> Unit,
+    isLoading: Boolean,
+    thereAreMoreReviews: Boolean,
+    canReview: Boolean,
+    onAddReview: () -> Unit,
+    onDismiss: () -> Unit,
+    onReviewAction: (ReviewAction) -> Unit,
+) {
+    var expandedReview by remember { mutableStateOf<Review?>(null) }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        ),
+        windowInsets = WindowInsets(0, 0, 0, 0),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(2.dp)
+                    )
+            )
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.95f)
+                .imeNestedScroll() // Importante para o comportamento correcto
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 80.dp) // Espazo para o campo fixo
+            ) {
+                // Cabeceira
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.review_section),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    if(canReview) {
+                        AddReviewButton(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp),
+                            onClick = onAddReview
+                        )
+                    }
+                }
+
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+
+                // Lista de reviews
+                DynamicColumn(
+                    items = reviews,
+                    itemView = { review ->
+                        ReviewCard(
+                            review = review,
+                            onClick = { expandedReview = review },
+                            onAction = onReviewAction
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+                    },
+                    onLoadMore = onLoadMore,
+                    isLoading = isLoading,
+                    thereAreMoreItems = thereAreMoreReviews,
+                    modifier = Modifier.padding(8.dp),
+                    contentPadding = PaddingValues(bottom = 56.dp),
+                )
+            }
+        }
+    }
+
+    expandedReview?.let { review ->
+        ReviewItem(
+            review = review,
+            onDismiss = { expandedReview = null },
+            onReviewAction = onReviewAction
+        )
+    }
+}
+
+@Composable
+fun AddReviewButton(
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Button(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = "Add review",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(id = R.string.add_review))
+        }
+    }
+}
+
+@Composable
+fun CommentsButton(
+    commentCount: Long,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(end = 16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Comment,
+            contentDescription = "Comments",
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "$commentCount",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -392,7 +675,14 @@ fun CommentsSection(
             // Campo de comentario
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp))
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 8.dp,
+                            topEnd = 8.dp,
+                            bottomStart = 8.dp,
+                            bottomEnd = 8.dp
+                        )
+                    )
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 8.dp)
                     .navigationBarsPadding()
@@ -630,6 +920,8 @@ private fun createTempFile(context: Context, postId: String, content: ByteArray?
     return null
 }
 
+data class ReviewContent(val title: String, val content: String, val rating: Int)
+
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ImagePostDetailsPreview() {
@@ -641,7 +933,7 @@ fun ImagePostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 5, 0, "", ""
+            description = "This is a sample description for the post.", 5, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -651,7 +943,7 @@ fun ImagePostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, post = samplePost, {})
+        PostDetailsView(context, post = samplePost, {}, {})
     }
 }
 
@@ -666,7 +958,7 @@ fun Image2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.IMAGE,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0,"", ""
+            description = "This is a sample description for the post.", 0, 0,0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -676,7 +968,7 @@ fun Image2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, post = samplePost, {})
+        PostDetailsView(context, post = samplePost, {}, {})
     }
 }
 
@@ -691,7 +983,7 @@ fun Video1PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -701,7 +993,7 @@ fun Video1PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost, {})
+        PostDetailsView(context, samplePost, {}, {})
     }
 }
 
@@ -716,7 +1008,7 @@ fun Video2PostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.VIDEO,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -726,7 +1018,7 @@ fun Video2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost, {})
+        PostDetailsView(context, samplePost, {}, {})
     }
 }
 
@@ -752,7 +1044,7 @@ fun PdfPostDetailsPreview() {
         metadata = PostMetadata(
             "","", Constants.ContentType.TEXT,
             title = "Sample Title",
-            description = "This is a sample description for the post.", 0, 0, "", ""
+            description = "This is a sample description for the post.", 0, 0, 0,"", ""
         ),
         content = PostContent(
             uriContent = null,
@@ -762,6 +1054,6 @@ fun PdfPostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost, {})
+        PostDetailsView(context, samplePost, {}, {})
     }
 }

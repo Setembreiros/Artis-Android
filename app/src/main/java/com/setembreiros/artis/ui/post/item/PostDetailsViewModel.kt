@@ -6,6 +6,7 @@ import com.setembreiros.artis.R
 import com.setembreiros.artis.data.repository.ProfileRepository
 import com.setembreiros.artis.domain.model.Comment
 import com.setembreiros.artis.domain.model.Like
+import com.setembreiros.artis.domain.model.Review
 import com.setembreiros.artis.domain.model.Superlike
 import com.setembreiros.artis.domain.usecase.comment.AddCommentUseCase
 import com.setembreiros.artis.domain.usecase.comment.DeleteCommentUseCase
@@ -14,6 +15,9 @@ import com.setembreiros.artis.domain.usecase.like.AddLikePostUseCase
 import com.setembreiros.artis.domain.usecase.like.DeleteLikePostUseCase
 import com.setembreiros.artis.domain.usecase.like.GetLikesUseCase
 import com.setembreiros.artis.domain.usecase.post.DeletePostsUseCase
+import com.setembreiros.artis.domain.usecase.review.AddReviewUseCase
+import com.setembreiros.artis.domain.usecase.review.DeleteReviewUseCase
+import com.setembreiros.artis.domain.usecase.review.GetReviewsUseCase
 import com.setembreiros.artis.domain.usecase.session.GetSessionUseCase
 import com.setembreiros.artis.domain.usecase.superlike.AddSuperlikePostUseCase
 import com.setembreiros.artis.domain.usecase.superlike.DeleteSuperlikePostUseCase
@@ -34,6 +38,8 @@ class PostDetailsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val getSessionUseCase: GetSessionUseCase,
     private val deletePostsUseCase: DeletePostsUseCase,
+    private val getReviewsUseCase: GetReviewsUseCase,
+    private val deleteReviewUseCase: DeleteReviewUseCase,
     private val addCommentUseCase: AddCommentUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
     private val deleteCommentUseCase: DeleteCommentUseCase,
@@ -44,6 +50,14 @@ class PostDetailsViewModel @Inject constructor(
     private val getSuperlikesUseCase: GetSuperlikesUseCase,
     private val deleteSuperlikePostUseCase: DeleteSuperlikePostUseCase,
 ): BaseViewModel() {
+    private val _currentUsername = MutableStateFlow(getSessionUseCase.invoke()?.username)
+    val currentUsername = _currentUsername
+    private val _amountOfReviewsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
+    val amountOfReviewsByPost: StateFlow<Map<String, Long>> = _amountOfReviewsByPost.asStateFlow()
+    private val _postReviews = MutableStateFlow<List<Review>>(emptyList())
+    val postReviews: StateFlow<List<Review>> = _postReviews.asStateFlow()
+    private val _reviewedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val reviewedByUser: StateFlow<Map<String, Boolean>> = _reviewedByUser
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
     val amountOfCommentsByPost: StateFlow<Map<String, Long>> = _amountOfCommentsByPost.asStateFlow()
     private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
@@ -64,12 +78,27 @@ class PostDetailsViewModel @Inject constructor(
     val errorCode: StateFlow<Int?> = _errorMessage.asStateFlow()
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val _thereAreMoreReviews = MutableStateFlow(true)
+    val thereAreMoreReviews: StateFlow<Boolean> = _thereAreMoreReviews
     private val _thereAreMoreComments = MutableStateFlow(true)
     val thereAreMoreComments: StateFlow<Boolean> = _thereAreMoreComments
     private val _thereAreMoreLikes = MutableStateFlow(true)
     val thereAreMoreLikes: StateFlow<Boolean> = _thereAreMoreLikes
     private val _thereAreMoreSuperlikes = MutableStateFlow(true)
     val thereAreMoreSuperlikes: StateFlow<Boolean> = _thereAreMoreSuperlikes
+
+    fun initializeReviews(postId: String) {
+        setAmountOfReviews(postId)
+        _reviewedByUser.update { it + (postId to profileRepository.getVisitPost(postId).metadata.isReviewedByCurrentUser) }
+    }
+
+    fun setAmountOfReviews(postId: String) {
+        _amountOfReviewsByPost.update { currentMap ->
+            currentMap.toMutableMap().apply {
+                this[postId] = profileRepository.getVisitPost(postId).metadata.reviews
+            }
+        }
+    }
 
     fun initializeComments(postId: String) {
         _amountOfCommentsByPost.update { currentMap ->
@@ -112,6 +141,58 @@ class PostDetailsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("PostDetailsViewModel", "Error deleting post: ${e.message}")
                 _errorMessage.value = R.string.error_deleting_post
+            }
+        }
+    }
+
+    fun loadInitialReviews(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = getReviewsUseCase.invoke(postId, 0)
+                _postReviews.value = result.first
+                _thereAreMoreReviews.value = result.second
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading reviews: ${e.message}")
+                _errorMessage.value = R.string.error_loading_reviews
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun loadMoreReviews(postId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val lastReviewId = _postReviews.value.last().reviewId
+                val result = getReviewsUseCase.invoke(postId, lastReviewId)
+                _thereAreMoreReviews.value = result.second
+                _postReviews.update { currentList ->
+                    currentList + result.first
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error loading reviews: ${e.message}")
+                _errorMessage.value = R.string.error_loading_reviews
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun deleteReviewAndUpdate(postId: String, reviewId: Long)  {
+        viewModelScope.launch {
+            try {
+                val result = deleteReview(postId, reviewId)
+                if (!result) {
+                    _errorMessage.value = R.string.error_deleting_review
+                } else {
+                    _postReviews.update { currentList ->
+                        currentList.filterNot { it.reviewId == reviewId }// Eliminao da lista
+                    }
+                    setAmountOfReviews(postId)
+                }
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting comment: ${e.message}")
+                _errorMessage.value = R.string.error_deleting_comment
             }
         }
     }
@@ -351,6 +432,17 @@ class PostDetailsViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         _errorMessage.value = null
+    }
+
+    private suspend fun deleteReview(postId: String, reviewId: Long): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                deleteReviewUseCase.invoke(postId, reviewId)
+            } catch (e: Exception) {
+                Log.e("PostDetailsViewModel", "Error deleting review: ${e.message}")
+                false
+            }
+        }
     }
 
     private suspend fun addComment(postId: String, content: String): Comment? {

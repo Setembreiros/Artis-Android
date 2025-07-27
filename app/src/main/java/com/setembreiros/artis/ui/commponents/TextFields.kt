@@ -1,17 +1,20 @@
 package com.setembreiros.artis.ui.commponents
 
 import android.content.res.Configuration
-import android.icu.text.CaseMap.Title
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,15 +37,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.setembreiros.artis.R
-import com.setembreiros.artis.ui.theme.gray
-
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import kotlinx.coroutines.launch
 
 @Composable
 fun StandardTextField(
@@ -135,45 +142,74 @@ fun StandardPassTextField(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TextFieldPost(hint: String,
-                  value: String = "",
-                  onChangeValue: (String) -> Unit,
-                  modifier: Modifier){
-    var value by remember {mutableStateOf(value)}
+fun TextFieldPost(
+    modifier: Modifier,
+    placeholder: String,
+    onChangeValue: (String) -> Unit
+) {
+    val textState = remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusRequester = remember { FocusRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = modifier
-        .fillMaxWidth()
-        .border(
-            BorderStroke(2.dp, Color.Black),
-            shape = RoundedCornerShape(8.dp)
-        )
-        .clip(shape = RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.surface)
-        .padding(horizontal = 8.dp),
-
-        ) {
-        Text(text = hint, color = MaterialTheme.colorScheme.onSurface, fontSize = 11.sp)
-        Spacer(modifier = Modifier.size(1.dp))
-        BasicTextField(
-            value = value,
-            onValueChange = {
-                onChangeValue(it)
-                value = it },
-            modifier = modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 4.dp),
-            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface) // Color del texto
-        ) { innerTextField ->
-            innerTextField()
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
+    ) {
+        Box(modifier = Modifier.fillMaxSize()
+            .border(
+                BorderStroke(2.dp, Color.Black),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clip(shape = RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 8.dp)) {
+            BasicTextField(
+                value = textState.value,
+                onValueChange = { newText ->
+                    onChangeValue(newText)
+                    textState.value = newText
+                    // Facer scroll automático cando se escribe
+                    coroutineScope.launch {
+                        scrollState.scrollTo(scrollState.maxValue)
+                        bringIntoViewRequester.bringIntoView()
+                    }
+                },
+                textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                modifier = modifier
+                    .verticalScroll(scrollState)
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(bringIntoViewRequester)
+                    .focusRequester(focusRequester)
+                    .padding(vertical = 10.dp),
+                singleLine = false,
+                decorationBox = { innerTextField ->
+                    if (textState.value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            style = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        )
+                    }
+                    innerTextField()
+                }
+            )
         }
+    }
+
+    // Activar o foco ao cargar o compoñente (opcional)
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PrevTextFieldPost(){
-TextFieldPost(hint = "", onChangeValue = {}, modifier = Modifier)
+TextFieldPost(placeholder = "", onChangeValue = {}, modifier = Modifier)
 }

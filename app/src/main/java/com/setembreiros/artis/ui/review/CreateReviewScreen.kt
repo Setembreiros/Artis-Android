@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -38,7 +37,7 @@ import com.setembreiros.artis.ui.commponents.TextFieldPost
 import com.setembreiros.artis.ui.theme.gray
 
 @Composable
-fun CreateReviewScreen(postId: String) {
+fun CreateReviewScreen(postId: String, onReviewSubmitted: () -> Unit,) {
     val context = LocalContext.current
     val viewModel: CreateReviewViewModel = hiltViewModel()
     val loading by viewModel.loading.collectAsStateWithLifecycle()
@@ -58,7 +57,6 @@ fun CreateReviewScreen(postId: String) {
             .padding(horizontal = 32.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.Top
     ) {
-
         StarRatingSelector(
           rating = selectedRating,
           onRatingSelected = {
@@ -90,7 +88,9 @@ fun CreateReviewScreen(postId: String) {
             loading = loading,
             backgroundColor = gray
         ) {
-            viewModel.publish()
+            viewModel.publish(
+                onReviewSubmitted = onReviewSubmitted
+            )
         }
     }
 }

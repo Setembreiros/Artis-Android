@@ -102,14 +102,19 @@ fun NavHostApp(
                 username,
                 postId,
                 onAddReview = {
-                    navController.navigationToCreateReview(postId, PostDetailsProfile.originTab)
+                    navController.navigationToCreateReview(it, PostDetailsProfile.originTab)
                 }
             )
         }
         composable(CreateReview.route){ backStackEntry ->
             stateButtonMenu(true)
             val postId = backStackEntry.arguments?.getString("postId") ?: ""
-            CreateReviewScreen(postId)
+            CreateReviewScreen(
+                postId,
+                onReviewSubmitted = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

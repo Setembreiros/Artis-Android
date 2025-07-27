@@ -38,7 +38,6 @@ class PostDetailsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val getSessionUseCase: GetSessionUseCase,
     private val deletePostsUseCase: DeletePostsUseCase,
-    private val addReviewUseCase: AddReviewUseCase,
     private val getReviewsUseCase: GetReviewsUseCase,
     private val deleteReviewUseCase: DeleteReviewUseCase,
     private val addCommentUseCase: AddCommentUseCase,
@@ -89,13 +88,7 @@ class PostDetailsViewModel @Inject constructor(
     val thereAreMoreSuperlikes: StateFlow<Boolean> = _thereAreMoreSuperlikes
 
     fun initializeReviews(postId: String) {
-        _amountOfReviewsByPost.update { currentMap ->
-            currentMap.toMutableMap().apply {
-                if(!this.containsKey(postId)) {
-                    this[postId] = profileRepository.getVisitPost(postId).metadata.reviews
-                }
-            }
-        }
+        setAmountOfReviews(postId)
         _reviewedByUser.update { it + (postId to profileRepository.getVisitPost(postId).metadata.isReviewedByCurrentUser) }
     }
 
@@ -182,25 +175,6 @@ class PostDetailsViewModel @Inject constructor(
                 _errorMessage.value = R.string.error_loading_reviews
             }
             _isLoading.value = false
-        }
-    }
-
-    fun addReviewAndUpdate(postId: String, title: String, content: String, rating: Int) {
-        viewModelScope.launch {
-            try {
-                val newReview = addReview(postId, title, content, rating)
-                newReview?.let { review ->
-                    _postReviews.update { currentList ->
-                        listOf(review) + currentList // Engade ao comezo
-                    }
-                    setAmountOfReviews(postId)
-                } ?: run {
-                    _errorMessage.value = R.string.review_failed
-                }
-            } catch (e: Exception) {
-                Log.e("PostDetailsViewModel", "Error adding review: ${e.message}")
-                _errorMessage.value = R.string.error_adding_review
-            }
         }
     }
 
@@ -458,18 +432,6 @@ class PostDetailsViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         _errorMessage.value = null
-    }
-
-    private suspend fun addReview(postId: String, title: String, content: String, rating: Int): Review? {
-        return withContext(Dispatchers.IO) {
-            try {
-                getSessionUseCase.invoke()?.username?.let { username ->
-                    addReviewUseCase.invoke(username, postId, title, content, rating)
-                }
-            } catch (e: Exception) {
-                null
-            }
-        }
     }
 
     private suspend fun deleteReview(postId: String, reviewId: Long): Boolean {

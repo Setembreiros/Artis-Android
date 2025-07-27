@@ -451,6 +451,8 @@ fun ReviewsSection(
     onDismiss: () -> Unit,
     onReviewAction: (ReviewAction) -> Unit,
 ) {
+    var expandedReview by remember { mutableStateOf<Review?>(null) }
+
     ModalBottomSheet(
         onDismissRequest = {
             onDismiss()
@@ -513,6 +515,7 @@ fun ReviewsSection(
                     itemView = { review ->
                         ReviewCard(
                             review = review,
+                            onClick = { expandedReview = review },
                             onAction = onReviewAction
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
@@ -525,6 +528,14 @@ fun ReviewsSection(
                 )
             }
         }
+    }
+
+    expandedReview?.let { review ->
+        ReviewItem(
+            review = review,
+            onDismiss = { expandedReview = null },
+            onReviewAction = onReviewAction
+        )
     }
 }
 

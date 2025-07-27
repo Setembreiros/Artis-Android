@@ -20,7 +20,8 @@ fun DynamicPostsColumn(
     onLoadMore: () -> Unit,
     isLoading: Boolean,
     thereAreMorePosts: Boolean,
-    onChange: () -> Unit
+    onChange: () -> Unit,
+    onAddReview: (postId: String) -> Unit
 ) {
     val listState = rememberLazyListState()
 
@@ -34,7 +35,7 @@ fun DynamicPostsColumn(
     DynamicColumn(
         items = posts,
         itemView = { post ->
-            PostDetailsView(context, post, onChange)
+            PostDetailsView(context, post, onChange, onAddReview)
         },
         onLoadMore = onLoadMore,
         isLoading = isLoading,

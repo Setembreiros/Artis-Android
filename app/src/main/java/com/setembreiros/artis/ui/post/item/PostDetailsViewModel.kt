@@ -51,10 +51,14 @@ class PostDetailsViewModel @Inject constructor(
     private val getSuperlikesUseCase: GetSuperlikesUseCase,
     private val deleteSuperlikePostUseCase: DeleteSuperlikePostUseCase,
 ): BaseViewModel() {
+    private val _currentUsername = MutableStateFlow(getSessionUseCase.invoke()?.username)
+    val currentUsername = _currentUsername
     private val _amountOfReviewsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
     val amountOfReviewsByPost: StateFlow<Map<String, Long>> = _amountOfReviewsByPost.asStateFlow()
     private val _postReviews = MutableStateFlow<List<Review>>(emptyList())
     val postReviews: StateFlow<List<Review>> = _postReviews.asStateFlow()
+    private val _reviewedByUser = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val reviewedByUser: StateFlow<Map<String, Boolean>> = _reviewedByUser
     private val _amountOfCommentsByPost = MutableStateFlow<Map<String, Long>>(emptyMap())
     val amountOfCommentsByPost: StateFlow<Map<String, Long>> = _amountOfCommentsByPost.asStateFlow()
     private val _postComments = MutableStateFlow<List<Comment>>(emptyList())
@@ -92,6 +96,7 @@ class PostDetailsViewModel @Inject constructor(
                 }
             }
         }
+        _reviewedByUser.update { it + (postId to profileRepository.getVisitPost(postId).metadata.isReviewedByCurrentUser) }
     }
 
     fun setAmountOfReviews(postId: String) {

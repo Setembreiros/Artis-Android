@@ -14,6 +14,7 @@ class GetPostMetadatasResponseMapperApi: Mapper<GetPostMetadatasResponseApi, Pai
                 title = dto.title,
                 description = dto.description,
                 reviews = dto.reviews,
+                isReviewedByCurrentUser = dto.isReviewedByCurrentUser,
                 comments = dto.comments,
                 likes = dto.likes,
                 isLikedByCurrentUser = dto.isLikedByCurrentUser,

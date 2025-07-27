@@ -18,6 +18,7 @@ data class PostMetadata(
     val lastUpdated: String,
     var likes: Long = 0,
     var superlikes: Long = 0,
+    var isReviewedByCurrentUser: Boolean = false,
     var isLikedByCurrentUser: Boolean = false,
     var isSuperlikedByCurrentUser: Boolean = false,
 )

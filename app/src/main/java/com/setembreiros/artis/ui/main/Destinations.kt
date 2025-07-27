@@ -120,6 +120,19 @@ object PostDetailsProfile : Destinations{
         }
 }
 
+object CreateReview : Destinations{
+    private var _originTab: String = "home"
+    override val icon: Int
+        get() = 0
+    override val route: String
+        get() = "create_review/{postId}"
+    override var originTab: String
+        get() = _originTab
+        set(value) {
+            _originTab = value
+        }
+}
+
 val tabScreenUA = listOf(Home, Discover, NewPost, Profile)
 val tabScreenUE = listOf(Home, Discover, Profile)
-val allScreen = listOf(Register, Login, Home, Discover, NewPost, Profile, OtherUserProfile, PublishPost, PostDetailsProfile)
+val allScreen = listOf(Register, Login, Home, Discover, NewPost, Profile, OtherUserProfile, PublishPost, PostDetailsProfile, CreateReview)

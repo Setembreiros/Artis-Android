@@ -13,6 +13,7 @@ class DeleteReviewUseCase @Inject constructor(private val reviewRepository: Revi
             is Resource.Success -> {
                 val post = profileRepository.getVisitPost(postId)
                 post.metadata.reviews -= 1
+                post.metadata.isReviewedByCurrentUser = false
                 profileRepository.saveVisitPost(post)
                 true
             }

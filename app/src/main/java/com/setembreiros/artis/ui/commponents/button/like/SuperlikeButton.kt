@@ -52,7 +52,7 @@ fun SuperlikeButton(
         Icon(
             imageVector = if (isSuperliked)  Icons.Filled.Star else Icons.Outlined.StarBorder,
             contentDescription = "Superlike",
-            tint = if (isSuperliked) Color.Yellow else MaterialTheme.colorScheme.primary,
+            tint = if (isSuperliked) Color(0xFFFFEC99) else MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -71,7 +71,7 @@ fun SuperlikeButton(
         Text(
             text = "$superlikesCount",
             fontSize = 16.sp,
-            color = if (isSuperliked) Color.Yellow else MaterialTheme.colorScheme.primary,
+            color = if (isSuperliked) Color(0xFFFFEC99) else MaterialTheme.colorScheme.primary,
             modifier = Modifier.animateContentSize()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },

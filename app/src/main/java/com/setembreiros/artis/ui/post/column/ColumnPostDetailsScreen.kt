@@ -7,12 +7,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun ColumnPostDetailsScreen(username: String, postId: String) {
+fun ColumnPostDetailsScreen(username: String, postId: String, onAddReview: (postId: String) -> Unit) {
     val context = LocalContext.current
     val viewModel: ColumnPostDetailsViewModel = hiltViewModel()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val thereAreMorePosts by viewModel.thereAreMorePosts.collectAsStateWithLifecycle()
 
-    DynamicPostsColumn(context, postId, posts, { viewModel.loadMorePosts(username) }, isLoading, thereAreMorePosts, { viewModel.updatePosts()})
+    DynamicPostsColumn(
+        context,
+        postId,
+        posts,
+        { viewModel.loadMorePosts(username) },
+        isLoading,
+        thereAreMorePosts,
+        { viewModel.updatePosts()},
+        onAddReview
+    )
 }

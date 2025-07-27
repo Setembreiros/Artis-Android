@@ -16,6 +16,7 @@ import com.setembreiros.artis.ui.post.creation.NewPostScreen
 import com.setembreiros.artis.ui.post.creation.PublishPostScreen
 import com.setembreiros.artis.ui.profile.OtherUserProfileScreen
 import com.setembreiros.artis.ui.profile.OwnProfileScreen
+import com.setembreiros.artis.ui.review.CreateReviewScreen
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -97,7 +98,18 @@ fun NavHostApp(
             stateButtonMenu(true)
             val username = backStackEntry.arguments?.getString("username") ?: ""
             val postId = backStackEntry.arguments?.getString("postId") ?: ""
-            ColumnPostDetailsScreen(username, postId)
+            ColumnPostDetailsScreen(
+                username,
+                postId,
+                onAddReview = {
+                    navController.navigationToCreateReview(postId, PostDetailsProfile.originTab)
+                }
+            )
+        }
+        composable(CreateReview.route){ backStackEntry ->
+            stateButtonMenu(true)
+            val postId = backStackEntry.arguments?.getString("postId") ?: ""
+            CreateReviewScreen(postId)
         }
     }
 }
@@ -129,4 +141,9 @@ fun NavHostController.navigationToOtherUserProfile(username: String, originTab: 
 
 fun NavHostController.navigationToOwnUserProfile(){
     this.navigate(Profile.route)
+}
+
+fun NavHostController.navigationToCreateReview(postId: String, originTab: String){
+    CreateReview.originTab = originTab
+    this.navigate("create_review/$postId")
 }

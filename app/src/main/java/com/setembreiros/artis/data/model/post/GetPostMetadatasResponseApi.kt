@@ -12,6 +12,7 @@ data class GetPostMetadataDto(
     val title: String,
     val description: String,
     val reviews: Long,
+    val isReviewedByCurrentUser: Boolean,
     val comments: Long,
     val likes: Long,
     val isLikedByCurrentUser: Boolean,

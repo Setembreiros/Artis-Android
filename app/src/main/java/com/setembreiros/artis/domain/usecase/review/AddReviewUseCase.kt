@@ -13,6 +13,7 @@ class AddReviewUseCase @Inject constructor(private val reviewRepository: ReviewR
             is Resource.Success -> {
                 val post = profileRepository.getVisitPost(postId)
                 post.metadata.reviews += 1
+                post.metadata.isReviewedByCurrentUser = true
                 profileRepository.saveVisitPost(post)
                 review
             }

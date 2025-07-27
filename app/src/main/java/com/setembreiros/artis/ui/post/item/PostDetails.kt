@@ -101,7 +101,7 @@ import com.setembreiros.artis.ui.commponents.review.ReviewCard
 import com.setembreiros.artis.ui.commponents.review.ReviewItem
 
 @Composable
-fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
+fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit, onAddReview: (postId: String) -> Unit) {
     val viewModel: PostDetailsViewModel = hiltViewModel()
     LaunchedEffect(post.metadata.postId) {
         viewModel.initializeReviews(post.metadata.postId)
@@ -109,12 +109,16 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
         viewModel.initializeLikes(post.metadata.postId)
         viewModel.initializeSuperlikes(post.metadata.postId)
     }
+    val currentUsername by viewModel.currentUsername.collectAsState()
+    val isOwnPost = currentUsername == post.metadata.username
     val amountOfReviewsByPost by viewModel.amountOfReviewsByPost.collectAsState()
     val reviewCount by remember {
         derivedStateOf {
             amountOfReviewsByPost[post.metadata.postId] ?: post.metadata.reviews
         }
     }
+    val reviewedByUser by viewModel.reviewedByUser.collectAsState()
+    val isReviewed = reviewedByUser[post.metadata.postId] ?: post.metadata.isReviewedByCurrentUser
     val amountOfCommentsByPost by viewModel.amountOfCommentsByPost.collectAsState()
     val commentCount by remember {
         derivedStateOf {
@@ -209,9 +213,8 @@ fun PostDetailsView(context: Context, post: Post, onChange: () -> Unit) {
             },
             isLoading,
             thereAreMoreReviews,
-            onSend = {
-                viewModel.addReviewAndUpdate(post.metadata.postId, it.title, it.content, it.rating)
-            },
+            canReview = !isOwnPost && !isReviewed,
+            onAddReview = { onAddReview(post.metadata.postId) },
             onDismiss = { showReviews = false },
             onReviewAction = { action ->
                 when (action) {
@@ -443,16 +446,13 @@ fun ReviewsSection(
     onLoadMore: () -> Unit,
     isLoading: Boolean,
     thereAreMoreReviews: Boolean,
-    onSend: (ReviewContent) -> Unit,
+    canReview: Boolean,
+    onAddReview: () -> Unit,
     onDismiss: () -> Unit,
     onReviewAction: (ReviewAction) -> Unit,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    var newReview by remember { mutableStateOf(ReviewContent("", "", 0)) }
-
     ModalBottomSheet(
         onDismissRequest = {
-            keyboardController?.hide()
             onDismiss()
         },
         sheetState = rememberModalBottomSheetState(
@@ -496,11 +496,13 @@ fun ReviewsSection(
                         fontWeight = FontWeight.Bold
                     )
 
-                    AddReviewButton(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp),
-                        onClick = { }
-                    )
+                    if(canReview) {
+                        AddReviewButton(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp),
+                            onClick = onAddReview
+                        )
+                    }
                 }
 
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
@@ -930,7 +932,7 @@ fun ImagePostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, post = samplePost, {})
+        PostDetailsView(context, post = samplePost, {}, {})
     }
 }
 
@@ -955,7 +957,7 @@ fun Image2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, post = samplePost, {})
+        PostDetailsView(context, post = samplePost, {}, {})
     }
 }
 
@@ -980,7 +982,7 @@ fun Video1PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost, {})
+        PostDetailsView(context, samplePost, {}, {})
     }
 }
 
@@ -1005,7 +1007,7 @@ fun Video2PostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost, {})
+        PostDetailsView(context, samplePost, {}, {})
     }
 }
 
@@ -1041,6 +1043,6 @@ fun PdfPostDetailsPreview() {
     )
 
     ArtisTheme {
-        PostDetailsView(context, samplePost, {})
+        PostDetailsView(context, samplePost, {}, {})
     }
 }
